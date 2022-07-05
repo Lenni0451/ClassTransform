@@ -2,6 +2,8 @@ package net.lenni0451.classtransform.transformer;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
+import net.lenni0451.classtransform.test.SCalculator;
+import net.lenni0451.classtransform.test.VCalculator;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -16,6 +18,8 @@ public abstract class ATransformerTest {
     protected IClassProvider classProvider;
     protected TransformerManager transformerManager;
     protected Map<String, IInjectionTarget> injectionTargets;
+    protected ClassNode staticCalculatorClass;
+    protected ClassNode virtualCalculatorClass;
 
     @BeforeEach
     public void setUp() {
@@ -28,6 +32,8 @@ public abstract class ATransformerTest {
         } catch (Throwable t) {
             throw new RuntimeException("Unable to get injection targets", t);
         }
+        this.staticCalculatorClass = ASMUtils.fromBytes(this.classProvider.getClass(SCalculator.class.getName()));
+        this.virtualCalculatorClass = ASMUtils.fromBytes(this.classProvider.getClass(VCalculator.class.getName()));
     }
 
     protected ClassNode getTransformerClass(final String name) {

@@ -2,9 +2,9 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
+import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.transformer.ATransformerTest;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,29 +19,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class CASMTransformerTest extends ATransformerTest {
 
     private final CASMTransformer transformer = new CASMTransformer();
-    private ClassNode stringClass;
-
-    @BeforeEach
-    public void setUp() {
-        super.setUp();
-
-        this.stringClass = ASMUtils.fromBytes(this.classProvider.getClass("java/lang/String"));
-    }
 
     @Test
     @DisplayName("Method isolation")
     public void methodIsolation() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMTransformerTest$IsolationTestTransformer");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.stringClass, transformer);
-        assertEquals(0, this.stringClass.fields.size());
+        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        assertEquals(0, this.staticCalculatorClass.fields.size());
     }
 
     @Test
     @DisplayName("Modify method node")
     public void modifyMethodNode() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMTransformerTest$ModifyMethodNodeTestTransformer");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.stringClass, transformer);
-        MethodNode method = ASMUtils.getMethod(this.stringClass, "equals", "(Ljava/lang/Object;)Z");
+        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        MethodNode method = ASMUtils.getMethod(this.staticCalculatorClass, "add", "(II)I");
         assertNotNull(method);
         assertEquals(2, method.instructions.size());
         assertEquals(Opcodes.ICONST_0, method.instructions.get(0).getOpcode());
@@ -56,11 +48,11 @@ class CASMTransformerTest extends ATransformerTest {
     @DisplayName("Throw if using invalid operations")
     public void throwIfUsingInvalidOperations(final String transformerName) {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMTransformerTest$" + transformerName);
-        assertThrows(IllegalStateException.class, () -> this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.stringClass, transformer));
+        assertThrows(IllegalStateException.class, () -> this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer));
     }
 
 
-    @CTransformer(String.class)
+    @CTransformer(SCalculator.class)
     private static class IsolationTestTransformer {
 
         @CASM
@@ -70,10 +62,10 @@ class CASMTransformerTest extends ATransformerTest {
 
     }
 
-    @CTransformer(String.class)
+    @CTransformer(SCalculator.class)
     private static class ModifyMethodNodeTestTransformer {
 
-        @CASM("equals(Ljava/lang/Object;)Z")
+        @CASM("add(II)I")
         public static void clearFields(MethodNode methodNode) {
             methodNode.instructions.clear();
             methodNode.tryCatchBlocks.clear();
@@ -83,7 +75,7 @@ class CASMTransformerTest extends ATransformerTest {
 
     }
 
-    @CTransformer(String.class)
+    @CTransformer(SCalculator.class)
     private static class LambdaTestTransformer {
 
         @CASM
@@ -93,7 +85,7 @@ class CASMTransformerTest extends ATransformerTest {
 
     }
 
-    @CTransformer(String.class)
+    @CTransformer(SCalculator.class)
     private static class FieldsTestTransformer {
 
         private static String name;

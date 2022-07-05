@@ -1,0 +1,34 @@
+package net.lenni0451.classtransform.test;
+
+import java.util.Random;
+
+public class VCalculator {
+
+    private double pi = Math.PI;
+
+    public int add(final int i1, final int i2) {
+        return i1 + i2;
+    }
+
+    public int subtract(final int i1, final int i2) {
+        return i1 - i2;
+    }
+
+    public double pow2(final int i) {
+        return Math.pow(i, 2);
+    }
+
+    public int rint() {
+        Random rnd = new Random();
+        return rnd.nextInt();
+    }
+
+    public double getPi() {
+        return this.pi;
+    }
+
+    public void setPi(final double pi) {
+        this.pi = pi;
+    }
+
+}
