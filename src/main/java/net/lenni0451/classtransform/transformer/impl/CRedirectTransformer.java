@@ -5,10 +5,7 @@ import net.lenni0451.classtransform.annotations.injection.CRedirect;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectGetField;
-import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
-import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectPutField;
-import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
+import net.lenni0451.classtransform.transformer.impl.credirect.*;
 import net.lenni0451.classtransform.transformer.types.ARemovingTransformer;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -33,6 +30,7 @@ public class CRedirectTransformer extends ARemovingTransformer<CRedirect> {
         this.redirectTargets.put("INVOKE", new CRedirectInvoke());
         this.redirectTargets.put("GETFIELD", new CRedirectGetField());
         this.redirectTargets.put("PUTFIELD", new CRedirectPutField());
+        this.redirectTargets.put("NEW", new CRedirectNew());
     }
 
     @Override
@@ -57,6 +55,10 @@ public class CRedirectTransformer extends ARemovingTransformer<CRedirect> {
                 List<AbstractInsnNode> injectionInstructions = iInjectionTarget.getTargets(injectionTargets, target, annotation.target(), annotation.slice());
                 if (injectionInstructions == null) {
                     throw new TransformerException(transformerMethod, transformer, "has invalid member declaration '" + annotation.target().target() + "'")
+                            .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
+                }
+                if (injectionInstructions.isEmpty()) {
+                    throw new TransformerException(transformerMethod, transformer, "target '" + annotation.target().target() + "' could not be found")
                             .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
                 }
 

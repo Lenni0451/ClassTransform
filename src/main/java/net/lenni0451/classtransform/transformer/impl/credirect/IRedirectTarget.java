@@ -1,13 +1,39 @@
 package net.lenni0451.classtransform.transformer.impl.credirect;
 
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
+import net.lenni0451.classtransform.utils.ASMUtils;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.*;
 
 import java.util.List;
 
 public interface IRedirectTarget {
 
     void inject(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final List<AbstractInsnNode> targetNodes);
+
+    default InsnList[] getLoadStoreOpcodes(final String owner, final String desc, int freeVarIndex) {
+        InsnList storeOpcodes = new InsnList();
+        InsnList loadOpcodes = new InsnList();
+
+        if (owner != null) {
+            Type ownerType = Type.getObjectType(owner);
+            storeOpcodes.add(new VarInsnNode(ASMUtils.getStoreOpcode(ownerType), freeVarIndex));
+            loadOpcodes.add(new VarInsnNode(ASMUtils.getLoadOpcode(ownerType), freeVarIndex));
+            freeVarIndex += ownerType.getSize();
+        }
+
+        Type[] argumentTypes = Type.getArgumentTypes(desc);
+        for (Type argumentType : argumentTypes) {
+            int storeOpcode = ASMUtils.getStoreOpcode(argumentType);
+            int loadOpcode = ASMUtils.getLoadOpcode(argumentType);
+
+            storeOpcodes.add(new VarInsnNode(storeOpcode, freeVarIndex));
+            loadOpcodes.add(new VarInsnNode(loadOpcode, freeVarIndex));
+            freeVarIndex += argumentType.getSize();
+        }
+
+        InsnList reversedStoreOpcodes = new InsnList();
+        for (int i = storeOpcodes.size() - 1; i >= 0; i--) reversedStoreOpcodes.add(storeOpcodes.get(i));
+        return new InsnList[]{reversedStoreOpcodes, loadOpcodes};
+    }
 
 }

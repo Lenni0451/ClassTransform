@@ -5,8 +5,8 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TypeInsnNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +19,9 @@ public class NewTarget implements IInjectionTarget {
         List<AbstractInsnNode> targets = new ArrayList<>();
         int i = 0;
         for (AbstractInsnNode instruction : this.getSlice(injectionTargets, method, slice)) {
-            if (instruction.getOpcode() != Opcodes.NEW) continue;
-            TypeInsnNode typeInsnNode = (TypeInsnNode) instruction;
-            if (!typeInsnNode.desc.equals(target.value())) continue;
+            if (instruction.getOpcode() != Opcodes.INVOKESPECIAL) continue;
+            MethodInsnNode methodInsnNode = (MethodInsnNode) instruction;
+            if (!methodInsnNode.owner.equals(target.target())) continue;
             if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
             i++;
         }
