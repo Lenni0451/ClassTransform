@@ -64,23 +64,23 @@ public class Remapper {
         FieldVisitor newNode = holder.visitField(fieldNode.access, remapper.mapFieldName(sourceName, fieldNode.name, fieldNode.desc), remapper.mapDesc(fieldNode.desc), remapper.mapSignature(fieldNode.signature, true), fieldNode.value == null ? null : remapper.mapValue(fieldNode.value));
         FieldRemapper fieldRemapper = new FieldRemapper(newNode, remapper);
         if (fieldNode.visibleTypeAnnotations != null) {
-            for (TypeAnnotationNode visibleTypeAnnotation : fieldNode.visibleTypeAnnotations) {
-                fieldRemapper.visitTypeAnnotation(visibleTypeAnnotation.typeRef, visibleTypeAnnotation.typePath, visibleTypeAnnotation.desc, true);
+            for (TypeAnnotationNode annotation : fieldNode.visibleTypeAnnotations) {
+                annotation.accept(fieldRemapper.visitTypeAnnotation(annotation.typeRef, annotation.typePath, annotation.desc, true));
             }
         }
         if (fieldNode.invisibleTypeAnnotations != null) {
-            for (TypeAnnotationNode visibleTypeAnnotation : fieldNode.invisibleTypeAnnotations) {
-                fieldRemapper.visitTypeAnnotation(visibleTypeAnnotation.typeRef, visibleTypeAnnotation.typePath, visibleTypeAnnotation.desc, true);
+            for (TypeAnnotationNode annotation : fieldNode.invisibleTypeAnnotations) {
+                annotation.accept(fieldRemapper.visitTypeAnnotation(annotation.typeRef, annotation.typePath, annotation.desc, false));
             }
         }
         if (fieldNode.visibleAnnotations != null) {
-            for (AnnotationNode visibleAnnotation : fieldNode.visibleAnnotations) {
-                fieldRemapper.visitAnnotation(visibleAnnotation.desc, true);
+            for (AnnotationNode annotation : fieldNode.visibleAnnotations) {
+                annotation.accept(fieldRemapper.visitAnnotation(annotation.desc, true));
             }
         }
         if (fieldNode.invisibleAnnotations != null) {
-            for (AnnotationNode visibleAnnotation : fieldNode.invisibleAnnotations) {
-                fieldRemapper.visitAnnotation(visibleAnnotation.desc, false);
+            for (AnnotationNode annotation : fieldNode.invisibleAnnotations) {
+                annotation.accept(fieldRemapper.visitAnnotation(annotation.desc, false));
             }
         }
     }
