@@ -33,10 +33,11 @@ public class FieldTarget implements IInjectionTarget {
         MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(target.target());
         if (memberDeclaration == null) return null;
 
+        boolean allAccess = this.nonStaticAccess == -1 && this.staticAccess == -1;
         int i = 0;
         for (AbstractInsnNode instruction : this.getSlice(injectionTargets, method, slice)) {
             if (!(instruction instanceof FieldInsnNode)) continue;
-            if (this.nonStaticAccess != instruction.getOpcode() && this.staticAccess != instruction.getOpcode()) continue;
+            if (!allAccess && (this.nonStaticAccess != instruction.getOpcode() && this.staticAccess != instruction.getOpcode())) continue;
             FieldInsnNode fieldInsnNode = (FieldInsnNode) instruction;
             if (fieldInsnNode.owner.equals(memberDeclaration.getOwner()) && fieldInsnNode.name.equals(memberDeclaration.getName()) && fieldInsnNode.desc.equals(memberDeclaration.getDesc())) {
                 if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
