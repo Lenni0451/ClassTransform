@@ -94,11 +94,7 @@ public class Remapper {
      * @return The remapped {@link ClassNode}
      */
     public static ClassNode remap(final String sourceName, final String targetName, final ClassNode node) {
-        MapRemapper remapper = new MapRemapper(sourceName, targetName);
-        ClassNode remappedNode = new ClassNode();
-        ClassRemapper classRemapper = new ClassRemapper(remappedNode, remapper);
-        node.accept(classRemapper);
-        return remappedNode;
+        return remap(node, new MapRemapper(sourceName, targetName));
     }
 
     /**
