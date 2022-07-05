@@ -13,4 +13,15 @@ dependencies {
     implementation 'org.ow2.asm:asm:9.3'
     implementation 'org.ow2.asm:asm-commons:9.3'
     implementation 'org.ow2.asm:asm-tree:9.3'
+
+    testImplementation platform('org.junit:junit-bom:5.8.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+    maxParallelForks Runtime.runtime.availableProcessors()
 }

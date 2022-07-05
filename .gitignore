@@ -3,6 +3,3 @@
 /.idea/
 /out/
 *.iml
-
-# My tests require some private libs...
-src/test/
