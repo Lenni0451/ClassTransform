@@ -20,6 +20,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -92,14 +93,15 @@ public class CASMTransformer extends ARemovingTransformer<CASM> {
                 init.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
                 init.visitInsn(Opcodes.RETURN);
             }
-            Remapper.remapAndAdd(transformer, classNode, transformerMethod);
-            transformerMethod.accept(new MethodVisitor(Opcodes.ASM9) {
+            List<MethodNode> methodsToCopy = new ArrayList<>();
+            methodsToCopy.add(transformerMethod);
+            MethodVisitor methodVisitor = new MethodVisitor(Opcodes.ASM9) {
                 @Override
                 public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
                     if (owner.equals(transformer.name)) {
                         MethodNode method = ASMUtils.getMethod(transformer, name, desc);
                         if (method == null) throw new IllegalStateException("CASM transformer called method '" + name + "' not found");
-                        Remapper.remapAndAdd(transformer, classNode, method);
+                        methodsToCopy.add(method);
                     }
                 }
 
@@ -111,22 +113,28 @@ public class CASMTransformer extends ARemovingTransformer<CASM> {
                 @Override
                 public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
                     if (bootstrapMethodHandle.getOwner().equals("java/lang/invoke/LambdaMetafactory")) {
-                        throw new IllegalStateException("CASM transformer must not access LambdaMetafactory");
+                        throw new IllegalStateException("CASM transformer can not access LambdaMetafactory");
 
-                        //TODO: Maybe find out why a ClassNotFoundException is thrown here
-                        //I don't see why it is thrown. Maybe the ClassLoader of the anonymous class is unable to find the class when executing even tho it is the same class
-
-//                    Handle handle = (Handle) bootstrapMethodArguments[1];
+                        //LambdaMetaFactory can not access the anonymous class, so we sadly can't use it here
+//                        Handle handle = (Handle) bootstrapMethodArguments[1];
 //
-//                    if (!handle.getOwner().equals(transformer.name)) {
-//                        throw new IllegalStateException("CASM transformer lambda target class '" + handle.getOwner() + "' must be the same as the transformer class");
-//                    }
-//                    MethodNode method = ASMUtils.getMethod(transformer, handle.getName(), handle.getDesc());
-//                    if (method == null) throw new IllegalStateException("CASM transformer lambda target method '" + handle.getName() + "' not found");
-//                    Remapper.remapAndAdd(transformer, classNode, method);
+//                        if (!handle.getOwner().equals(transformer.name)) {
+//                            throw new IllegalStateException("CASM transformer lambda target class '" + handle.getOwner() + "' must be the same as the transformer class");
+//                        }
+//                        MethodNode method = ASMUtils.getMethod(transformer, handle.getName(), handle.getDesc());
+//                        if (method == null) throw new IllegalStateException("CASM transformer lambda target method '" + handle.getName() + "' not found");
+//                        methodsToCopy.add(method);
                     }
                 }
-            });
+            };
+            while (!methodsToCopy.isEmpty()) {
+                List<MethodNode> methods = new ArrayList<>(methodsToCopy);
+                methodsToCopy.clear();
+                for (MethodNode methodNode : methods) {
+                    Remapper.remapAndAdd(transformer, classNode, methodNode);
+                    methodNode.accept(methodVisitor);
+                }
+            }
 
             return ClassDefiner.defineAnonymousClass(ASMUtils.toBytes(classNode, classProvider));
         } catch (Throwable t) {
