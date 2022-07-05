@@ -11,7 +11,7 @@ import org.objectweb.asm.tree.ClassNode;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-public class ATransformerTest {
+public abstract class ATransformerTest {
 
     protected IClassProvider classProvider;
     protected TransformerManager transformerManager;
@@ -21,7 +21,6 @@ public class ATransformerTest {
     public void setUp() {
         this.classProvider = new BasicClassProvider();
         this.transformerManager = new TransformerManager(this.classProvider);
-
         try {
             Field f = TransformerManager.class.getDeclaredField("injectionTargets");
             f.setAccessible(true);
