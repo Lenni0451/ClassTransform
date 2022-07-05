@@ -16,12 +16,12 @@ class ClassTreeTest {
         ClassTree tree = ClassTree.getTreePart(new BasicClassProvider(), "java.lang.reflect.Method");
         Set<String> superClasses = tree.getSuperClasses();
         assertEquals(6, superClasses.size());
-        assertTrue(superClasses.contains("java/lang/Object"));
-        assertTrue(superClasses.contains("java/lang/reflect/Executable"));
-        assertTrue(superClasses.contains("java/lang/reflect/AnnotatedElement"));
-        assertTrue(superClasses.contains("java/lang/reflect/GenericDeclaration"));
-        assertTrue(superClasses.contains("java/lang/reflect/AccessibleObject"));
-        assertTrue(superClasses.contains("java/lang/reflect/Member"));
+        assertTrue(superClasses.contains("java.lang.Object"));
+        assertTrue(superClasses.contains("java.lang.reflect.Executable"));
+        assertTrue(superClasses.contains("java.lang.reflect.AnnotatedElement"));
+        assertTrue(superClasses.contains("java.lang.reflect.GenericDeclaration"));
+        assertTrue(superClasses.contains("java.lang.reflect.AccessibleObject"));
+        assertTrue(superClasses.contains("java.lang.reflect.Member"));
     }
 
 }

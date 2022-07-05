@@ -40,17 +40,15 @@ public class ClassTree {
         this.name = classNode.name.replace("/", ".");
         this.superClass = classNode.superName;
         this.superClasses = new HashSet<>();
-        if (this.superClass != null) this.superClasses.add(this.superClass);
-        if (classNode.interfaces != null) this.superClasses.addAll(classNode.interfaces);
+        if (this.superClass != null) this.superClasses.add(this.superClass.replace("/", "."));
+        if (classNode.interfaces != null) {
+            for (String inter : classNode.interfaces) this.superClasses.add(inter.replace("/", "."));
+        }
         this.modifiers = classNode.access;
     }
 
     public String getName() {
         return this.name;
-    }
-
-    public String getSuperClass() {
-        return this.superClass;
     }
 
     public ClassTree parseSuperClass(final IClassProvider classProvider) {
