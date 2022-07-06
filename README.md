@@ -38,14 +38,14 @@ There are different types of transformers available:
 ### Annotations
 The following injection annotations are available:
 
-| Annotation Type | Description                                                                          |
-|-----------------|--------------------------------------------------------------------------------------|
-| CASM            | The access to the ClassNode of the entire class or a MethodNode of the wanted method |
-| CInject         | Inject into any method at the given targets                                          |
-| CModifyConstant | Modify a constant value in a method (null/int/long/float/double/string)              |
-| COverride       | Override any method in the target class                                              |
-| CRedirect       | Redirect a method call or a field get/put to your injection method                   |
-| CWrapCatch      | Wrap a try-catch block around the entire method and handle the exception             |
+| Annotation Type                     | Description                                                                          |
+|-------------------------------------|--------------------------------------------------------------------------------------|
+| [CASM](#CASM)                       | The access to the ClassNode of the entire class or a MethodNode of the wanted method |
+| [CInject](#CInject)                 | Inject into any method at the given targets                                          |
+| [CModifyConstant](#CModifyConstant) | Modify a constant value in a method (null/int/long/float/double/string)              |
+| [COverride](#COverride)             | Override any method in the target class                                              |
+| [CRedirect](#CRedirect)             | Redirect a method call, a field get/put or new object to your injection method       |
+| [CWrapCatch](#CWrapCatch)           | Wrap a try-catch block around the entire method and handle the exception             |
 
 The following util annotations are available:
 
@@ -100,38 +100,102 @@ public class TestTransformer {
 ````
 
 ### Annotation Examples
-<details>
-    <summary>CTransformer</summary>
+#### CASM
+With the ``CASM`` annotation you can access the ClassNode of the entire class or a MethodNode of the wanted method.  
+Example:
+````java
+@CASM
+public void test(ClassNode classNode) {
+    System.out.println(classNode.name);
+}
 
-    TODO: example here
-</details>
-<details>
-    <summary>CASM</summary>
+@CASM("toString")
+public void test(MethodNode methodNode) {
+    System.out.println(methodNode.name);
+}
+````
 
-    TODO: example here
-</details>
-<details>
-    <summary>CInject</summary>
+#### CInject
+With the ``CInject`` annotation you can inject into any method at the given targets.  
+Example:
+````java
+@CInject(method = "equals(Ljava/lang/Object;)Z",
+        target = @CTarget(
+                value = "THROW",
+                shift = CTarget.Shift.BEFORE,
+                ordinal = 1
+        ),
+        slice = @CSlice(
+                from = @CTarget(value = "INVOKE", target = "Ljava/util/Objects;equals(Ljava/lang/Object;Ljava/lang/Object;)Z")
+        ),
+        cancellable = true)
+public void test(Object other, InjectionCallback callback) {
+    System.out.println("Checking equals: " + other);
+}
+````
+This example method injects into the ``equals`` method of the given class.  
+It injects a method call above the second ``throw`` instruction after the first ``Objects#equals`` call.  
+The called method is your injection method, and you can cancel the rest of the original method by using the ``InjectionCallback``.  
+In this case the ``equals`` method must return a boolean. So you have to call ``InjectionCallback#setReturnValue`` with a boolean.  
+If your inject target is ``RETURN/TAIL/THROW`` you can use ``InjectionCallback#getReturnValue`` to get the current return value/thrown exception.
 
-    TODO: example here
-</details>
-<details>
-    <summary>CModifyConstant</summary>
+#### CModifyConstant
+With the ``CModifyConstant`` annotation you can modify a constant value in a method (null/int/long/float/double/string).  
+Example:
+````java
+@CModifyConstant(
+        method = "log",
+        stringValue = "[INFO]")
+public String infoToFatal(String originalConstant) {
+    return "[FATAL]";
+}
+````
+This example method modifies the string constant value of the ``log`` method.  
+The method is called with the original constant value as argument and must return the new constant value.  
+Only one constant value can be modified at a time.
 
-    TODO: example here
-</details>
-<details>
-    <summary>COverride</summary>
+#### COverride
+With the ``COverride`` annotation you can override any method in the target class.  
+Example:
+````java
+@COverride
+public String toString() {
+    return "Test";
+}
+````
+This example method overrides the ``toString`` method of the given class.  
+The arguments and return type of the overridden method need to be the same.  
+You can also set the target method name as a parameter in the annotation.
 
-    TODO: example here
-</details>
-<details>
-    <summary>CRedirect</summary>
+#### CRedirect
+With the ``CRedirect`` annotation you can redirect a method call, a field get/put or new object to your injection method.
+Example:
+````java
+@CRedirect(
+        method = "getNewRandom",
+        target = @CTarget(
+                value = "NEW",
+                target = "java/util/Random"
+        ),
+        slice = @CSlice(
+                to = @CTarget("RETURN")
+        ))
+public Random makeSecure() {
+    return new SecureRandom();
+}
+````
+This example method redirects the ``new Random()`` call to the ``makeSecure`` method.  
+This replaces the original ``Random`` instance with a ``Secure Random``.
 
-    TODO: example here
-</details>
-<details>
-    <summary>CWrapCatch</summary>
-
-    TODO: example here
-</details>
+#### CWrapCatch
+With the ``CWrapCatch`` annotation you can wrap a try-catch block around the entire method and handle the exception.
+````java
+@CWrapCatch("getResponseCode")
+public int dontThrow(IOException e) {
+    return 404;
+}
+````
+This example method wraps the ``getResponseCode`` method in a try-catch block and handles the exception.  
+The exception in the parameter is the exception catched by the try-catch block.  
+The return type must be the one of the original method.  
+You can even re-throw the exception or throw a new one.
