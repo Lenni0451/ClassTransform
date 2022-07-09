@@ -14,6 +14,11 @@ public class VCalculator {
         return i1 - i2;
     }
 
+    public double divide(final double d1, final double d2) {
+        if (d2 == 0) throw new ArithmeticException("Division by zero");
+        return d1 / d2;
+    }
+
     public double pow2(final int i) {
         return Math.pow(i, 2);
     }
