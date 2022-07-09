@@ -43,7 +43,7 @@ class CWrapCatchTransformerTest extends ATransformerTest {
     private static class WrapStaticTransformer {
 
         @CWrapCatch("divide")
-        public static double zeroDivisionIsZero(ArithmeticException e) {
+        public static double zeroDivisionIsInfinite(ArithmeticException e) {
             return Double.POSITIVE_INFINITY;
         }
 
@@ -53,7 +53,7 @@ class CWrapCatchTransformerTest extends ATransformerTest {
     private static class WrapVirtualTransformer {
 
         @CWrapCatch("divide")
-        public double zeroDivisionIsZero(ArithmeticException e) {
+        public double zeroDivisionIsInfinite(ArithmeticException e) {
             return Double.POSITIVE_INFINITY;
         }
 

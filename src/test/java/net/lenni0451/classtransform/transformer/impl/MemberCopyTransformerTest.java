@@ -50,7 +50,7 @@ class MemberCopyTransformerTest extends ATransformerTest {
     @CTransformer(SCalculator.class)
     private static class StaticMemberCopyTest {
 
-        @CShadow("pi")
+        @CShadow
         private static double pi = Math.E;
 
     }
@@ -58,7 +58,7 @@ class MemberCopyTransformerTest extends ATransformerTest {
     @CTransformer(VCalculator.class)
     private static class VirtualMemberCopyTest {
 
-        @CShadow("pi")
+        @CShadow
         private double pi = Math.E;
 
     }

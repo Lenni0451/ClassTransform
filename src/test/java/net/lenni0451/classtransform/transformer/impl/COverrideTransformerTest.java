@@ -42,7 +42,7 @@ class COverrideTransformerTest extends ATransformerTest {
     @CTransformer(SCalculator.class)
     private static class StaticOverrideTest {
 
-        @COverride("getPi")
+        @COverride
         public static double getPi() {
             return "SPI".hashCode();
         }
@@ -52,7 +52,7 @@ class COverrideTransformerTest extends ATransformerTest {
     @CTransformer(VCalculator.class)
     private static class VirtualOverrideTest {
 
-        @COverride("getPi")
+        @COverride
         public double getPi() {
             return "VPI".hashCode();
         }
