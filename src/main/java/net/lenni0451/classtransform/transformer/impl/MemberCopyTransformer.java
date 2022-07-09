@@ -16,14 +16,8 @@ public class MemberCopyTransformer extends ATransformer {
 
     @Override
     public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+        this.mergeInitializers(transformedClass, transformer);
         for (MethodNode method : transformer.methods) {
-            boolean isStaticBlock = method.name.equals("<clinit>");
-            if (isStaticBlock) this.createStaticBlock(transformedClass);
-            if (method.name.equals("<init>") || isStaticBlock) {
-                for (MethodNode targetMethod : transformedClass.methods) {
-                    if (targetMethod.name.equals(method.name) && targetMethod.desc.equals(method.desc)) this.copyInitializers(transformer, method, transformedClass, targetMethod);
-                }
-            }
             if (method.name.startsWith("<")) continue;
             if (ASMUtils.getMethod(transformedClass, method.name, method.desc) != null) {
                 throw new IllegalStateException("Method '" + method.name + method.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "' and does not override it");
@@ -43,6 +37,26 @@ public class MemberCopyTransformer extends ATransformer {
                 if (!interfaces.contains(anInterface)) interfaces.add(anInterface);
             }
         }
+    }
+
+    private void mergeInitializers(ClassNode transformedClass, ClassNode transformer) {
+        Map<MethodNode, MethodNode> initializers = new HashMap<>();
+        List<MethodNode> unresolvedInitializers = new ArrayList<>();
+        for (MethodNode method : transformedClass.methods) {
+            if (!method.name.equals("<init>")) continue;
+
+            MethodNode targetMethod = ASMUtils.getMethod(transformer, method.name, method.desc);
+            if (targetMethod != null) initializers.put(targetMethod, method);
+            else unresolvedInitializers.add(method);
+        }
+        if (!unresolvedInitializers.isEmpty()) {
+            MethodNode emptyConstructor = ASMUtils.getMethod(transformer, "<init>", "()V");
+            if (emptyConstructor == null) throw new IllegalStateException("Unable to merge all constructors in target class '" + transformedClass.name + "'");
+            for (MethodNode unresolvedInitializer : unresolvedInitializers) initializers.put(emptyConstructor, unresolvedInitializer);
+        }
+        MethodNode staticBlock = ASMUtils.getMethod(transformer, "<clinit>", "()V");
+        if (staticBlock != null) initializers.put(staticBlock, this.createStaticBlock(transformedClass));
+        for (Map.Entry<MethodNode, MethodNode> entry : initializers.entrySet()) this.copyInitializers(transformer, entry.getKey(), transformedClass, entry.getValue());
     }
 
     private void copyInitializers(final ClassNode fromClass, final MethodNode from, final ClassNode toClass, final MethodNode to) {
@@ -101,15 +115,17 @@ public class MemberCopyTransformer extends ATransformer {
         return tempClassHolder.methods.get(0).instructions;
     }
 
-    private void createStaticBlock(final ClassNode transformedClass) {
+    private MethodNode createStaticBlock(final ClassNode transformedClass) {
         for (MethodNode method : transformedClass.methods) {
-            if (method.name.equals("<clinit>")) return;
+            if (method.name.equals("<clinit>")) return method;
         }
 
         MethodVisitor staticBlock = transformedClass.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
         staticBlock.visitCode();
         staticBlock.visitInsn(Opcodes.RETURN);
         staticBlock.visitEnd();
+
+        return (MethodNode) staticBlock;
     }
 
 }
