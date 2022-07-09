@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.injection.CRedirect;
+import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
@@ -38,8 +39,7 @@ public class CRedirectTransformer extends ARemovingTransformer<CRedirect> {
         IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         IRedirectTarget iRedirectTarget = this.redirectTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         if (iInjectionTarget == null || iRedirectTarget == null) {
-            throw new TransformerException(transformerMethod, transformer, "has invalid redirect target")
-                    .help("e.g. " + this.redirectTargets.keySet() + " Ljava/lang/Object;toString()Ljava/lang/String;");
+            throw new InvalidTargetException(transformerMethod, transformer, annotation.target().value(), this.redirectTargets.keySet());
         }
 
         for (String targetCombi : annotation.method()) {
