@@ -40,6 +40,11 @@ public @interface CTarget {
      */
     int ordinal() default -1;
 
+    /**
+     * If the target is optional or an exception should be thrown if not found
+     */
+    boolean optional() default false;
+
 
     enum Shift {
         /**

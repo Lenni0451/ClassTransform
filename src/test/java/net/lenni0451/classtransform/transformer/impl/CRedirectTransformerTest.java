@@ -4,7 +4,7 @@ import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CRedirect;
-import net.lenni0451.classtransform.exceptions.TransformerException;
+import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.test.VCalculator;
@@ -25,7 +25,7 @@ class CRedirectTransformerTest extends ATransformerTest {
     @DisplayName("Redirect invalid target")
     public void redirectInvalidTarget() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectTransformerTest$SInvalidTestTransformer");
-        assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer));
+        assertThrows(InvalidTargetException.class, () -> this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer));
     }
 
     @Test

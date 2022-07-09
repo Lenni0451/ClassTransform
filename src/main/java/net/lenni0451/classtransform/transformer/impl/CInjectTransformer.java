@@ -63,24 +63,26 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             IInjectionTarget injectionTarget = injectionTargets.get(injectTarget.value().toUpperCase(Locale.ROOT));
             if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, injectTarget.target(), injectionTargets.keySet());
 
-            {
-                List<AbstractInsnNode> targetInstructions = injectionTarget.getTargets(injectionTargets, target, injectTarget, annotation.slice());
-                CTarget.Shift shift = injectionTarget.getShift(injectTarget);
-                if (targetInstructions == null) {
-                    throw new TransformerException(transformerMethod, transformer, "has invalid " + injectTarget.value() + " member declaration")
-                            .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
+            List<AbstractInsnNode> targetInstructions = injectionTarget.getTargets(injectionTargets, target, injectTarget, annotation.slice());
+            CTarget.Shift shift = injectionTarget.getShift(injectTarget);
+            if (targetInstructions == null) {
+                throw new TransformerException(transformerMethod, transformer, "has invalid " + injectTarget.value() + " member declaration")
+                        .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
+            }
+            if (targetInstructions.isEmpty() && !injectTarget.optional()) {
+                throw new TransformerException(transformerMethod, transformer, "target '" + injectTarget.value() + "' could not be found")
+                        .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
+            }
+            for (AbstractInsnNode instruction : targetInstructions) {
+                InsnList instructions;
+                if (this.captureTargets.contains(injectTarget.value().toUpperCase(Locale.ROOT))) {
+                    instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), !hasCallback);
+                } else {
+                    instructions = this.getCallInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), !hasCallback);
                 }
-                for (AbstractInsnNode instruction : targetInstructions) {
-                    InsnList instructions;
-                    if (this.captureTargets.contains(injectTarget.value().toUpperCase(Locale.ROOT))) {
-                        instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), !hasCallback);
-                    } else {
-                        instructions = this.getCallInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), !hasCallback);
-                    }
 
-                    if (shift == CTarget.Shift.BEFORE) target.instructions.insertBefore(instruction, instructions);
-                    else target.instructions.insert(instruction, instructions);
-                }
+                if (shift == CTarget.Shift.BEFORE) target.instructions.insertBefore(instruction, instructions);
+                else target.instructions.insert(instruction, instructions);
             }
         }
     }

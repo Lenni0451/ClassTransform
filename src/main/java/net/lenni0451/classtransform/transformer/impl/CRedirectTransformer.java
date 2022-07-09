@@ -57,7 +57,7 @@ public class CRedirectTransformer extends ARemovingTransformer<CRedirect> {
                     throw new TransformerException(transformerMethod, transformer, "has invalid member declaration '" + annotation.target().target() + "'")
                             .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
                 }
-                if (injectionInstructions.isEmpty()) {
+                if (injectionInstructions.isEmpty() && !annotation.target().optional()) {
                     throw new TransformerException(transformerMethod, transformer, "target '" + annotation.target().target() + "' could not be found")
                             .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
                 }
