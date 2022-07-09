@@ -23,7 +23,7 @@ public class OpcodeTarget implements IInjectionTarget {
         int i = 0;
         for (AbstractInsnNode instruction : this.getSlice(injectionTargets, method, slice)) {
             if (instruction.getOpcode() != opcode) continue;
-            if (i == -1 || i == target.ordinal()) targets.add(instruction);
+            if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
             i++;
         }
         return targets;

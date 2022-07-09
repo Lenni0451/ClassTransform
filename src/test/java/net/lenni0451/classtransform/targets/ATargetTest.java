@@ -38,6 +38,7 @@ public abstract class ATargetTest {
         this.method.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, "Test", "static", "I"));
         this.method.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, "Test", "virtual", "Z"));
         this.method.instructions.add(new FieldInsnNode(Opcodes.PUTFIELD, "Test", "virtual", "Z"));
+        this.method.instructions.add(new InsnNode(Opcodes.IRETURN));
         this.method.instructions.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "Test", "invokeInterface", "()V"));
         this.method.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "Test", "invokeVirtual", "(Ljava/lang/String;)Z"));
         this.method.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "Test", "invokeSpecial", "()Ljava/io/FileInputStream;"));

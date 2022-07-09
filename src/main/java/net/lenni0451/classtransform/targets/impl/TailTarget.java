@@ -7,7 +7,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -15,12 +15,11 @@ public class TailTarget implements IInjectionTarget {
 
     @Override
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, CSlice slice) {
-        List<AbstractInsnNode> targets = new ArrayList<>();
         for (int i = method.instructions.size() - 1; i >= 0; i--) {
             AbstractInsnNode instruction = method.instructions.get(i);
-            if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN) targets.add(instruction);
+            if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN) return Collections.singletonList(instruction);
         }
-        return targets;
+        return Collections.emptyList();
     }
 
     @Override

@@ -1,10 +1,11 @@
 package net.lenni0451.classtransform.utils;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.objectweb.asm.Type;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CodifierTest {
 
@@ -22,7 +23,7 @@ class CodifierTest {
                 .params(Type.getType("L" + parameter + ";"))
                 .exceptions(Type.getType("L" + exception + ";"))
                 .build();
-        Assertions.assertEquals(expected, generated);
+        assertEquals(expected, generated);
     }
 
 }
