@@ -25,3 +25,5 @@ test {
     }
     maxParallelForks Runtime.runtime.availableProcessors()
 }
+
+build.dependsOn(test)
