@@ -147,8 +147,9 @@ public class ASMUtils {
             for (int i = 0; i < parts.length; i++) combi += Pattern.quote(parts[i]) + (i == parts.length - 1 ? "" : ".*");
             if (endsWith) combi += ".*";
             combi += "$";
+            return combi;
         }
-        return combi;
+        return Pattern.quote(combi);
     }
 
     /**
