@@ -10,8 +10,8 @@ import java.util.regex.Pattern;
 public class SrgMapper extends AMapper {
 
     private static final String CLASS_LINE = "^CL: (\\S+) (\\S+)$";
-    private static final String FIELD_LINE = "^FD: (\\S+)\\/(\\S+) (\\S+)\\/(\\S+)$";
-    private static final String METHOD_LINE = "^MD: (\\S+)\\/(\\S+) (\\(\\S*\\)\\S+) (\\S+)\\/(\\S+) (\\(\\S*\\)\\S+)$";
+    private static final String FIELD_LINE = "^FD: (\\S+)/(\\S+) (\\S+)/(\\S+)$";
+    private static final String METHOD_LINE = "^MD: (\\S+)/(\\S+) (\\(\\S*\\)\\S+) (\\S+)/(\\S+) (\\(\\S*\\)\\S+)$";
 
     private final File mappingFile;
 
