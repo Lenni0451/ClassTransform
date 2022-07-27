@@ -97,7 +97,7 @@ public abstract class AMapper {
         for (Method method : annotation.getDeclaredMethods()) {
             AnnotationRemap remap = method.getDeclaredAnnotation(AnnotationRemap.class);
             if (remap == null) continue;
-            InfoFiller.fillInfo(holder, remap, method, values, target, transformer);
+            InfoFiller.fillInfo(this.remapper, holder, remap, method, values, target, transformer);
             if (this.remapper.isEmpty()) continue;
 
             Object value = values.get(method.getName());
@@ -129,45 +129,29 @@ public abstract class AMapper {
             } else {
                 if (value instanceof String) {
                     String s = (String) value;
-                    values.put(method.getName(), remap(remap.value(), s, target, transformer));
+                    values.put(method.getName(), remap(remap.value(), s));
                 } else if (value instanceof String[]) {
                     String[] strings = (String[]) value;
-                    for (int i = 0; i < strings.length; i++) strings[i] = remap(remap.value(), strings[i], target, transformer);
+                    for (int i = 0; i < strings.length; i++) strings[i] = remap(remap.value(), strings[i]);
                 } else if (value instanceof List) {
                     List<String> list = (List<String>) value;
-                    list.replaceAll(s -> remap(remap.value(), s, target, transformer));
+                    list.replaceAll(s -> remap(remap.value(), s));
                 }
             }
         }
     }
 
-    private String remap(final RemapType type, String s, final ClassNode target, final ClassNode transformer) {
+    private String remap(final RemapType type, String s) {
         switch (type) {
             case SHORT_MEMBER:
-                if (!s.contains("(") && !s.contains(":")) {
-                    List<String> members = this.remapper.getStartingMappings(target.name + "." + s + "(", target.name + "." + s + ":");
-                    if (members.isEmpty()) throw new IllegalStateException("No target member found for '" + s + "' from transformer '" + transformer.name + "'");
-                    else if (members.size() != 1) throw new IllegalStateException("Multiple target members found for '" + s + "' from transformer '" + transformer.name + "'");
-
-                    s = members.get(0).substring(target.name.length() + 1);
-                }
-                String name;
-                String desc;
-                if (s.contains("(")) {
-                    name = s.substring(0, s.indexOf("("));
-                    desc = s.substring(s.indexOf("("));
-                    return this.remapper.mapMethodName(target.name, name, desc) + this.remapper.mapMethodDesc(desc);
-                } else if (s.contains(":")) {
-                    name = s.substring(0, s.indexOf(":"));
-                    desc = s.substring(s.indexOf(":") + 1);
-                    return this.remapper.mapFieldName(target.name, name, desc) + this.remapper.map(Type.getType(desc).getInternalName());
-                } else {
-                    throw new IllegalStateException("Invalid member '" + s + "' from transformer '" + transformer.name + "'");
-                }
+                //See InfoFiller for remapping of short members
+                return s;
 
             case MEMBER:
                 MemberDeclaration member = ASMUtils.splitMemberDeclaration(s);
                 String owner = this.remapper.mapType(member.getOwner());
+                String name;
+                String desc;
                 if (member.isFieldMapping()) {
                     name = this.remapper.mapFieldName(owner, member.getName(), member.getDesc());
                     desc = this.remapper.mapDesc(member.getDesc());

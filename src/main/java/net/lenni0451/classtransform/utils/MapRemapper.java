@@ -81,4 +81,8 @@ public class MapRemapper extends Remapper {
         return this.mappings.get(key);
     }
 
+    public String mapReverse(final String mapping) {
+        return this.mappings.entrySet().stream().filter(e -> e.getValue().equals(mapping)).map(Map.Entry::getKey).findFirst().orElse(null);
+    }
+
 }
