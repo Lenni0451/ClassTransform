@@ -24,6 +24,8 @@ public class SrgMapper extends AMapper {
     @Override
     protected void init() throws Throwable {
         for (String line : this.readLines(this.mappingFile)) {
+            if (line.trim().isEmpty()) continue;
+
             String error = null;
             if (line.matches(CLASS_LINE)) {
                 Matcher m = Pattern.compile(CLASS_LINE).matcher(line);
