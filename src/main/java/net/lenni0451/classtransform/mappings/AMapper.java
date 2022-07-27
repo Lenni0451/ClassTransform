@@ -156,13 +156,14 @@ public abstract class AMapper {
                 if (s.contains("(")) {
                     name = s.substring(0, s.indexOf("("));
                     desc = s.substring(s.indexOf("("));
+                    return this.remapper.mapMethodName(target.name, name, desc) + this.remapper.mapMethodDesc(desc);
                 } else if (s.contains(":")) {
                     name = s.substring(0, s.indexOf(":"));
-                    desc = s.substring(s.indexOf(":"));
+                    desc = s.substring(s.indexOf(":") + 1);
+                    return this.remapper.mapFieldName(target.name, name, desc) + this.remapper.map(Type.getType(desc).getInternalName());
                 } else {
                     throw new IllegalStateException("Invalid member '" + s + "' from transformer '" + transformer.name + "'");
                 }
-                return this.remapper.mapMethodName(target.name, name, desc) + this.remapper.mapMethodDesc(desc);
 
             case MEMBER:
                 MemberDeclaration member = ASMUtils.splitMemberDeclaration(s);
