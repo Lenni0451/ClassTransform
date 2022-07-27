@@ -28,6 +28,10 @@ public class MapRemapper extends Remapper {
         this.mappings.put(owner + "." + name + desc, target);
     }
 
+    public void addFieldMapping(final String owner, final String name, final String target) {
+        this.addFieldMapping(owner, name, "", target);
+    }
+
     public void addFieldMapping(final String owner, final String name, final String desc, final String target) {
         this.mappings.put(owner + "." + name + ":" + desc, target);
     }
@@ -68,6 +72,7 @@ public class MapRemapper extends Remapper {
     @Override
     public String mapFieldName(final String owner, final String name, final String descriptor) {
         String remappedName = map(owner + '.' + name + ':' + descriptor);
+        if (remappedName == null) remappedName = map(owner + '.' + name + ":");
         return remappedName == null ? name : remappedName;
     }
 
