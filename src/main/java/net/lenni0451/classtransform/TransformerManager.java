@@ -267,7 +267,7 @@ public class TransformerManager implements ClassFileTransformer {
         if (className == null) return null;
         try {
             byte[] newBytes = transform(className.replace("/", "."), classfileBuffer);
-            if (newBytes != classfileBuffer) return newBytes;
+            if (!Arrays.equals(newBytes, classfileBuffer)) return newBytes;
         } catch (Throwable t) {
             t.printStackTrace();
         }
