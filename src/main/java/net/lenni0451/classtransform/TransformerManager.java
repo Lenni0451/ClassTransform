@@ -264,13 +264,14 @@ public class TransformerManager implements ClassFileTransformer {
      */
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        if (className == null) return classfileBuffer;
+        if (className == null) return null;
         try {
-            return transform(className.replace("/", "."), classfileBuffer);
+            byte[] newBytes = transform(className.replace("/", "."), classfileBuffer);
+            if (newBytes != classfileBuffer) return newBytes;
         } catch (Throwable t) {
             t.printStackTrace();
         }
-        return classfileBuffer;
+        return null;
     }
 
 }
