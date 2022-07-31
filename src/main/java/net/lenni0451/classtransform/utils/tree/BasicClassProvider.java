@@ -25,6 +25,7 @@ public class BasicClassProvider implements IClassProvider {
     public byte[] getClass(String name) {
         try {
             InputStream is = this.classLoader.getResourceAsStream(name.replace('.', '/') + ".class");
+            if (is == null) throw new ClassNotFoundException(name);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
             int len;
