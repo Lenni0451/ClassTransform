@@ -7,9 +7,15 @@ public class MapperConfig {
     }
 
 
+    protected boolean fillSuperMappings = false;
     protected boolean remapTransformer = false;
 
     private MapperConfig() {
+    }
+
+    public MapperConfig fillSuperMappings(final boolean fillSuperMappings) {
+        this.fillSuperMappings = fillSuperMappings;
+        return this;
     }
 
     public MapperConfig remapTransformer(final boolean remapTransformer) {

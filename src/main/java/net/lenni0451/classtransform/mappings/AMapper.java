@@ -45,10 +45,12 @@ public abstract class AMapper {
     }
 
     public final ClassNode mapClass(final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
-        try {
-            SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
-        } catch (Throwable t) {
-            new Exception("Unable to fill all super mappings for class '" + transformer.name + "'. Trying without", t).printStackTrace();
+        if (this.config.fillSuperMappings) {
+            try {
+                SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
+            } catch (Throwable t) {
+                new Exception("Unable to fill all super mappings for class '" + transformer.name + "'. Trying without", t).printStackTrace();
+            }
         }
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();
         this.checkAnnotations(transformer, transformer.visibleAnnotations, annotationsToRemap);
