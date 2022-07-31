@@ -25,19 +25,40 @@ public class MapRemapper extends Remapper {
     }
 
     public void addClassMapping(final String from, final String to) {
+        this.addClassMapping(from, to, false);
+    }
+
+    public void addClassMapping(final String from, final String to, final boolean skipIfExists) {
+        if (skipIfExists && this.mappings.containsKey(from)) return;
         this.mappings.put(from, to);
     }
 
     public void addMethodMapping(final String owner, final String name, final String desc, final String target) {
-        this.mappings.put(owner + "." + name + desc, target);
+        this.addMethodMapping(owner, name, desc, target, false);
+    }
+
+    public void addMethodMapping(final String owner, final String name, final String desc, final String target, final boolean skipIfExists) {
+        String key = owner + "." + name + desc;
+        if (skipIfExists && this.mappings.containsKey(key)) return;
+        this.mappings.put(key, target);
     }
 
     public void addFieldMapping(final String owner, final String name, final String target) {
-        this.addFieldMapping(owner, name, "", target);
+        this.addFieldMapping(owner, name, "", target, false);
+    }
+
+    public void addFieldMapping(final String owner, final String name, final String target, final boolean skipIfExists) {
+        this.addFieldMapping(owner, name, "", target, skipIfExists);
     }
 
     public void addFieldMapping(final String owner, final String name, final String desc, final String target) {
-        this.mappings.put(owner + "." + name + ":" + desc, target);
+        this.addFieldMapping(owner, name, desc, target, false);
+    }
+
+    public void addFieldMapping(final String owner, final String name, final String desc, final String target, final boolean skipIfExists) {
+        String key = owner + "." + name + ":" + desc;
+        if (skipIfExists && this.mappings.containsKey(key)) return;
+        this.mappings.put(key, target);
     }
 
     public List<String> getStartingMappings(final String... starts) {

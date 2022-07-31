@@ -66,26 +66,16 @@ public class SuperMappingFiller {
                 if (Modifier.isPrivate(field.access)) continue;
                 String mappedName = reverseRemapper.mapFieldName(superClass.name, field.name, field.desc);
                 if (field.name.equals(mappedName)) continue;
-                if (!doesContainField(node, field.name, field.desc)) continue;
-                remapper.addFieldMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapDesc(field.desc), field.name);
+                remapper.addFieldMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapDesc(field.desc), field.name, true);
             }
             for (MethodNode method : superClass.methods) {
                 if (Modifier.isStatic(method.access)) continue;
                 if (Modifier.isPrivate(method.access)) continue;
                 String mappedName = reverseRemapper.mapMethodName(superClass.name, method.name, method.desc);
                 if (method.name.equals(mappedName)) continue;
-                if (!doesContainMethod(node, method.name, method.desc)) continue;
-                remapper.addMethodMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapMethodDesc(method.desc), method.name);
+                remapper.addMethodMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapMethodDesc(method.desc), method.name, true);
             }
         }
-    }
-
-    private static boolean doesContainField(final ClassNode node, final String name, final String descriptor) {
-        return ASMUtils.getField(node, name, descriptor) != null;
-    }
-
-    private static boolean doesContainMethod(final ClassNode node, final String name, final String descriptor) {
-        return ASMUtils.getMethod(node, name, descriptor) != null;
     }
 
 }
