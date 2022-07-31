@@ -81,8 +81,43 @@ public class MapRemapper extends Remapper {
         return this.mappings.get(key);
     }
 
+    public String mapSafe(final String key) {
+        return this.mappings.getOrDefault(key, key);
+    }
+
     public String mapReverse(final String mapping) {
         return this.mappings.entrySet().stream().filter(e -> e.getValue().equals(mapping)).map(Map.Entry::getKey).findFirst().orElse(null);
+    }
+
+
+    public MapRemapper reverse() {
+        MapRemapper reverseRemapper = new MapRemapper();
+        for (Map.Entry<String, String> entry : this.mappings.entrySet()) {
+            if (entry.getKey().contains(".")) continue;
+            reverseRemapper.addClassMapping(entry.getValue(), entry.getKey());
+        }
+        for (Map.Entry<String, String> entry : this.mappings.entrySet()) {
+            if (!entry.getKey().contains(".")) continue;
+            if (entry.getKey().contains(":")) {
+                String fieldMapping = entry.getKey();
+                String owner = fieldMapping.substring(0, fieldMapping.indexOf("."));
+                String name = fieldMapping.substring(fieldMapping.indexOf(".") + 1, fieldMapping.indexOf(":"));
+                String desc = fieldMapping.substring(fieldMapping.indexOf(":") + 1);
+                String mappedName = entry.getValue();
+
+                if (desc.isEmpty()) reverseRemapper.addFieldMapping(this.mapSafe(owner), mappedName, name);
+                else reverseRemapper.addFieldMapping(this.mapSafe(owner), mappedName, this.mapDesc(desc), name);
+            } else {
+                String methodMapping = entry.getKey();
+                String owner = methodMapping.substring(0, methodMapping.indexOf("."));
+                String name = methodMapping.substring(methodMapping.indexOf(".") + 1, methodMapping.indexOf("("));
+                String desc = methodMapping.substring(methodMapping.indexOf("("));
+                String mappedName = entry.getValue();
+
+                reverseRemapper.addMethodMapping(this.mapSafe(owner), mappedName, this.mapMethodDesc(desc), name);
+            }
+        }
+        return reverseRemapper;
     }
 
 }
