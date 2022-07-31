@@ -75,6 +75,10 @@ public abstract class AMapper {
         else return transformer;
     }
 
+    public MapRemapper getRemapper() {
+        return this.remapper;
+    }
+
 
     protected abstract void init() throws Throwable;
 

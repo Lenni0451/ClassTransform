@@ -20,6 +20,10 @@ public class MapRemapper extends Remapper {
         this.mappings = mappings;
     }
 
+    public Map<String, String> getMappings() {
+        return Collections.unmodifiableMap(this.mappings);
+    }
+
     public void addClassMapping(final String from, final String to) {
         this.mappings.put(from, to);
     }
