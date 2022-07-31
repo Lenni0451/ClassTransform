@@ -35,6 +35,12 @@ public abstract class ATransformer {
     public abstract void transform(final TransformerManager transformerManager, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer);
 
 
+    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final ClassNode classNode, final IClassProvider classProvider) {
+        T annotation = this.getAnnotation(annotationClass, classNode.visibleAnnotations, classProvider);
+        if (annotation == null) annotation = this.getAnnotation(annotationClass, classNode.invisibleAnnotations, classProvider);
+        return annotation;
+    }
+
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final FieldNode field, final IClassProvider classProvider) {
         T annotation = this.getAnnotation(annotationClass, field.visibleAnnotations, classProvider);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, field.invisibleAnnotations, classProvider);
