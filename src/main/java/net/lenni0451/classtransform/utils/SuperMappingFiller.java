@@ -12,6 +12,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SuperMappingFiller {
 
@@ -35,14 +36,14 @@ public class SuperMappingFiller {
                 List<Type> classesList = (List<Type>) value;
                 for (Type type : classesList) {
                     ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(type.getInternalName()));
-                    Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(HashSet::new, HashSet::add, HashSet::addAll);
+                    Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
                 for (String className : classesList) {
                     ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(className.replace(".", "/")));
-                    Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(HashSet::new, HashSet::add, HashSet::addAll);
+                    Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }
             }
