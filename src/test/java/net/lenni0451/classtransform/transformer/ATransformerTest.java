@@ -47,7 +47,7 @@ public abstract class ATransformerTest {
             CTransformer cTransformer = AnnotationParser.parse(CTransformer.class, this.classProvider, AnnotationParser.listToMap(annotation));
             Class<?> targetClass = cTransformer.value()[0];
             ClassNode targetNode = ASMUtils.fromBytes(this.classProvider.getClass(targetClass.getName()));
-            this.voidMapper.mapClass(targetNode, transformer);
+            this.voidMapper.mapClass(this.classProvider, targetNode, transformer);
         }
         return transformer;
     }

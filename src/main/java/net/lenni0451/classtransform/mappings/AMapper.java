@@ -3,11 +3,9 @@ package net.lenni0451.classtransform.mappings;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
-import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.MapRemapper;
-import net.lenni0451.classtransform.utils.MemberDeclaration;
-import net.lenni0451.classtransform.utils.Remapper;
+import net.lenni0451.classtransform.utils.*;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -46,7 +44,12 @@ public abstract class AMapper {
         return this.dot(this.remapper.mapType(this.slash(className)));
     }
 
-    public final ClassNode mapClass(final ClassNode target, final ClassNode transformer) {
+    public final ClassNode mapClass(final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
+        try {
+            SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
+        } catch (Throwable t) {
+            new Exception("Unable to fill all super mappings for class '" + transformer.name + "'. Trying without", t).printStackTrace();
+        }
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();
         this.checkAnnotations(transformer, transformer.visibleAnnotations, annotationsToRemap);
         this.checkAnnotations(transformer, transformer.invisibleAnnotations, annotationsToRemap);

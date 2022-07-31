@@ -208,7 +208,7 @@ public class TransformerManager implements ClassFileTransformer {
             for (ClassNode classNode : transformer) {
                 try {
                     classNode = ASMUtils.cloneClass(classNode);
-                    classNode = this.mapper.mapClass(clazz, classNode);
+                    classNode = this.mapper.mapClass(this.classProvider, clazz, classNode);
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }

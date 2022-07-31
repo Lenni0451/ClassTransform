@@ -31,20 +31,26 @@ public class ClassTree {
     }
 
 
+    private final ClassNode node;
     private final String name;
     private final String superClass;
     private final Set<String> superClasses;
     private final int modifiers;
 
-    public ClassTree(final ClassNode classNode) {
-        this.name = classNode.name.replace("/", ".");
-        this.superClass = classNode.superName;
+    public ClassTree(final ClassNode node) {
+        this.node = node;
+        this.name = node.name.replace("/", ".");
+        this.superClass = node.superName;
         this.superClasses = new HashSet<>();
         if (this.superClass != null) this.superClasses.add(this.superClass.replace("/", "."));
-        if (classNode.interfaces != null) {
-            for (String inter : classNode.interfaces) this.superClasses.add(inter.replace("/", "."));
+        if (node.interfaces != null) {
+            for (String inter : node.interfaces) this.superClasses.add(inter.replace("/", "."));
         }
-        this.modifiers = classNode.access;
+        this.modifiers = node.access;
+    }
+
+    public ClassNode getNode() {
+        return this.node;
     }
 
     public String getName() {
@@ -60,8 +66,34 @@ public class ClassTree {
         return Collections.unmodifiableSet(this.superClasses);
     }
 
+    public Set<ClassTree> getParsedSuperClasses(final IClassProvider classProvider) {
+        Set<ClassTree> out = new HashSet<>();
+        for (String superClass : this.superClasses) out.add(ClassTree.getTreePart(classProvider, superClass));
+        return out;
+    }
+
+    public Set<ClassTree> walkSuperClasses(final Set<ClassTree> walkedSuperClasses, final IClassProvider classProvider, final boolean includeSelf) {
+        if (walkedSuperClasses.contains(this)) return walkedSuperClasses;
+        if (includeSelf) walkedSuperClasses.add(this);
+        for (ClassTree superClass : getParsedSuperClasses(classProvider)) superClass.walkSuperClasses(walkedSuperClasses, classProvider, true);
+        return walkedSuperClasses;
+    }
+
     public int getModifiers() {
         return this.modifiers;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClassTree classTree = (ClassTree) o;
+        return Objects.equals(name, classTree.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 
 }
