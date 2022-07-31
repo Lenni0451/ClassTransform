@@ -159,7 +159,7 @@ public abstract class AMapper {
                     name = this.remapper.mapMethodName(owner, member.getName(), member.getDesc());
                     desc = this.remapper.mapMethodDesc(member.getDesc());
                 }
-                return Type.getType(owner).getDescriptor() + name + (member.isFieldMapping() ? ":" : "") + desc;
+                return Type.getObjectType(owner).getDescriptor() + name + (member.isFieldMapping() ? ":" : "") + desc;
 
             case CLASS:
                 return this.dot(this.remapper.mapType(this.slash(s)));
