@@ -54,6 +54,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.mapper.load();
 
         //Annotation transformer
+        this.internalTransformer.add(new CUpgradeTransformer());
         this.internalTransformer.add(new CASMTransformer());
         this.internalTransformer.add(new CShadowTransformer());
         this.internalTransformer.add(new COverrideTransformer());
