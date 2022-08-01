@@ -1,4 +1,4 @@
-package net.lenni0451.classtransform.utils;
+package net.lenni0451.classtransform.utils.mappings;
 
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
@@ -9,9 +9,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SuperMappingFiller {
@@ -74,6 +72,26 @@ public class SuperMappingFiller {
                 String mappedName = reverseRemapper.mapMethodName(superClass.name, method.name, method.desc);
                 if (method.name.equals(mappedName)) continue;
                 remapper.addMethodMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapMethodDesc(method.desc), method.name, true);
+            }
+        }
+    }
+
+    /**
+     * Fill all super mappings for all classes found in the given remapper<br>
+     * If a class could not be found the mappings for it will be skipped
+     *
+     * @param remapper      The {@link MapRemapper} to use
+     * @param classProvider The {@link IClassProvider} to use
+     */
+    public static void fillAllSuperMembers(final MapRemapper remapper, final IClassProvider classProvider) {
+        for (Map.Entry<String, String> entry : new HashMap<>(remapper.getMappings()).entrySet()) {
+            if (entry.getKey().contains(".")) continue;
+            String obfClass = entry.getValue();
+            try {
+                ClassTree treeNode = ClassTree.getTreePart(classProvider, obfClass);
+                Set<ClassNode> superClasses = treeNode.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                SuperMappingFiller.fillSuperMembers(treeNode.getNode(), superClasses, remapper);
+            } catch (Throwable ignored) {
             }
         }
     }

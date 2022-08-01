@@ -2,7 +2,7 @@ package net.lenni0451.classtransform.mappings.impl;
 
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
-import net.lenni0451.classtransform.utils.MapRemapper;
+import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 
 import java.io.File;
 import java.util.List;

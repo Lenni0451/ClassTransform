@@ -6,7 +6,7 @@ import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.FillType;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.MapRemapper;
+import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;

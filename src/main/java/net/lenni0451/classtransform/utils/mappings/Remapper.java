@@ -1,4 +1,4 @@
-package net.lenni0451.classtransform.utils;
+package net.lenni0451.classtransform.utils.mappings;
 
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;

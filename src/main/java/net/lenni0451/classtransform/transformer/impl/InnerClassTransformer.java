@@ -4,7 +4,7 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.ATransformer;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.Remapper;
+import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;

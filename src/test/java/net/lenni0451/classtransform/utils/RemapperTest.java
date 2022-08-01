@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils;
 
+import net.lenni0451.classtransform.utils.mappings.Remapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Opcodes;
@@ -16,8 +17,8 @@ class RemapperTest {
     @Test
     @DisplayName("Remap method")
     public void remapMethod() {
-        String oldName = "net.lenni0451.classtransform.utils.Remapper";
-        String newName = "net.lenni0451.classtransform.utils.RemapperTest";
+        String oldName = "net.lenni0451.classtransform.utils.mappings.Remapper";
+        String newName = "net.lenni0451.classtransform.utils.mappings.RemapperTest";
         ClassNode holder = new ClassNode();
         MethodNode methodNode = new MethodNode(0, "test", "()V", null, null);
         methodNode.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, oldName, "test", "()V"));
@@ -38,7 +39,7 @@ class RemapperTest {
     @Test
     @DisplayName("Remap field")
     public void remapField() {
-        String oldName = "net.lenni0451.classtransform.utils.Remapper";
+        String oldName = "net.lenni0451.classtransform.utils.mappings.Remapper";
         String oldDescriptor = "L" + oldName + ";";
         String newName = "net.lenni0451.classtransform.utils.RemapperTest";
         String newDescriptor = "L" + newName + ";";
