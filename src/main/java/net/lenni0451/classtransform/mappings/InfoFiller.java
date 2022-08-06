@@ -52,38 +52,40 @@ class InfoFiller {
 
     private static List<String> getMethodNames(final MapRemapper remapper, final Object holder, String current, final ClassNode target, final ClassNode transformer) {
         List<String> names = new ArrayList<>();
-        if (current == null) {
+        if (current == null) { //Copy the name and descriptor of the transformer method
             MethodNode methodNode = (MethodNode) holder;
             current = methodNode.name + methodNode.desc;
         }
-        if (!remapper.isEmpty()) {
+        if (!remapper.isEmpty()) { //Remap the current name if mappings are available
             String originalTarget = remapper.mapReverse(target.name);
             if (originalTarget == null) originalTarget = target.name;
 
-            if (current.contains("(")) {
+            if (current.contains("(")) { //If a descriptor is available, remap the method name and descriptor
                 String unmappedMethodName = current.substring(0, current.indexOf('('));
                 String unmappedMethodDesc = current.substring(current.indexOf('('));
                 String mappedMethodName = remapper.mapMethodName(originalTarget, unmappedMethodName, unmappedMethodDesc);
                 String mappedMethodDesc = remapper.mapMethodDesc(unmappedMethodDesc);
 
+                //Verify that the remapped method actually exists
                 MethodNode methodNode = ASMUtils.getMethod(target, mappedMethodName, mappedMethodDesc);
                 if (methodNode == null) throw new MethodNotFoundException(target, transformer, mappedMethodName + mappedMethodDesc);
-                names.add(mappedMethodName + mappedMethodDesc);
-            } else {
-                String partialMapping = originalTarget + "." + current + "(";
+                names.add(methodNode.name + methodNode.desc);
+            } else { //If no descriptor is available, remap the method name and get all available mappings for that name
+                String partialMapping = originalTarget + "." + current + "("; //The start of a method mapping
                 List<String> partialMappings = remapper.getStartingMappings(partialMapping);
                 for (String mapping : partialMappings) {
                     String unmappedMethodDesc = mapping.substring(partialMapping.length() - 1);
                     String mappedMethodName = remapper.map(mapping);
                     String mappedMethodDesc = remapper.mapMethodDesc(unmappedMethodDesc);
 
+                    //Verify that the remapped method actually exists
                     MethodNode methodNode = ASMUtils.getMethod(target, mappedMethodName, mappedMethodDesc);
                     if (methodNode == null) throw new MethodNotFoundException(target, transformer, mappedMethodName + mappedMethodDesc);
                     names.add(methodNode.name + methodNode.desc);
                 }
             }
         }
-        if (names.isEmpty()) {
+        if (names.isEmpty()) { //If no names have been found, get all methods from the current name and descriptor and add those
             List<MethodNode> methods = ASMUtils.getMethodsFromCombi(target, current);
             if (methods.isEmpty()) throw new MethodNotFoundException(target, transformer, current);
             for (MethodNode method : methods) names.add(method.name + method.desc);
@@ -93,24 +95,25 @@ class InfoFiller {
 
     private static List<String> getFieldNames(final MapRemapper remapper, final Object holder, String current, final ClassNode target, final ClassNode transformer) {
         List<String> names = new ArrayList<>();
-        if (current == null) {
+        if (current == null) { //Copy the name of the transformer field
             FieldNode fieldNode = (FieldNode) holder;
             current = fieldNode.name + ":" + fieldNode.desc;
         }
-        if (!remapper.isEmpty()) {
+        if (!remapper.isEmpty()) { //Remap the current name if mappings are available
             String originalTarget = remapper.mapReverse(target.name);
             if (originalTarget == null) originalTarget = target.name;
 
-            if (current.contains(":")) {
+            if (current.contains(":")) { //If a descriptor is available, remap the field name and descriptor
                 String unmappedName = current.substring(0, current.indexOf(':'));
                 String unmappedDescriptor = current.substring(current.indexOf(":") + 1);
                 String mappedFieldName = remapper.mapFieldName(originalTarget, unmappedName, unmappedDescriptor);
                 String mappedDescriptor = remapper.mapDesc(unmappedDescriptor);
 
+                //Verify that the remapped field actually exists
                 FieldNode fieldNode = ASMUtils.getField(target, mappedFieldName, mappedDescriptor);
                 if (fieldNode == null) throw new FieldNotFoundException(target, transformer, mappedFieldName + ":" + mappedDescriptor);
                 names.add(fieldNode.name + ":" + fieldNode.desc);
-            } else {
+            } else { //If no descriptor is available, remap the field name and get all available mappings for that name
                 String partialMapping = originalTarget + "." + current + ":";
                 List<String> partialMappings = remapper.getStartingMappings(partialMapping);
                 for (String mapping : partialMappings) {
@@ -119,13 +122,14 @@ class InfoFiller {
                     String mappedDescriptor = null;
                     if (!unmappedDescriptor.isEmpty()) mappedDescriptor = remapper.mapDesc(unmappedDescriptor);
 
+                    //Verify that the remapped field actually exists
                     FieldNode fieldNode = ASMUtils.getField(target, mappedFieldName, mappedDescriptor);
                     if (fieldNode == null) throw new FieldNotFoundException(target, transformer, mappedFieldName + ":" + mappedDescriptor);
                     names.add(fieldNode.name + ":" + fieldNode.desc);
                 }
             }
         }
-        if (names.isEmpty()) {
+        if (names.isEmpty()) { //If no names have been found, get all fields from the current name and descriptor and add those
             List<FieldNode> fields = ASMUtils.getFieldsFromCombi(target, current);
             if (fields.isEmpty()) throw new FieldNotFoundException(target, transformer, current);
             for (FieldNode field : fields) names.add(field.name + ":" + field.desc);

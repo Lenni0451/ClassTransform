@@ -75,6 +75,10 @@ public class MapRemapper extends Remapper {
         return this.mappings.isEmpty();
     }
 
+    public void copy(final MapRemapper remapper) {
+        this.mappings.putAll(remapper.mappings);
+    }
+
 
     @Override
     public String mapMethodName(final String owner, final String name, final String descriptor) {
