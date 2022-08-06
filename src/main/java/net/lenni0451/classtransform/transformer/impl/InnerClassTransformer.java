@@ -19,6 +19,8 @@ public class InnerClassTransformer extends ATransformer {
     @Override
     public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode injectedClass, ClassNode transformer) {
         for (InnerClassNode innerClass : transformer.innerClasses) {
+            if (innerClass.outerName != null) continue;
+
             transformerManager.addRawTransformer(innerClass.name.replace("/", "."), (tm, transformedClass) -> {
                 for (MethodNode method : transformedClass.methods) method.access = ASMUtils.setAccess(method.access, Opcodes.ACC_PUBLIC);
                 for (FieldNode field : transformedClass.fields) field.access = ASMUtils.setAccess(field.access, Opcodes.ACC_PUBLIC);
