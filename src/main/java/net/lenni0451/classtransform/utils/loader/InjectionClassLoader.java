@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.utils.loader;
 
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.utils.tree.IClassProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -211,6 +212,37 @@ public class InjectionClassLoader extends URLClassLoader {
      */
     public void addRuntimeResource(final String path, final byte[] data) {
         this.runtimeResources.put(path, data);
+    }
+
+    /**
+     * Copy a resource from a {@link ClassLoader} to this {@link InjectionClassLoader}
+     *
+     * @param classLoader The {@link ClassLoader} to copy the resource from
+     * @param path        The path to the resource
+     */
+    public void copyResource(final ClassLoader classLoader, final String path) {
+        try (InputStream is = classLoader.getResourceAsStream(path)) {
+            if (is == null) throw new IllegalArgumentException("Resource not found: " + path);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = is.read(buf)) != -1) baos.write(buf, 0, len);
+            this.addRuntimeResource(path, baos.toByteArray());
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Resource not found: " + path);
+        }
+    }
+
+    /**
+     * Copy a {@link Class} to this {@link InjectionClassLoader}
+     *
+     * @param classProvider The {@link IClassProvider} providing the {@link Class} to copy
+     * @param className     The name of the {@link Class} to copy
+     */
+    public void copyClass(final IClassProvider classProvider, final String className) {
+        byte[] classBytes = classProvider.getClass(className);
+        this.addRuntimeResource(className.replace('.', '/') + ".class", classBytes);
     }
 
     /**
