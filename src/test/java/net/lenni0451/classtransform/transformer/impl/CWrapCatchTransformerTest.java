@@ -10,8 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CWrapCatchTransformerTest extends ATransformerTest {
 
@@ -23,8 +22,12 @@ class CWrapCatchTransformerTest extends ATransformerTest {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CWrapCatchTransformerTest$WrapStaticTransformer");
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+
         double zeroDiv = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("divide", double.class, double.class).invoke(null, 10, 0));
         assertTrue(Double.isInfinite(zeroDiv));
+
+        int nBound = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rbint", int.class).invoke(null, -1));
+        assertEquals(0, nBound);
     }
 
     @Test
@@ -34,8 +37,12 @@ class CWrapCatchTransformerTest extends ATransformerTest {
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
+
         double zeroDiv = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("divide", double.class, double.class).invoke(instance, 10, 0));
         assertTrue(Double.isInfinite(zeroDiv));
+
+        double nBound = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rbint", int.class).invoke(instance, -1));
+        assertEquals(0, nBound);
     }
 
 
@@ -47,6 +54,11 @@ class CWrapCatchTransformerTest extends ATransformerTest {
             return Double.POSITIVE_INFINITY;
         }
 
+        @CWrapCatch(value = "rbint(I)I", target = "Ljava/util/Random;nextInt(I)I")
+        public static int negativeBoundIsZero(IllegalArgumentException e) {
+            return 0;
+        }
+
     }
 
     @CTransformer(VCalculator.class)
@@ -55,6 +67,11 @@ class CWrapCatchTransformerTest extends ATransformerTest {
         @CWrapCatch("divide")
         public double zeroDivisionIsInfinite(ArithmeticException e) {
             return Double.POSITIVE_INFINITY;
+        }
+
+        @CWrapCatch(value = "rbint(I)I", target = "Ljava/util/Random;nextInt(I)I")
+        public int negativeBoundIsZero(IllegalArgumentException e) {
+            return 0;
         }
 
     }

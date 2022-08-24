@@ -28,6 +28,11 @@ public class SCalculator {
         return rnd.nextInt();
     }
 
+    public static int rbint(final int bound) {
+        Random rnd = new Random();
+        return rnd.nextInt(bound);
+    }
+
     public static double getPi() {
         return pi;
     }

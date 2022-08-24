@@ -1,6 +1,8 @@
 package net.lenni0451.classtransform.annotations.injection;
 
+import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
+import net.lenni0451.classtransform.mappings.annotation.FillType;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 
 import java.lang.annotation.ElementType;
@@ -24,5 +26,26 @@ public @interface CWrapCatch {
      */
     @AnnotationRemap(RemapType.SHORT_MEMBER)
     String[] value();
+
+    /**
+     * The method owner, name and descriptor of the target method<br>
+     * Only method calls are supported<br>
+     * e.g. Ljava/io/InputStream;close()V
+     */
+    @AnnotationRemap(value = RemapType.MEMBER, fill = FillType.KEEP_EMPTY)
+    String target() default "";
+
+    /**
+     * The ordinal of the target<br>
+     * Only used if a target is specified
+     */
+    int ordinal() default -1;
+
+    /**
+     * The slice to use<br>
+     * Only used if a target is specified
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CSlice slice() default @CSlice;
 
 }

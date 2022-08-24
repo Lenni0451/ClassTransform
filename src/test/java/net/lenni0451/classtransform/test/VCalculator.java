@@ -28,6 +28,11 @@ public class VCalculator {
         return rnd.nextInt();
     }
 
+    public int rbint(final int bound) {
+        Random rnd = new Random();
+        return rnd.nextInt(bound);
+    }
+
     public double getPi() {
         return this.pi;
     }
