@@ -188,7 +188,7 @@ This example method redirects the ``new Random()`` call to the ``makeSecure`` me
 This replaces the original ``Random`` instance with a ``Secure Random``.
 
 #### CWrapCatch
-With the ``CWrapCatch`` annotation you can wrap a try-catch block around the entire method and handle the exception.
+With the ``CWrapCatch`` annotation you can wrap a try-catch block around the entire method or an invoke instruction and handle the exception.
 ````java
 @CWrapCatch("getResponseCode")
 public int dontThrow(IOException e) {
@@ -198,4 +198,13 @@ public int dontThrow(IOException e) {
 This example method wraps the ``getResponseCode`` method in a try-catch block and handles the exception.  
 The exception in the parameter is the exception catched by the try-catch block.  
 The return type must be the one of the original method.  
+You can even re-throw the exception or throw a new one.
+````java
+@CWrapCatch(value = "closeConnection", target = "Ljava/io/OutputStream;close()V")
+public void dontThrow(IOException e) {
+}
+````
+This example method wraps the ``OutputStream#close`` method call in a try-catch block and handles the exception.  
+The exception in the parameter is the exception catched by the try-catch block.  
+The return type must be the one of the original method call.  
 You can even re-throw the exception or throw a new one.
