@@ -38,14 +38,14 @@ There are different types of transformers available:
 ### Annotations
 The following injection annotations are available:
 
-| Annotation Type                     | Description                                                                          |
-|-------------------------------------|--------------------------------------------------------------------------------------|
-| [CASM](#CASM)                       | The access to the ClassNode of the entire class or a MethodNode of the wanted method |
-| [CInject](#CInject)                 | Inject into any method at the given targets                                          |
-| [CModifyConstant](#CModifyConstant) | Modify a constant value in a method (null/int/long/float/double/string)              |
-| [COverride](#COverride)             | Override any method in the target class                                              |
-| [CRedirect](#CRedirect)             | Redirect a method call, a field get/put or new object to your injection method       |
-| [CWrapCatch](#CWrapCatch)           | Wrap a try-catch block around the entire method and handle the exception             |
+| Annotation Type                     | Description                                                                                             |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------|
+| [CASM](#CASM)                       | The access to the ClassNode of the entire class or a MethodNode of the wanted method                    |
+| [CInject](#CInject)                 | Inject into any method at the given targets                                                             |
+| [CModifyConstant](#CModifyConstant) | Modify a constant value in a method (null/int/long/float/double/string)                                 |
+| [COverride](#COverride)             | Override any method in the target class                                                                 |
+| [CRedirect](#CRedirect)             | Redirect a method call, a field get/put or new object to your injection method                          |
+| [CWrapCatch](#CWrapCatch)           | Wrap a try-catch block around the entire method or a single invoke instruction and handle the exception |
 
 The following util annotations are available:
 

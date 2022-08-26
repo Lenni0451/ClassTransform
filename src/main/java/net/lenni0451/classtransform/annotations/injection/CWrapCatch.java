@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Wrap an entire method in a try-catch block<br>
+ * Wrap an entire method or a single instruction in a try-catch block<br>
  * The method with this annotation must have the same return type as the original method<br>
  * Only one parameter is allowed, and it must be of type {@link Throwable}<br>
  * The parameter also declares which exception should be caught
