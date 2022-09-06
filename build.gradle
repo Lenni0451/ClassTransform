@@ -1,5 +1,6 @@
 plugins {
     id "java-library"
+    id "maven-publish"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
@@ -24,6 +25,31 @@ test {
         events 'passed', 'skipped', 'failed'
     }
     maxParallelForks Runtime.runtime.availableProcessors()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "reposilite"
+            url = "https://maven.lenni0451.net/releases"
+            credentials {
+                username = "${System.env.REPOSILITE_USERNAME}"
+                password = "${System.env.REPOSILITE_PASSWORD}"
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = "net.lenni0451"
+            artifactId = "ClassTransform"
+            version = "1.0.0"
+
+            from components.java
+        }
+    }
 }
 
 build.dependsOn(test)
