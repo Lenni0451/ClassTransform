@@ -7,13 +7,15 @@ import java.util.*;
 public class MapRemapper extends Remapper {
 
     private final Map<String, String> mappings;
+    private MapRemapper reverse;
 
     public MapRemapper() {
         this(new HashMap<>());
     }
 
     public MapRemapper(final String oldName, final String newName) {
-        this(Collections.singletonMap(oldName, newName));
+        this();
+        this.mappings.put(oldName, newName);
     }
 
     public MapRemapper(final Map<String, String> mappings) {
@@ -31,6 +33,11 @@ public class MapRemapper extends Remapper {
     public void addClassMapping(final String from, final String to, final boolean skipIfExists) {
         if (skipIfExists && this.mappings.containsKey(from)) return;
         this.mappings.put(from, to);
+
+        if (this.reverse != null) {
+            this.reverse.reverse = null;
+            this.reverse = null;
+        }
     }
 
     public void addMethodMapping(final String owner, final String name, final String desc, final String target) {
@@ -41,6 +48,11 @@ public class MapRemapper extends Remapper {
         String key = owner + "." + name + desc;
         if (skipIfExists && this.mappings.containsKey(key)) return;
         this.mappings.put(key, target);
+
+        if (this.reverse != null) {
+            this.reverse.reverse = null;
+            this.reverse = null;
+        }
     }
 
     public void addFieldMapping(final String owner, final String name, final String target) {
@@ -59,6 +71,11 @@ public class MapRemapper extends Remapper {
         String key = owner + "." + name + ":" + desc;
         if (skipIfExists && this.mappings.containsKey(key)) return;
         this.mappings.put(key, target);
+
+        if (this.reverse != null) {
+            this.reverse.reverse = null;
+            this.reverse = null;
+        }
     }
 
     public List<String> getStartingMappings(final String... starts) {
@@ -114,12 +131,9 @@ public class MapRemapper extends Remapper {
         return this.mappings.getOrDefault(key, key);
     }
 
-    public String mapReverse(final String mapping) {
-        return this.mappings.entrySet().stream().filter(e -> e.getValue().equals(mapping)).map(Map.Entry::getKey).findFirst().orElse(null);
-    }
-
 
     public MapRemapper reverse() {
+        if (this.reverse != null) return this.reverse;
         MapRemapper reverseRemapper = new MapRemapper();
         for (Map.Entry<String, String> entry : this.mappings.entrySet()) {
             if (entry.getKey().contains(".")) continue;
@@ -146,7 +160,8 @@ public class MapRemapper extends Remapper {
                 reverseRemapper.addMethodMapping(this.mapSafe(owner), mappedName, this.mapMethodDesc(desc), name);
             }
         }
-        return reverseRemapper;
+        reverseRemapper.reverse = this;
+        return this.reverse = reverseRemapper;
     }
 
 }
