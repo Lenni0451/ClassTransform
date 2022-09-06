@@ -166,10 +166,10 @@ public abstract class AMapper {
                 String name;
                 String desc;
                 if (member.isFieldMapping()) {
-                    name = this.remapper.mapFieldName(owner, member.getName(), member.getDesc());
+                    name = this.remapper.mapFieldName(member.getOwner(), member.getName(), member.getDesc());
                     desc = this.remapper.mapDesc(member.getDesc());
                 } else {
-                    name = this.remapper.mapMethodName(owner, member.getName(), member.getDesc());
+                    name = this.remapper.mapMethodName(member.getOwner(), member.getName(), member.getDesc());
                     desc = this.remapper.mapMethodDesc(member.getDesc());
                 }
                 return Type.getObjectType(owner).getDescriptor() + name + (member.isFieldMapping() ? ":" : "") + desc;
