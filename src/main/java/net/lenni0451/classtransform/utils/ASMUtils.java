@@ -127,7 +127,7 @@ public class ASMUtils {
     /**
      * Convert a field or method name matching name and descriptor to a regex pattern<br>
      * Use <b>*</b> for wildcard<br>
-     * e.g. <b>get*</b> -> <b>^\Qget\E.*$</b>
+     * e.g. <b>get*</b> -&gt; <b>^\Qget\E.*$</b>
      *
      * @param combi The name of a field or method
      * @return The regex pattern

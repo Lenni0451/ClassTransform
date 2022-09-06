@@ -246,7 +246,7 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
-     * Set the priority of the {@link this#loadClass(String, boolean)} method
+     * Set the priority of the load class method
      *
      * @param priority The priority
      */

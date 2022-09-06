@@ -14,7 +14,7 @@ public class Remapper {
 
     /**
      * Remap a {@link MethodNode} using a {@link MethodRemapper}<br>
-     * This is a wrapper for {@link #remapAndAdd(String, String, ClassNode, MethodNode)} using the {@param target} {@link ClassNode} as the new holder
+     * This is a wrapper for {@link #remapAndAdd(String, String, ClassNode, MethodNode)} using the target {@link ClassNode} as the new holder
      *
      * @param source     The owner of the {@link MethodNode}
      * @param target     The new owner of the remapped {@link MethodNode}
@@ -26,7 +26,7 @@ public class Remapper {
 
     /**
      * Remap a {@link FieldNode} using a {@link FieldRemapper}<br>
-     * This is a wrapper for {@link #remapAndAdd(String, String, ClassNode, FieldNode)} using the {@param target} {@link ClassNode} as the new holder
+     * This is a wrapper for {@link #remapAndAdd(String, String, ClassNode, FieldNode)} using the target {@link ClassNode} as the new holder
      *
      * @param source    The owner of the {@link MethodNode}
      * @param target    The new owner of the remapped {@link MethodNode}
