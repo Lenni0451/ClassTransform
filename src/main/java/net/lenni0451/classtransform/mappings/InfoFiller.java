@@ -57,7 +57,7 @@ class InfoFiller {
             current = methodNode.name + methodNode.desc;
         }
         if (!remapper.isEmpty()) { //Remap the current name if mappings are available
-            String originalTarget = remapper.mapReverse(target.name);
+            String originalTarget = remapper.reverse().map(target.name);
             if (originalTarget == null) originalTarget = target.name;
 
             if (current.contains("(")) { //If a descriptor is available, remap the method name and descriptor
@@ -100,7 +100,7 @@ class InfoFiller {
             current = fieldNode.name + ":" + fieldNode.desc;
         }
         if (!remapper.isEmpty()) { //Remap the current name if mappings are available
-            String originalTarget = remapper.mapReverse(target.name);
+            String originalTarget = remapper.reverse().map(target.name);
             if (originalTarget == null) originalTarget = target.name;
 
             if (current.contains(":")) { //If a descriptor is available, remap the field name and descriptor
