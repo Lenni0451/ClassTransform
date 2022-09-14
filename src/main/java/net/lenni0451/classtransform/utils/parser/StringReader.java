@@ -1,8 +1,11 @@
 package net.lenni0451.classtransform.utils.parser;
 
+import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class StringReader {
@@ -289,10 +292,21 @@ public class StringReader {
         if (sIsInterface.equalsIgnoreCase("true")) isInterface = true;
         else if (sIsInterface.equalsIgnoreCase("false")) isInterface = false;
         else throw new IllegalStateException("Expected boolean but got '" + sIsInterface + "'");
-        this.ensureNext(' ', true);
         this.skip();
 
         return new Handle(opcode, owner, name, descriptor, isInterface);
+    }
+
+    public ConstantDynamic readConstantDynamic() {
+        if (!this.peekString(9).equalsIgnoreCase("cdynamic(")) throw new IllegalStateException("Expected cdynamic but got '" + this.peekString(8) + "'");
+        this.skip(9);
+        String name = this.readString();
+        String descriptor = this.readString();
+        Handle handle = this.readHandle();
+        List<Object> bootstrapMethodArguments = new ArrayList<>();
+        while (this.canRead()) bootstrapMethodArguments.add(this.readConstantPoolEntry());
+
+        return new ConstantDynamic(name, descriptor, handle, bootstrapMethodArguments.toArray(new Object[0]));
     }
 
     public Object readConstantPoolEntry() {
@@ -302,6 +316,7 @@ public class StringReader {
         else if (this.canReadDouble(true)) return this.readDouble();
         else if (this.peekString().toLowerCase(Locale.ROOT).startsWith("type(")) return this.readType();
         else if (this.peekString().toLowerCase(Locale.ROOT).startsWith("handle(")) return this.readHandle();
+        else if (this.peekString().toLowerCase(Locale.ROOT).startsWith("cdynamic(")) return this.readConstantDynamic();
 
         try {
             return this.readInt();
