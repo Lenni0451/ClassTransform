@@ -6,3 +6,5 @@ pluginManagement {
 }
 
 rootProject.name = 'ClassTransform'
+
+include("MixinsTranslator")

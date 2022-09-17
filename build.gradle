@@ -1,60 +1,68 @@
-plugins {
-    id "java-library"
-    id "maven-publish"
-}
+allprojects {
+    apply plugin: "java-library"
+    apply plugin: "maven-publish"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
-compileJava.options.encoding = "UTF-8"
+    java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+    compileJava.options.encoding = "UTF-8"
 
-repositories {
-    mavenCentral()
+    group = project.maven_group
+    archivesBaseName = project.maven_name
+    version = project.maven_version
+    if (!project.maven_group) group = rootProject.maven_group
+    if (!project.maven_name) archivesBaseName = rootProject.maven_name
+    if (!project.maven_version) version = rootProject.maven_version
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = "reposilite"
+                url = "https://maven.lenni0451.net/snapshots"
+                credentials {
+                    username = "${System.env.REPOSILITE_USERNAME}"
+                    password = "${System.env.REPOSILITE_PASSWORD}"
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+        publications {
+            maven(MavenPublication) {
+                groupId = project.maven_group
+                artifactId = project.maven_name
+                version = project.maven_version
+
+                from components.java
+            }
+        }
+    }
 }
 
 dependencies {
-    api 'org.ow2.asm:asm:9.3'
-    api 'org.ow2.asm:asm-commons:9.3'
-    api 'org.ow2.asm:asm-tree:9.3'
+    api "org.ow2.asm:asm:9.3"
+    api "org.ow2.asm:asm-commons:9.3"
+    api "org.ow2.asm:asm-tree:9.3"
 
-    testImplementation platform('org.junit:junit-bom:5.9.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation platform("org.junit:junit-bom:5.9.0")
+    testImplementation "org.junit.jupiter:junit-jupiter"
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
 
 test {
     useJUnitPlatform()
     testLogging {
-        events 'passed', 'skipped', 'failed'
+        events "passed", "skipped", "failed"
     }
     maxParallelForks Runtime.runtime.availableProcessors()
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "reposilite"
-            url = "https://maven.lenni0451.net/snapshots"
-            credentials {
-                username = "${System.env.REPOSILITE_USERNAME}"
-                password = "${System.env.REPOSILITE_PASSWORD}"
-            }
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
-    }
-    publications {
-        maven(MavenPublication) {
-            groupId = "net.lenni0451"
-            artifactId = "ClassTransform"
-            version = "1.1.0"
-
-            from components.java
-        }
-    }
 }
 
 build.dependsOn(test)
