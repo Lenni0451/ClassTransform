@@ -1,6 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
-import net.lenni0451.classtransform.mixinstranslator.classtranslator.*;
+import net.lenni0451.classtransform.mixinstranslator.annotationtranslator.*;
 import net.lenni0451.classtransform.transformer.ITransformerPreprocessor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -16,13 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translate annotation from Mixins to ClassTransform<br>
+ * Since ClassTransform has some differences to Mixins this is not a 100% perfect translation<br>
+ * Some features may not be supported.<br>
+ * Some fields which are not supported but still got copied over to simplify the copy-paste action<br>
+ * You can recognize them by the @Deprecated annotation
+ */
 public class MixinsTranslator implements ITransformerPreprocessor {
-
-    /*
-     * TODO:
-     *  - Inject shift is not the right one (At.Shift.BEFORE)
-     *  - Callback infos
-     */
 
     private final Map<String, IAnnotationTranslator> annotationTranslator = new HashMap<>();
 

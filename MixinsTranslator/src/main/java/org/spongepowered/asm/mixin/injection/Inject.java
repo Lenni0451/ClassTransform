@@ -17,6 +17,10 @@ public @interface Inject {
 
     boolean cancellable() default false;
 
+    /**
+     * Require is partially supported as it gets remapped to {@code optional = (require <= 0)}<br>
+     * It is still marked as deprecated since it is not fully supported
+     */
     @Deprecated
     int require() default -1;
 

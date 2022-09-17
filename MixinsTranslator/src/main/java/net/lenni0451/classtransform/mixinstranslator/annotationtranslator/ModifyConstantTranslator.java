@@ -1,4 +1,4 @@
-package net.lenni0451.classtransform.mixinstranslator.classtranslator;
+package net.lenni0451.classtransform.mixinstranslator.annotationtranslator;
 
 import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
 import net.lenni0451.classtransform.mixinstranslator.IAnnotationTranslator;
