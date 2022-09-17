@@ -5,10 +5,7 @@ import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.targets.impl.*;
-import net.lenni0451.classtransform.transformer.ATransformer;
-import net.lenni0451.classtransform.transformer.IBytecodeTransformer;
-import net.lenni0451.classtransform.transformer.IPostTransformer;
-import net.lenni0451.classtransform.transformer.IRawTransformer;
+import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -32,6 +29,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final List<ATransformer> internalTransformer = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
 
+    private final List<ITransformerPreprocessor> transformerPreprocessor = new ArrayList<>();
     private final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
     private final Map<String, List<IRawTransformer>> rawTransformer = new HashMap<>();
     private final Map<String, List<ClassNode>> transformer = new HashMap<>();
@@ -77,6 +75,16 @@ public class TransformerManager implements ClassFileTransformer {
         this.injectionTargets.put("PUTFIELD", new FieldTarget(Opcodes.PUTFIELD, Opcodes.PUTSTATIC));
         this.injectionTargets.put("NEW", new NewTarget());
         this.injectionTargets.put("OPCODE", new OpcodeTarget());
+    }
+
+    /**
+     * Add a transformer preprocessor to the transformer list<br>
+     * You can modify class transform annotations before they get parsed
+     *
+     * @param transformerPreprocessor The {@link ITransformerPreprocessor} instance
+     */
+    public void addTransformerPreprocessor(final ITransformerPreprocessor transformerPreprocessor) {
+        this.transformerPreprocessor.add(transformerPreprocessor);
     }
 
     /**
@@ -146,6 +154,7 @@ public class TransformerManager implements ClassFileTransformer {
      * @param classNode The {@link ClassNode} to add
      */
     public void addTransformer(final ClassNode classNode) {
+        for (ITransformerPreprocessor preprocessor : this.transformerPreprocessor) preprocessor.process(classNode);
         List<Object> annotation;
         if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
             throw new IllegalStateException("Transformer does not have CTransformer annotation");
