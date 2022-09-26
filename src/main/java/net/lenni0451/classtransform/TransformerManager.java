@@ -160,9 +160,8 @@ public class TransformerManager implements ClassFileTransformer {
      * The class must still be annotated with {@link CTransformer}
      *
      * @param classNode The {@link ClassNode} to add
-     * @return A list of all classes transformed by the transformer
      */
-    public Set<String> addTransformer(final ClassNode classNode) {
+    public void addTransformer(final ClassNode classNode) {
         for (ITransformerPreprocessor preprocessor : this.transformerPreprocessor) preprocessor.process(classNode);
         List<Object> annotation;
         if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
@@ -181,11 +180,12 @@ public class TransformerManager implements ClassFileTransformer {
                 for (String className : classesList) this.addTransformer(transformedClasses, this.mapper.mapClassName(className), classNode);
             }
         }
+        this.transformedClasses.addAll(transformedClasses);
+
         String name = classNode.name.replace("/", ".");
         this.registeredTransformer.add(name);
         if (this.hotswapClassLoader != null) this.hotswapClassLoader.defineHotswapClass(name);
         this.retransformClasses(transformedClasses);
-        return transformedClasses;
     }
 
     private void addTransformer(final Set<String> transformedClasses, final String className, final ClassNode transformer) {
@@ -194,7 +194,6 @@ public class TransformerManager implements ClassFileTransformer {
         transformerList.add(transformer);
 
         transformedClasses.add(className);
-        this.transformedClasses.add(className);
     }
 
     /**
@@ -310,7 +309,7 @@ public class TransformerManager implements ClassFileTransformer {
             if (this.hotswapClassLoader != null && this.registeredTransformer.contains(className)) {
                 try {
                     ClassNode transformer = ASMUtils.fromBytes(classfileBuffer);
-                    this.retransformClasses(this.addTransformer(transformer));
+                    this.addTransformer(transformer);
 
                     return this.hotswapClassLoader.getHotswapClass(transformer.name);
                 } catch (Throwable t) {

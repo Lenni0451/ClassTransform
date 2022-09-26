@@ -22,6 +22,7 @@ public class HotswapClassLoader extends ClassLoader {
     }
 
     public void defineHotswapClass(final String name) {
+        if (this.hotswapClasses.containsKey(name)) return;
         try {
             byte[] classBytes = this.getHotswapClass(name);
             Class<?> clazz = this.defineClass(name, classBytes, 0, classBytes.length);
