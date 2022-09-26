@@ -14,9 +14,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.lang.instrument.ClassFileTransformer;
-import java.lang.instrument.IllegalClassFormatException;
-import java.lang.instrument.Instrumentation;
+import java.lang.instrument.*;
 import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -146,7 +144,7 @@ public class TransformerManager implements ClassFileTransformer {
             try {
                 ClassNode classNode = ASMUtils.fromBytes(bytecode);
                 name = classNode.name;
-                this.addTransformer(classNode);
+                this.retransformClasses(this.addTransformer(classNode));
             } catch (Throwable e) {
                 if (name == null) throw new RuntimeException("Unable to parse transformer bytecode", e);
                 else throw new RuntimeException("Unable to load transformer '" + name + "'", e);
@@ -160,7 +158,7 @@ public class TransformerManager implements ClassFileTransformer {
      *
      * @param classNode The {@link ClassNode} to add
      */
-    public void addTransformer(final ClassNode classNode) {
+    public Set<String> addTransformer(final ClassNode classNode) {
         for (ITransformerPreprocessor preprocessor : this.transformerPreprocessor) preprocessor.process(classNode);
         List<Object> annotation;
         if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
@@ -184,7 +182,7 @@ public class TransformerManager implements ClassFileTransformer {
         String name = classNode.name.replace("/", ".");
         this.registeredTransformer.add(name);
         if (this.hotswapClassLoader != null) this.hotswapClassLoader.defineHotswapClass(name);
-        this.retransformClasses(transformedClasses);
+        return transformedClasses;
     }
 
     private void addTransformer(final Set<String> transformedClasses, final String className, final ClassNode transformer) {
@@ -296,6 +294,16 @@ public class TransformerManager implements ClassFileTransformer {
         }
     }
 
+    private void redefineClasses(final Set<String> classesToRedefine) throws UnmodifiableClassException, ClassNotFoundException {
+        for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
+            if (loadedClass != null && classesToRedefine.contains(loadedClass.getName())) {
+                byte[] bytecode = this.classProvider.getClass(loadedClass.getName());
+                byte[] transformedBytecode = this.transform(loadedClass.getName(), bytecode);
+                if (!Arrays.equals(bytecode, transformedBytecode)) this.instrumentation.redefineClasses(new ClassDefinition(loadedClass, transformedBytecode));
+            }
+        }
+    }
+
     /**
      * Support method for {@link java.lang.instrument.Instrumentation}<br>
      * You can simply add the {@link TransformerManager} as a {@link ClassFileTransformer} using {@link java.lang.instrument.Instrumentation#addTransformer(ClassFileTransformer)} or call {@link TransformerManager#hookInstrumentation(Instrumentation)}
@@ -308,7 +316,8 @@ public class TransformerManager implements ClassFileTransformer {
             if (this.hotswapClassLoader != null && this.registeredTransformer.contains(className)) {
                 try {
                     ClassNode transformer = ASMUtils.fromBytes(classfileBuffer);
-                    this.addTransformer(transformer);
+                    Set<String> transformedClasses = this.addTransformer(transformer);
+                    this.redefineClasses(transformedClasses);
 
                     return this.hotswapClassLoader.getHotswapClass(transformer.name);
                 } catch (Throwable t) {
