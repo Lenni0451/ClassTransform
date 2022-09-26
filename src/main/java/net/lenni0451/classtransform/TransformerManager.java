@@ -112,7 +112,8 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void addRawTransformer(final String className, final IRawTransformer rawTransformer) {
         this.rawTransformer.computeIfAbsent(className, n -> new ArrayList<>()).add(rawTransformer);
-        this.transformedClasses.add(className.replace("/", "."));
+        this.transformedClasses.add(className);
+        this.retransformClasses(Collections.singleton(className));
     }
 
     /**
@@ -183,6 +184,7 @@ public class TransformerManager implements ClassFileTransformer {
         String name = classNode.name.replace("/", ".");
         this.registeredTransformer.add(name);
         if (this.hotswapClassLoader != null) this.hotswapClassLoader.defineHotswapClass(name);
+        this.retransformClasses(transformedClasses);
         return transformedClasses;
     }
 
@@ -270,21 +272,27 @@ public class TransformerManager implements ClassFileTransformer {
      *
      * @param instrumentation The instance of the {@link Instrumentation}
      * @param hotswappable    Allow transformer to be hotswapped
-     * @throws UnmodifiableClassException If a class could not be redefined
      */
-    public void hookInstrumentation(final Instrumentation instrumentation, final boolean hotswappable) throws UnmodifiableClassException {
+    public void hookInstrumentation(final Instrumentation instrumentation, final boolean hotswappable) {
         this.instrumentation = instrumentation;
-        if (hotswappable) this.hotswapClassLoader = new HotswapClassLoader(this.classProvider);
+        if (hotswappable) {
+            this.hotswapClassLoader = new HotswapClassLoader(this.classProvider);
+            for (String transformedClass : this.transformedClasses) this.hotswapClassLoader.defineHotswapClass(transformedClass);
+        }
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());
 
         this.retransformClasses(null);
     }
 
-    private void retransformClasses(final Set<String> classesToRetransform) throws UnmodifiableClassException {
-        if (this.instrumentation.isRetransformClassesSupported()) {
+    private void retransformClasses(final Set<String> classesToRetransform) {
+        if (this.instrumentation != null && this.instrumentation.isRetransformClassesSupported()) {
             for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
-                if (loadedClass != null && this.transformedClasses.contains(loadedClass.getName()) && (classesToRetransform == null || classesToRetransform.contains(loadedClass.getName()))) {
-                    this.instrumentation.retransformClasses(loadedClass);
+                try {
+                    if (loadedClass != null && this.transformedClasses.contains(loadedClass.getName()) && (classesToRetransform == null || classesToRetransform.contains(loadedClass.getName()))) {
+                        this.instrumentation.retransformClasses(loadedClass);
+                    }
+                } catch (Throwable t) {
+                    t.printStackTrace();
                 }
             }
         }
