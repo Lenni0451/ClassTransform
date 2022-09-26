@@ -74,7 +74,7 @@ public abstract class ATransformer {
     protected void renameAndCopy(final MethodNode injectionMethod, final MethodNode targetMethod, final ClassNode transformer, final ClassNode transformedClass, final String extra) {
         this.prepareForCopy(transformer, injectionMethod);
         int i = 0;
-        String baseName = injectionMethod.name + "$" + targetMethod.name.replaceAll("<>", "") + "$" + extra;
+        String baseName = injectionMethod.name + "$" + targetMethod.name.replaceAll("[<>]", "") + "$" + extra;
         do {
             injectionMethod.name = baseName + i++;
         } while (this.hasMethod(transformedClass, injectionMethod.name));
