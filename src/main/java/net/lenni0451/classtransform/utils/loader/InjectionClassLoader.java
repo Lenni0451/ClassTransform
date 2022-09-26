@@ -165,7 +165,7 @@ public class InjectionClassLoader extends URLClassLoader {
             try {
                 return new URL("x-buffer", null, -1, name, new BytesURLStreamHandler(this.runtimeResources.get(name)));
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                throw new RuntimeException("This should never have happened", e);
             }
         }
         return super.findResource(name);

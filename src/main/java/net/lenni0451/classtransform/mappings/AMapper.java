@@ -15,6 +15,8 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +28,7 @@ import java.util.Scanner;
 
 public abstract class AMapper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AMapper.class);
     private static final String ANNOTATION_PACKAGE = CTransformer.class.getPackage().getName().replace(".", "/");
 
     private final MapperConfig config;
@@ -53,7 +56,7 @@ public abstract class AMapper {
             try {
                 SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
             } catch (Throwable t) {
-                new Exception("Unable to fill all super mappings for class '" + transformer.name + "'. Trying without", t).printStackTrace();
+                LOGGER.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
             }
         }
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();

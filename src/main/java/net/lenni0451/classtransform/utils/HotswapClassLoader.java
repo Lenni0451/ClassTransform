@@ -1,11 +1,15 @@
 package net.lenni0451.classtransform.utils;
 
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class HotswapClassLoader extends ClassLoader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HotswapClassLoader.class);
 
     private final IClassProvider classProvider;
     private final Map<String, byte[]> hotswapClasses;
@@ -28,7 +32,7 @@ public class HotswapClassLoader extends ClassLoader {
             Class<?> clazz = this.defineClass(name, classBytes, 0, classBytes.length);
             clazz.getDeclaredConstructor().newInstance(); //Initialize the class
         } catch (Throwable t) {
-            t.printStackTrace();
+            LOGGER.warn("Failed to define hotswap class '{}'. Hotswapping will not work for this transformer", name, t);
         }
     }
 
