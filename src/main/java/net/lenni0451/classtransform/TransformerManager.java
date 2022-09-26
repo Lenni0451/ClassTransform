@@ -28,6 +28,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final AMapper mapper;
     private final List<ATransformer> internalTransformer = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
+    private Instrumentation instrumentation;
 
     private final List<ITransformerPreprocessor> transformerPreprocessor = new ArrayList<>();
     private final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
@@ -156,32 +157,37 @@ public class TransformerManager implements ClassFileTransformer {
      * The class must still be annotated with {@link CTransformer}
      *
      * @param classNode The {@link ClassNode} to add
+     * @return A list of all classes transformed by the transformer
      */
-    public void addTransformer(final ClassNode classNode) {
+    public Set<String> addTransformer(final ClassNode classNode) {
         for (ITransformerPreprocessor preprocessor : this.transformerPreprocessor) preprocessor.process(classNode);
         List<Object> annotation;
         if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
             throw new IllegalStateException("Transformer does not have CTransformer annotation");
         }
+        Set<String> transformedClasses = new HashSet<>();
         for (int i = 0; i < annotation.size(); i += 2) {
             String key = (String) annotation.get(i);
             Object value = annotation.get(i + 1);
 
             if (key.equals("value")) {
                 List<Type> classesList = (List<Type>) value;
-                for (Type type : classesList) this.addTransformer(this.mapper.mapClassName(type.getClassName()), classNode);
+                for (Type type : classesList) this.addTransformer(transformedClasses, this.mapper.mapClassName(type.getClassName()), classNode);
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
-                for (String className : classesList) this.addTransformer(this.mapper.mapClassName(className), classNode);
+                for (String className : classesList) this.addTransformer(transformedClasses, this.mapper.mapClassName(className), classNode);
             }
         }
         this.registeredTransformer.add(classNode.name.replace("/", "."));
+        return transformedClasses;
     }
 
-    private void addTransformer(final String className, final ClassNode transformer) {
+    private void addTransformer(final Set<String> transformedClasses, final String className, final ClassNode transformer) {
         List<ClassNode> transformerList = this.transformer.computeIfAbsent(className, n -> new ArrayList<>());
         transformerList.removeIf(cn -> cn.name.equals(transformer.name));
         transformerList.add(transformer);
+
+        transformedClasses.add(className);
         this.transformedClasses.add(className);
     }
 
@@ -249,10 +255,19 @@ public class TransformerManager implements ClassFileTransformer {
      * @throws UnmodifiableClassException If a class could not be redefined
      */
     public void hookInstrumentation(final Instrumentation instrumentation) throws UnmodifiableClassException {
+        this.instrumentation = instrumentation;
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());
 
-        for (Class<?> loadedClass : instrumentation.getAllLoadedClasses()) {
-            if (loadedClass != null && this.transformedClasses.contains(loadedClass.getName())) instrumentation.retransformClasses(loadedClass);
+        this.retransformClasses(null);
+    }
+
+    private void retransformClasses(final Set<String> classesToRetransform) throws UnmodifiableClassException {
+        if (this.instrumentation.isRetransformClassesSupported()) {
+            for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
+                if (loadedClass != null && this.transformedClasses.contains(loadedClass.getName()) && (classesToRetransform == null || classesToRetransform.contains(loadedClass.getName()))) {
+                    this.instrumentation.retransformClasses(loadedClass);
+                }
+            }
         }
     }
 
@@ -265,6 +280,18 @@ public class TransformerManager implements ClassFileTransformer {
         if (className == null) return null;
         try {
             className = className.replace("/", ".");
+            if (this.registeredTransformer.contains(className)) { //Called when hotswapping transformer classes
+                try {
+                    ClassNode transformer = ASMUtils.fromBytes(classfileBuffer);
+                    this.retransformClasses(this.addTransformer(transformer));
+
+                    return ASMUtils.toBytes(ASMUtils.createEmptyClass(transformer.name), this.classProvider);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    return new byte[]{1}; //Tells the IDE something went wrong
+                }
+            }
+
             byte[] newBytes = transform(className, classfileBuffer);
             if (!Arrays.equals(newBytes, classfileBuffer)) return newBytes;
         } catch (Throwable t) {
