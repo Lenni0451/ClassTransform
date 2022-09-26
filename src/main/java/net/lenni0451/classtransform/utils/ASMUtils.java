@@ -50,9 +50,7 @@ public class ASMUtils {
      */
     public static MethodNode getMethod(final ClassNode classNode, final String name, final String desc) {
         for (MethodNode method : classNode.methods) {
-            if (method.name.equals(name) && method.desc.equals(desc)) {
-                return method;
-            }
+            if (method.name.equals(name) && method.desc.equals(desc)) return method;
         }
         return null;
     }
@@ -196,27 +194,16 @@ public class ASMUtils {
      * @return The needed return opcode
      */
     public static int getReturnOpcode(final Type returnType) {
-        if (returnType.equals(Type.VOID_TYPE)) {
-            return Opcodes.RETURN;
-        } else if (returnType.equals(Type.BOOLEAN_TYPE)) {
-            return Opcodes.IRETURN;
-        } else if (returnType.equals(Type.BYTE_TYPE)) {
-            return Opcodes.IRETURN;
-        } else if (returnType.equals(Type.CHAR_TYPE)) {
-            return Opcodes.IRETURN;
-        } else if (returnType.equals(Type.SHORT_TYPE)) {
-            return Opcodes.IRETURN;
-        } else if (returnType.equals(Type.INT_TYPE)) {
-            return Opcodes.IRETURN;
-        } else if (returnType.equals(Type.FLOAT_TYPE)) {
-            return Opcodes.FRETURN;
-        } else if (returnType.equals(Type.LONG_TYPE)) {
-            return Opcodes.LRETURN;
-        } else if (returnType.equals(Type.DOUBLE_TYPE)) {
-            return Opcodes.DRETURN;
-        } else {
-            return Opcodes.ARETURN;
-        }
+        if (returnType.equals(Type.VOID_TYPE)) return Opcodes.RETURN;
+        else if (returnType.equals(Type.BOOLEAN_TYPE)) return Opcodes.IRETURN;
+        else if (returnType.equals(Type.BYTE_TYPE)) return Opcodes.IRETURN;
+        else if (returnType.equals(Type.CHAR_TYPE)) return Opcodes.IRETURN;
+        else if (returnType.equals(Type.SHORT_TYPE)) return Opcodes.IRETURN;
+        else if (returnType.equals(Type.INT_TYPE)) return Opcodes.IRETURN;
+        else if (returnType.equals(Type.FLOAT_TYPE)) return Opcodes.FRETURN;
+        else if (returnType.equals(Type.LONG_TYPE)) return Opcodes.LRETURN;
+        else if (returnType.equals(Type.DOUBLE_TYPE)) return Opcodes.DRETURN;
+        else return Opcodes.ARETURN;
     }
 
     /**
@@ -226,25 +213,15 @@ public class ASMUtils {
      * @return The needed load opcode
      */
     public static int getLoadOpcode(final Type type) {
-        if (type.equals(Type.BOOLEAN_TYPE)) {
-            return Opcodes.ILOAD;
-        } else if (type.equals(Type.BYTE_TYPE)) {
-            return Opcodes.ILOAD;
-        } else if (type.equals(Type.CHAR_TYPE)) {
-            return Opcodes.ILOAD;
-        } else if (type.equals(Type.SHORT_TYPE)) {
-            return Opcodes.ILOAD;
-        } else if (type.equals(Type.INT_TYPE)) {
-            return Opcodes.ILOAD;
-        } else if (type.equals(Type.FLOAT_TYPE)) {
-            return Opcodes.FLOAD;
-        } else if (type.equals(Type.LONG_TYPE)) {
-            return Opcodes.LLOAD;
-        } else if (type.equals(Type.DOUBLE_TYPE)) {
-            return Opcodes.DLOAD;
-        } else {
-            return Opcodes.ALOAD;
-        }
+        if (type.equals(Type.BOOLEAN_TYPE)) return Opcodes.ILOAD;
+        else if (type.equals(Type.BYTE_TYPE)) return Opcodes.ILOAD;
+        else if (type.equals(Type.CHAR_TYPE)) return Opcodes.ILOAD;
+        else if (type.equals(Type.SHORT_TYPE)) return Opcodes.ILOAD;
+        else if (type.equals(Type.INT_TYPE)) return Opcodes.ILOAD;
+        else if (type.equals(Type.FLOAT_TYPE)) return Opcodes.FLOAD;
+        else if (type.equals(Type.LONG_TYPE)) return Opcodes.LLOAD;
+        else if (type.equals(Type.DOUBLE_TYPE)) return Opcodes.DLOAD;
+        else return Opcodes.ALOAD;
     }
 
     /**
@@ -254,25 +231,15 @@ public class ASMUtils {
      * @return The needed store opcode
      */
     public static int getStoreOpcode(final Type type) {
-        if (type.equals(Type.BOOLEAN_TYPE)) {
-            return Opcodes.ISTORE;
-        } else if (type.equals(Type.BYTE_TYPE)) {
-            return Opcodes.ISTORE;
-        } else if (type.equals(Type.CHAR_TYPE)) {
-            return Opcodes.ISTORE;
-        } else if (type.equals(Type.SHORT_TYPE)) {
-            return Opcodes.ISTORE;
-        } else if (type.equals(Type.INT_TYPE)) {
-            return Opcodes.ISTORE;
-        } else if (type.equals(Type.FLOAT_TYPE)) {
-            return Opcodes.FSTORE;
-        } else if (type.equals(Type.LONG_TYPE)) {
-            return Opcodes.LSTORE;
-        } else if (type.equals(Type.DOUBLE_TYPE)) {
-            return Opcodes.DSTORE;
-        } else {
-            return Opcodes.ASTORE;
-        }
+        if (type.equals(Type.BOOLEAN_TYPE)) return Opcodes.ISTORE;
+        else if (type.equals(Type.BYTE_TYPE)) return Opcodes.ISTORE;
+        else if (type.equals(Type.CHAR_TYPE)) return Opcodes.ISTORE;
+        else if (type.equals(Type.SHORT_TYPE)) return Opcodes.ISTORE;
+        else if (type.equals(Type.INT_TYPE)) return Opcodes.ISTORE;
+        else if (type.equals(Type.FLOAT_TYPE)) return Opcodes.FSTORE;
+        else if (type.equals(Type.LONG_TYPE)) return Opcodes.LSTORE;
+        else if (type.equals(Type.DOUBLE_TYPE)) return Opcodes.DSTORE;
+        else return Opcodes.ASTORE;
     }
 
     /**
@@ -383,9 +350,7 @@ public class ASMUtils {
     public static AbstractInsnNode getFirstConstructorInstruction(final String superClass, final MethodNode methodNode) {
         AbstractInsnNode first = methodNode.instructions.getFirst();
         while (first != null) {
-            if (first.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) first).owner.equals(superClass)) {
-                return first.getNext();
-            }
+            if (first.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) first).owner.equals(superClass)) return first.getNext();
             first = first.getNext();
         }
         return null;
@@ -399,21 +364,13 @@ public class ASMUtils {
      */
     public static Number getNumber(final AbstractInsnNode instruction) {
         if (instruction == null) return null;
-        if (instruction.getOpcode() >= Opcodes.ICONST_M1 && instruction.getOpcode() <= Opcodes.ICONST_5) {
-            return instruction.getOpcode() - Opcodes.ICONST_0;
-        } else if (instruction.getOpcode() >= Opcodes.LCONST_0 && instruction.getOpcode() <= Opcodes.LCONST_1) {
-            return (long) (instruction.getOpcode() - Opcodes.LCONST_0);
-        } else if (instruction.getOpcode() >= Opcodes.FCONST_0 && instruction.getOpcode() <= Opcodes.FCONST_2) {
-            return (float) (instruction.getOpcode() - Opcodes.FCONST_0);
-        } else if (instruction.getOpcode() >= Opcodes.DCONST_0 && instruction.getOpcode() <= Opcodes.DCONST_1) {
-            return (double) (instruction.getOpcode() - Opcodes.DCONST_0);
-        } else if (instruction.getOpcode() == Opcodes.BIPUSH) {
-            return (byte) ((IntInsnNode) instruction).operand;
-        } else if (instruction.getOpcode() == Opcodes.SIPUSH) {
-            return (short) ((IntInsnNode) instruction).operand;
-        } else if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst instanceof Number) {
-            return (Number) ((LdcInsnNode) instruction).cst;
-        }
+        if (instruction.getOpcode() >= Opcodes.ICONST_M1 && instruction.getOpcode() <= Opcodes.ICONST_5) return instruction.getOpcode() - Opcodes.ICONST_0;
+        else if (instruction.getOpcode() >= Opcodes.LCONST_0 && instruction.getOpcode() <= Opcodes.LCONST_1) return (long) (instruction.getOpcode() - Opcodes.LCONST_0);
+        else if (instruction.getOpcode() >= Opcodes.FCONST_0 && instruction.getOpcode() <= Opcodes.FCONST_2) return (float) (instruction.getOpcode() - Opcodes.FCONST_0);
+        else if (instruction.getOpcode() >= Opcodes.DCONST_0 && instruction.getOpcode() <= Opcodes.DCONST_1) return (double) (instruction.getOpcode() - Opcodes.DCONST_0);
+        else if (instruction.getOpcode() == Opcodes.BIPUSH) return (byte) ((IntInsnNode) instruction).operand;
+        else if (instruction.getOpcode() == Opcodes.SIPUSH) return (short) ((IntInsnNode) instruction).operand;
+        else if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst instanceof Number) return (Number) ((LdcInsnNode) instruction).cst;
         return null;
     }
 
@@ -482,7 +439,7 @@ public class ASMUtils {
      * @return The cloned {@link ClassNode}
      */
     public static ClassNode cloneClass(final ClassNode classNode) {
-        final ClassNode clonedClass = new ClassNode();
+        ClassNode clonedClass = new ClassNode();
         classNode.accept(clonedClass);
         return clonedClass;
     }
@@ -494,9 +451,28 @@ public class ASMUtils {
      * @return The cloned {@link MethodNode}
      */
     public static MethodNode cloneMethod(final MethodNode methodNode) {
-        final MethodNode clonedMethod = new MethodNode(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature, methodNode.exceptions.toArray(new String[0]));
+        MethodNode clonedMethod = new MethodNode(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature, methodNode.exceptions.toArray(new String[0]));
         methodNode.accept(clonedMethod);
         return clonedMethod;
+    }
+
+    /**
+     * Create an empty class with a default constructor
+     *
+     * @param name The name of the class
+     * @return The {@link ClassNode}
+     */
+    public static ClassNode createEmptyClass(final String name) {
+        ClassNode node = new ClassNode();
+        node.visit(Opcodes.ASM9, Opcodes.ACC_PUBLIC, name.replace(".", "/"), null, "java/lang/Object", null);
+
+        MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        constructor.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        constructor.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V"));
+        constructor.instructions.add(new InsnNode(Opcodes.RETURN));
+        node.methods.add(constructor);
+
+        return node;
     }
 
 }
