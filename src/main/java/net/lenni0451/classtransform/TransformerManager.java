@@ -33,7 +33,10 @@ public class TransformerManager implements ClassFileTransformer {
     private final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
     private final Map<String, List<IRawTransformer>> rawTransformer = new HashMap<>();
     private final Map<String, List<ClassNode>> transformer = new HashMap<>();
-    private final List<IPostTransformer> postTransformConsumer = new ArrayList<>();
+    private final List<IPostTransformer> postTransformer = new ArrayList<>();
+
+    private final Set<String> registeredTransformer = new HashSet<>();
+    private final Set<String> transformedClasses = new HashSet<>();
 
     /**
      * @param classProvider The {@link ClassLoader} to use for transformer loading
@@ -106,6 +109,7 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void addRawTransformer(final String className, final IRawTransformer rawTransformer) {
         this.rawTransformer.computeIfAbsent(className, n -> new ArrayList<>()).add(rawTransformer);
+        this.transformedClasses.add(className.replace("/", "."));
     }
 
     /**
@@ -165,30 +169,30 @@ public class TransformerManager implements ClassFileTransformer {
 
             if (key.equals("value")) {
                 List<Type> classesList = (List<Type>) value;
-                for (Type type : classesList) {
-                    this.transformer
-                            .computeIfAbsent(this.mapper.mapClassName(type.getClassName()), n -> new ArrayList<>())
-                            .add(classNode);
-                }
+                for (Type type : classesList) this.addTransformer(this.mapper.mapClassName(type.getClassName()), classNode);
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
-                for (String className : classesList) {
-                    this.transformer
-                            .computeIfAbsent(this.mapper.mapClassName(className), n -> new ArrayList<>())
-                            .add(classNode);
-                }
+                for (String className : classesList) this.addTransformer(this.mapper.mapClassName(className), classNode);
             }
         }
+        this.registeredTransformer.add(classNode.name.replace("/", "."));
+    }
+
+    private void addTransformer(final String className, final ClassNode transformer) {
+        List<ClassNode> transformerList = this.transformer.computeIfAbsent(className, n -> new ArrayList<>());
+        transformerList.removeIf(cn -> cn.name.equals(transformer.name));
+        transformerList.add(transformer);
+        this.transformedClasses.add(className);
     }
 
     /**
-     * Add a post transform consumer to handle the raw byte array after all transformer have been applied<br>
+     * Add a post transformer to handle the raw byte array after all other transformer have been applied<br>
      * Useful for dumping transformed classes to disk
      *
-     * @param consumer The {@link BiConsumer} instance
+     * @param postTransformer The {@link BiConsumer} instance
      */
-    public void addPostTransformConsumer(final IPostTransformer consumer) {
-        this.postTransformConsumer.add(consumer);
+    public void addPostTransformConsumer(final IPostTransformer postTransformer) {
+        this.postTransformer.add(postTransformer);
     }
 
     /**
@@ -206,9 +210,7 @@ public class TransformerManager implements ClassFileTransformer {
         List<IRawTransformer> rawTransformer = this.rawTransformer.get(name);
         if (rawTransformer != null) {
             clazz = ASMUtils.fromBytes(bytecode);
-            for (IRawTransformer transformer : rawTransformer) {
-                clazz = transformer.transformer(this, clazz);
-            }
+            for (IRawTransformer transformer : rawTransformer) clazz = transformer.transformer(this, clazz);
         }
 
         List<ClassNode> transformer = this.transformer.get(name);
@@ -234,19 +236,8 @@ public class TransformerManager implements ClassFileTransformer {
 
         if (clazz == null) return bytecode;
         byte[] transformedBytecode = ASMUtils.toBytes(clazz, this.classProvider);
-        for (IPostTransformer postTransformer : this.postTransformConsumer) postTransformer.transform(name, transformedBytecode);
+        for (IPostTransformer postTransformer : this.postTransformer) postTransformer.transform(name, transformedBytecode);
         return transformedBytecode;
-    }
-
-    /**
-     * Get a list of all transformed classes<br>
-     * This is useful to redefine already loaded classes
-     */
-    public List<String> getTransformedClasses() {
-        List<String> transformedClasses = new ArrayList<>();
-        transformedClasses.addAll(this.transformer.keySet());
-        transformedClasses.addAll(this.rawTransformer.keySet());
-        return Collections.unmodifiableList(transformedClasses);
     }
 
     /**
@@ -260,11 +251,8 @@ public class TransformerManager implements ClassFileTransformer {
     public void hookInstrumentation(final Instrumentation instrumentation) throws UnmodifiableClassException {
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());
 
-        List<String> transformedClasses = this.getTransformedClasses();
         for (Class<?> loadedClass : instrumentation.getAllLoadedClasses()) {
-            if (loadedClass != null && transformedClasses.contains(loadedClass.getName())) {
-                instrumentation.retransformClasses(loadedClass);
-            }
+            if (loadedClass != null && this.transformedClasses.contains(loadedClass.getName())) instrumentation.retransformClasses(loadedClass);
         }
     }
 
@@ -276,7 +264,8 @@ public class TransformerManager implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         if (className == null) return null;
         try {
-            byte[] newBytes = transform(className.replace("/", "."), classfileBuffer);
+            className = className.replace("/", ".");
+            byte[] newBytes = transform(className, classfileBuffer);
             if (!Arrays.equals(newBytes, classfileBuffer)) return newBytes;
         } catch (Throwable t) {
             t.printStackTrace();
