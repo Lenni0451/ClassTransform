@@ -464,7 +464,7 @@ public class ASMUtils {
      */
     public static ClassNode createEmptyClass(final String name) {
         ClassNode node = new ClassNode();
-        node.visit(Opcodes.ASM9, Opcodes.ACC_PUBLIC, name.replace(".", "/"), null, "java/lang/Object", null);
+        node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name.replace(".", "/"), null, "java/lang/Object", null);
 
         MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         constructor.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
