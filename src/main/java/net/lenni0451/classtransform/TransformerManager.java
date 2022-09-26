@@ -277,7 +277,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.instrumentation = instrumentation;
         if (hotswappable) {
             this.hotswapClassLoader = new HotswapClassLoader(this.classProvider);
-            for (String transformedClass : this.transformedClasses) this.hotswapClassLoader.defineHotswapClass(transformedClass);
+            for (String transformerClass : this.registeredTransformer) this.hotswapClassLoader.defineHotswapClass(transformerClass);
         }
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());
 
