@@ -17,7 +17,6 @@ import org.objectweb.asm.tree.ClassNode;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -258,9 +257,8 @@ public class TransformerManager implements ClassFileTransformer {
      * Hotswapping transformer is disabled by default as it causes a bit more overhead and memory usage
      *
      * @param instrumentation The instance of the {@link Instrumentation}
-     * @throws UnmodifiableClassException If a class could not be redefined
      */
-    public void hookInstrumentation(final Instrumentation instrumentation) throws UnmodifiableClassException {
+    public void hookInstrumentation(final Instrumentation instrumentation) {
         this.hookInstrumentation(instrumentation, false);
     }
 
@@ -285,11 +283,12 @@ public class TransformerManager implements ClassFileTransformer {
 
     private void retransformClasses(final Set<String> classesToRetransform) {
         if (this.instrumentation != null && this.instrumentation.isRetransformClassesSupported()) {
+            Set<String> classSet;
+            if (classesToRetransform != null) classSet = classesToRetransform;
+            else classSet = this.transformedClasses;
             for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
                 try {
-                    if (loadedClass != null && this.transformedClasses.contains(loadedClass.getName()) && (classesToRetransform == null || classesToRetransform.contains(loadedClass.getName()))) {
-                        this.instrumentation.retransformClasses(loadedClass);
-                    }
+                    if (loadedClass != null && classSet.contains(loadedClass.getName())) this.instrumentation.retransformClasses(loadedClass);
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
