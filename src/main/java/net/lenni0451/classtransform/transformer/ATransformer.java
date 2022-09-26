@@ -17,11 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class ATransformer {
-
-    private final AtomicInteger id = new AtomicInteger();
 
     /**
      * Transform the target class using the given transformer class
@@ -76,8 +73,20 @@ public abstract class ATransformer {
 
     protected void renameAndCopy(final MethodNode injectionMethod, final MethodNode targetMethod, final ClassNode transformer, final ClassNode transformedClass, final String extra) {
         this.prepareForCopy(transformer, injectionMethod);
-        injectionMethod.name = targetMethod.name.replace("<", "").replace(">", "") + "$" + extra + this.id.getAndIncrement();
+        int i = 0;
+        String baseName = injectionMethod.name + "$" + targetMethod.name + "$" + extra;
+        do {
+            injectionMethod.name = baseName + i++;
+        } while (this.hasMethod(transformedClass, injectionMethod.name));
         Remapper.remapAndAdd(transformer, transformedClass, injectionMethod);
+    }
+
+
+    private boolean hasMethod(final ClassNode node, final String name) {
+        for (MethodNode method : node.methods) {
+            if (method.name.equals(name)) return true;
+        }
+        return false;
     }
 
 }
