@@ -8,6 +8,7 @@ import net.lenni0451.classtransform.targets.impl.*;
 import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.HotswapClassLoader;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -29,6 +30,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final List<ATransformer> internalTransformer = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private Instrumentation instrumentation;
+    private HotswapClassLoader hotswapClassLoader;
 
     private final List<ITransformerPreprocessor> transformerPreprocessor = new ArrayList<>();
     private final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
@@ -178,7 +180,9 @@ public class TransformerManager implements ClassFileTransformer {
                 for (String className : classesList) this.addTransformer(transformedClasses, this.mapper.mapClassName(className), classNode);
             }
         }
-        this.registeredTransformer.add(classNode.name.replace("/", "."));
+        String name = classNode.name.replace("/", ".");
+        this.registeredTransformer.add(name);
+        if (this.hotswapClassLoader != null) this.hotswapClassLoader.defineHotswapClass(name);
         return transformedClasses;
     }
 
@@ -249,13 +253,28 @@ public class TransformerManager implements ClassFileTransformer {
     /**
      * Hook an {@link Instrumentation} instance to allow for transformation using it<br>
      * This can be used to transform classes already loaded by the JVM<br>
-     * You have to be careful with re-transforming classes since you can't modify the structure (e.g. adding a new method or modifying the signature of an existing one)
+     * You have to be careful with re-transforming classes since you can't modify the structure (e.g. adding a new method or modifying the signature of an existing one)<br>
+     * Hotswapping transformer is disabled by default as it causes a bit more overhead and memory usage
      *
      * @param instrumentation The instance of the {@link Instrumentation}
      * @throws UnmodifiableClassException If a class could not be redefined
      */
     public void hookInstrumentation(final Instrumentation instrumentation) throws UnmodifiableClassException {
+        this.hookInstrumentation(instrumentation, false);
+    }
+
+    /**
+     * Hook an {@link Instrumentation} instance to allow for transformation using it<br>
+     * This can be used to transform classes already loaded by the JVM<br>
+     * You have to be careful with re-transforming classes since you can't modify the structure (e.g. adding a new method or modifying the signature of an existing one)
+     *
+     * @param instrumentation The instance of the {@link Instrumentation}
+     * @param hotswappable    Allow transformer to be hotswapped
+     * @throws UnmodifiableClassException If a class could not be redefined
+     */
+    public void hookInstrumentation(final Instrumentation instrumentation, final boolean hotswappable) throws UnmodifiableClassException {
         this.instrumentation = instrumentation;
+        if (hotswappable) this.hotswapClassLoader = new HotswapClassLoader(this.classProvider);
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());
 
         this.retransformClasses(null);
@@ -280,12 +299,12 @@ public class TransformerManager implements ClassFileTransformer {
         if (className == null) return null;
         try {
             className = className.replace("/", ".");
-            if (this.registeredTransformer.contains(className)) { //Called when hotswapping transformer classes
+            if (this.hotswapClassLoader != null && this.registeredTransformer.contains(className)) {
                 try {
                     ClassNode transformer = ASMUtils.fromBytes(classfileBuffer);
                     this.retransformClasses(this.addTransformer(transformer));
 
-                    return ASMUtils.toBytes(ASMUtils.createEmptyClass(transformer.name), this.classProvider);
+                    return this.hotswapClassLoader.getHotswapClass(transformer.name);
                 } catch (Throwable t) {
                     t.printStackTrace();
                     return new byte[]{1}; //Tells the IDE something went wrong
