@@ -9,12 +9,12 @@ import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
+import net.lenni0451.classtransform.utils.log.DefaultLogger;
+import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.*;
 import java.security.ProtectionDomain;
@@ -24,12 +24,11 @@ import java.util.function.Supplier;
 
 public class TransformerManager implements ClassFileTransformer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformerManager.class);
-
     private final IClassProvider classProvider;
     private final AMapper mapper;
     private final List<ATransformer> internalTransformer = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
+    private ILogger logger = new DefaultLogger();
     private Instrumentation instrumentation;
     private HotswapClassLoader hotswapClassLoader;
 
@@ -82,6 +81,15 @@ public class TransformerManager implements ClassFileTransformer {
         this.injectionTargets.put("PUTFIELD", new FieldTarget(Opcodes.PUTFIELD, Opcodes.PUTSTATIC));
         this.injectionTargets.put("NEW", new NewTarget());
         this.injectionTargets.put("OPCODE", new OpcodeTarget());
+    }
+
+    /**
+     * Set the logger used by ClassTransform for errors and warnings
+     *
+     * @param logger The logger to use
+     */
+    public void setLogger(final ILogger logger) {
+        this.logger = logger;
     }
 
     /**
@@ -231,16 +239,16 @@ public class TransformerManager implements ClassFileTransformer {
             for (ClassNode classNode : transformer) {
                 try {
                     classNode = ASMUtils.cloneClass(classNode);
-                    classNode = this.mapper.mapClass(this.classProvider, clazz, classNode);
+                    classNode = this.mapper.mapClass(this.classProvider, this.logger, clazz, classNode);
                 } catch (Throwable t) {
-                    LOGGER.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
+                    this.logger.error("Failed to remap and fill annotation details of transformer '%s'", classNode.name, t);
                 }
 
                 for (ATransformer aTransformer : this.internalTransformer) {
                     try {
                         aTransformer.transform(this, this.classProvider, this.injectionTargets, clazz, classNode);
                     } catch (Throwable t) {
-                        LOGGER.error("Transformer '{}' failed to transform class '{}'", aTransformer.getClass().getSimpleName(), clazz.name, t);
+                        this.logger.error("Transformer '%s' failed to transform class '%s'", aTransformer.getClass().getSimpleName(), clazz.name, t);
                     }
                 }
             }
@@ -275,7 +283,7 @@ public class TransformerManager implements ClassFileTransformer {
     public void hookInstrumentation(final Instrumentation instrumentation, final boolean hotswappable) {
         this.instrumentation = instrumentation;
         if (hotswappable) {
-            this.hotswapClassLoader = new HotswapClassLoader(this.classProvider);
+            this.hotswapClassLoader = new HotswapClassLoader(this.classProvider, this.logger);
             for (String transformerClass : this.registeredTransformer) this.hotswapClassLoader.defineHotswapClass(transformerClass);
         }
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());
@@ -292,7 +300,7 @@ public class TransformerManager implements ClassFileTransformer {
                 try {
                     if (loadedClass != null && classSet.contains(loadedClass.getName())) this.instrumentation.retransformClasses(loadedClass);
                 } catch (Throwable t) {
-                    LOGGER.error("Failed to retransform class '{}'", loadedClass.getName(), t);
+                    this.logger.error("Failed to retransform class '%s'", loadedClass.getName(), t);
                 }
             }
         }
@@ -325,7 +333,7 @@ public class TransformerManager implements ClassFileTransformer {
 
                     return this.hotswapClassLoader.getHotswapClass(transformer.name);
                 } catch (Throwable t) {
-                    LOGGER.error("Failed to hotswap transformer '{}'", className, t);
+                    this.logger.error("Failed to hotswap transformer '%s'", className, t);
                     return new byte[]{1}; //Tells the IDE something went wrong
                 }
             }
@@ -333,7 +341,7 @@ public class TransformerManager implements ClassFileTransformer {
             byte[] newBytes = transform(className, classfileBuffer);
             if (!Arrays.equals(newBytes, classfileBuffer)) return newBytes;
         } catch (Throwable t) {
-            LOGGER.error("Failed to transform class '{}'", className, t);
+            this.logger.error("Failed to transform class '%s'", className, t);
         }
         return null;
     }

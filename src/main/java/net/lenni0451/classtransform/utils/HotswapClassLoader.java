@@ -1,23 +1,22 @@
 package net.lenni0451.classtransform.utils;
 
+import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class HotswapClassLoader extends ClassLoader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HotswapClassLoader.class);
-
     private final IClassProvider classProvider;
+    private final ILogger logger;
     private final Map<String, byte[]> hotswapClasses;
 
-    public HotswapClassLoader(final IClassProvider classProvider) {
+    public HotswapClassLoader(final IClassProvider classProvider, final ILogger logger) {
         ClassLoader.registerAsParallelCapable();
 
         this.classProvider = classProvider;
+        this.logger = logger;
         this.hotswapClasses = new HashMap<>();
     }
 
@@ -32,7 +31,7 @@ public class HotswapClassLoader extends ClassLoader {
             Class<?> clazz = this.defineClass(name, classBytes, 0, classBytes.length);
             clazz.getDeclaredConstructor().newInstance(); //Initialize the class
         } catch (Throwable t) {
-            LOGGER.warn("Failed to define hotswap class '{}'. Hotswapping will not work for this transformer", name, t);
+            this.logger.warn("Failed to define hotswap class '%s'. Hotswapping will not work for this transformer", name, t);
         }
     }
 

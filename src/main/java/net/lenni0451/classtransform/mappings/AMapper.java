@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.mappings.SuperMappingFiller;
@@ -15,8 +16,6 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,7 +27,6 @@ import java.util.Scanner;
 
 public abstract class AMapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AMapper.class);
     private static final String ANNOTATION_PACKAGE = CTransformer.class.getPackage().getName().replace(".", "/");
 
     private final MapperConfig config;
@@ -51,12 +49,12 @@ public abstract class AMapper {
         return this.dot(this.remapper.mapType(this.slash(className)));
     }
 
-    public final ClassNode mapClass(final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
+    public final ClassNode mapClass(final IClassProvider classProvider, final ILogger logger, final ClassNode target, final ClassNode transformer) {
         if (this.config.fillSuperMappings) {
             try {
                 SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
             } catch (Throwable t) {
-                LOGGER.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
+                logger.warn("Unable to fill super mappings for class '%s'. Trying without", transformer.name, t);
             }
         }
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();

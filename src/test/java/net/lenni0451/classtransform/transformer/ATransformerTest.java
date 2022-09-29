@@ -8,6 +8,7 @@ import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.VCalculator;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.log.DefaultLogger;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +48,7 @@ public abstract class ATransformerTest {
             CTransformer cTransformer = AnnotationParser.parse(CTransformer.class, this.classProvider, AnnotationParser.listToMap(annotation));
             Class<?> targetClass = cTransformer.value()[0];
             ClassNode targetNode = ASMUtils.fromBytes(this.classProvider.getClass(targetClass.getName()));
-            this.voidMapper.mapClass(this.classProvider, targetNode, transformer);
+            this.voidMapper.mapClass(this.classProvider, new DefaultLogger(), targetNode, transformer);
         }
         return transformer;
     }
