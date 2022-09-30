@@ -57,7 +57,9 @@ public class AnnotationParser<T extends Annotation> {
         this.declareMethods();
 
         try {
-            return ClassDefiner.<T>defineAnonymousClass(ASMUtils.toBytes(this.node, this.classProvider)).newInstance(new Class[]{IClassProvider.class}, new Object[]{this.classProvider});
+            return ClassDefiner.
+                    <T>defineAnonymousClass(ASMUtils.toBytes(this.node, this.classProvider))
+                    .newInstance(new Class[]{IClassProvider.class, Map.class}, new Object[]{this.classProvider, this.values});
         } catch (Throwable t) {
             throw new IllegalStateException("Failed to create instance of '" + this.type.getName() + "'", t);
         }
@@ -81,17 +83,24 @@ public class AnnotationParser<T extends Annotation> {
         this.node = new ClassNode();
         this.node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassDefiner.generateClassName("AnnotationWrapper"), null, "java/lang/Object", new String[]{Type.getInternalName(this.type), Type.getInternalName(IParsedAnnotation.class)});
 
-        { //IClassProvider classProvider
+        { //fields
             this.node.visitField(Opcodes.ACC_PRIVATE, "classProvider", Type.getDescriptor(IClassProvider.class), null, null).visitEnd();
+            this.node.visitField(Opcodes.ACC_PRIVATE, "values", Type.getDescriptor(Map.class), null, null).visitEnd();
         }
 
         { //<init>
-            MethodVisitor constructor = this.node.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(" + Type.getDescriptor(IClassProvider.class) + ")V", null, null);
+            MethodVisitor constructor = this.node.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(" + Type.getDescriptor(IClassProvider.class) + Type.getDescriptor(Map.class) + ")V", null, null);
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitVarInsn(Opcodes.ALOAD, 1);
             constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "classProvider", Type.getDescriptor(IClassProvider.class));
+
+            constructor.visitVarInsn(Opcodes.ALOAD, 0);
+            constructor.visitVarInsn(Opcodes.ALOAD, 2);
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "values", Type.getDescriptor(Map.class));
+
             constructor.visitInsn(Opcodes.RETURN);
             constructor.visitEnd();
         }
@@ -118,6 +127,13 @@ public class AnnotationParser<T extends Annotation> {
             annotationType.visitLdcInsn(Type.getType(this.type));
             annotationType.visitInsn(Opcodes.ARETURN);
             annotationType.visitEnd();
+        }
+        { //getValues
+            MethodVisitor getValues = this.node.visitMethod(Opcodes.ACC_PUBLIC, "getValues", "()" + Type.getDescriptor(Map.class), null, null);
+            getValues.visitVarInsn(Opcodes.ALOAD, 0);
+            getValues.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "values", Type.getDescriptor(Map.class));
+            getValues.visitInsn(Opcodes.ARETURN);
+            getValues.visitEnd();
         }
         { //wasSet
             MethodVisitor wasSet = this.node.visitMethod(Opcodes.ACC_PUBLIC, "wasSet", "(Ljava/lang/String;)Z", null, null);

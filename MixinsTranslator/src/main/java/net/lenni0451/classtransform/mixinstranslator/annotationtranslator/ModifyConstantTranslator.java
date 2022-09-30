@@ -24,6 +24,7 @@ public class ModifyConstantTranslator implements IAnnotationTranslator {
             if (constantValues.containsKey("longValue")) values.put("longValue", constantValues.get("longValue"));
             if (constantValues.containsKey("doubleValue")) values.put("doubleValue", constantValues.get("doubleValue"));
             if (constantValues.containsKey("stringValue")) values.put("stringValue", constantValues.get("stringValue"));
+            if (constantValues.containsKey("classValue")) values.put("typeValue", constantValues.get("classValue"));
         }
         annotation.values = AnnotationParser.mapToList(values);
     }

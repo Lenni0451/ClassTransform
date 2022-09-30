@@ -36,6 +36,8 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
         boolean hasFloatValue = parsedAnnotation.wasSet("floatValue");
         boolean hasDoubleValue = parsedAnnotation.wasSet("doubleValue");
         boolean hasStringValue = parsedAnnotation.wasSet("stringValue");
+        boolean hasTypeValue = parsedAnnotation.wasSet("typeValue");
+        Type typeValue = hasTypeValue ? Type.getType((String) parsedAnnotation.getValues().get("typeValue")) : null;
 
         for (String targetCombi : annotation.method()) {
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
@@ -50,7 +52,7 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
                     throw new TransformerException(transformerMethod, transformer, "must have no arguments")
                             .help(Codifier.of(transformerMethod).param(null));
                 }
-                if (this.getTrueCount(hasNullValue, hasIntValue, hasLongValue, hasFloatValue, hasDoubleValue, hasStringValue) != 1) {
+                if (this.getTrueCount(hasNullValue, hasIntValue, hasLongValue, hasFloatValue, hasDoubleValue, hasStringValue, hasTypeValue) != 1) {
                     throw new TransformerException(transformerMethod, transformer, "must have exactly one target constant");
                 }
                 {
@@ -61,6 +63,7 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
                     else if (hasFloatValue) returnType = Type.FLOAT_TYPE;
                     else if (hasDoubleValue) returnType = Type.DOUBLE_TYPE;
                     else if (hasStringValue) returnType = Type.getType(String.class);
+                    else if (hasTypeValue) returnType = Type.getType(Class.class);
                     else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
                     if (returnType != null) {
                         if (!Type.getReturnType(transformerMethod.desc).equals(returnType)) {
@@ -85,7 +88,7 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
                         }
                     } else if (hasIntValue) {
                         Number number = ASMUtils.getNumber(instruction);
-                        if (number instanceof Integer && number.intValue() == annotation.intValue()) {
+                        if ((number instanceof Byte || number instanceof Short || number instanceof Integer) && number.intValue() == annotation.intValue()) {
                             toReplace.add(instruction);
                         }
                     } else if (hasLongValue) {
@@ -105,6 +108,10 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
                         }
                     } else if (hasStringValue) {
                         if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst.equals(annotation.stringValue())) {
+                            toReplace.add(instruction);
+                        }
+                    } else if (hasTypeValue) {
+                        if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst.equals(typeValue)) {
                             toReplace.add(instruction);
                         }
                     }

@@ -66,4 +66,9 @@ public @interface CModifyConstant {
      */
     String stringValue() default "";
 
+    /**
+     * Set the given type as target
+     */
+    Class<?> typeValue() default Object.class;
+
 }
