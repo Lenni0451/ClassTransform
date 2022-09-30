@@ -219,6 +219,16 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Add a new injection target for use with the {@link net.lenni0451.classtransform.annotations.CTarget} annotation
+     *
+     * @param name   The name of the injection target
+     * @param target The injection target
+     */
+    public void addInjectionTarget(final String name, final IInjectionTarget target) {
+        this.injectionTargets.put(name, target);
+    }
+
+    /**
      * Transform the bytecode of a given class
      *
      * @param name     The name of the class
