@@ -110,7 +110,8 @@ public class InjectionClassLoader extends URLClassLoader {
                 }
             }
 
-            classBytes = this.transformerManager.transform(name, classBytes);
+            byte[] transformedClassBytes = this.transformerManager.transform(name, classBytes);
+            if (transformedClassBytes != null) classBytes = transformedClassBytes;
 
             CodeSource codeSource = null;
             if (connection != null) codeSource = new CodeSource(connection.getURL(), codeSigner);

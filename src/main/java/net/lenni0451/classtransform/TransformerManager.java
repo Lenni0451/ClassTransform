@@ -222,12 +222,19 @@ public class TransformerManager implements ClassFileTransformer {
      *
      * @param name     The name of the class
      * @param bytecode The bytecode of the class
-     * @return The modified bytecode of the class (if there were transformer present)
+     * @return The modified bytecode of the class or null if not changed
      */
     public byte[] transform(final String name, byte[] bytecode) {
+        boolean transformed = false;
         ClassNode clazz = null;
 
-        for (IBytecodeTransformer transformer : this.bytecodeTransformer) bytecode = transformer.transform(name, bytecode);
+        for (IBytecodeTransformer transformer : this.bytecodeTransformer) {
+            byte[] transformedBytecode = transformer.transform(name, bytecode);
+            if (transformedBytecode != null) {
+                transformed = true;
+                bytecode = transformedBytecode;
+            }
+        }
 
         List<IRawTransformer> rawTransformer = this.rawTransformer.get(name);
         if (rawTransformer != null) {
@@ -256,7 +263,10 @@ public class TransformerManager implements ClassFileTransformer {
             }
         }
 
-        if (clazz == null) return bytecode;
+        if (clazz == null) {
+            if (transformed) return bytecode;
+            return null;
+        }
         byte[] transformedBytecode = ASMUtils.toBytes(clazz, this.classProvider);
         for (IPostTransformer postTransformer : this.postTransformer) postTransformer.transform(name, transformedBytecode);
         return transformedBytecode;
@@ -340,8 +350,8 @@ public class TransformerManager implements ClassFileTransformer {
                 }
             }
 
-            byte[] newBytes = transform(className, classfileBuffer);
-            if (!Arrays.equals(newBytes, classfileBuffer)) return newBytes;
+            byte[] newBytes = this.transform(className, classfileBuffer);
+            if (newBytes != null) return newBytes;
         } catch (Throwable t) {
             this.logger.error("Failed to transform class '%s'", className, t);
         }
