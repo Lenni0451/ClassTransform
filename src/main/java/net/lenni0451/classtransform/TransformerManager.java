@@ -21,6 +21,7 @@ import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
@@ -316,27 +317,30 @@ public class TransformerManager implements ClassFileTransformer {
 
     private void retransformClasses(final Set<String> classesToRetransform) {
         if (this.instrumentation != null && this.instrumentation.isRetransformClassesSupported()) {
+            List<Class<?>> classes = new ArrayList<>();
             Set<String> classSet;
             if (classesToRetransform != null) classSet = classesToRetransform;
             else classSet = this.transformedClasses;
             for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
-                try {
-                    if (loadedClass != null && classSet.contains(loadedClass.getName())) this.instrumentation.retransformClasses(loadedClass);
-                } catch (Throwable t) {
-                    this.logger.error("Failed to retransform class '%s'", loadedClass.getName(), t);
-                }
+                if (loadedClass != null && classSet.contains(loadedClass.getName())) classes.add(loadedClass);
+            }
+            try {
+                this.instrumentation.retransformClasses(classes.toArray(new Class[0]));
+            } catch (Throwable t) {
+                this.logger.error("Failed to retransform classes '%s'", classes.stream().map(Class::getName).collect(Collectors.joining(", ")), t);
             }
         }
     }
 
     private void redefineClasses(final Set<String> classesToRedefine) throws UnmodifiableClassException, ClassNotFoundException {
+        List<ClassDefinition> classDefinitions = new ArrayList<>();
         for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
             if (loadedClass != null && classesToRedefine.contains(loadedClass.getName())) {
-                byte[] bytecode = this.classProvider.getClass(loadedClass.getName());
-                byte[] transformedBytecode = this.transform(loadedClass.getName(), bytecode);
-                if (!Arrays.equals(bytecode, transformedBytecode)) this.instrumentation.redefineClasses(new ClassDefinition(loadedClass, transformedBytecode));
+                byte[] transformedBytecode = this.transform(loadedClass.getName(), this.classProvider.getClass(loadedClass.getName()));
+                if (transformedBytecode != null) classDefinitions.add(new ClassDefinition(loadedClass, transformedBytecode));
             }
         }
+        this.instrumentation.redefineClasses(classDefinitions.toArray(new ClassDefinition[0]));
     }
 
     /**
