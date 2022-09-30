@@ -83,6 +83,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.injectionTargets.put("PUTFIELD", new FieldTarget(Opcodes.PUTFIELD, Opcodes.PUTSTATIC));
         this.injectionTargets.put("NEW", new NewTarget());
         this.injectionTargets.put("OPCODE", new OpcodeTarget());
+        this.injectionTargets.put("CONSTANT", new ConstantTarget());
     }
 
     /**

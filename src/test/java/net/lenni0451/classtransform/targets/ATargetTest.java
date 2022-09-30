@@ -47,6 +47,15 @@ public abstract class ATargetTest {
         this.method.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
         this.method.instructions.add(new InsnNode(Opcodes.ATHROW));
         this.method.instructions.add(new InsnNode(Opcodes.DRETURN));
+        this.method.instructions.add(new InsnNode(Opcodes.ICONST_M1));
+        this.method.instructions.add(new IntInsnNode(Opcodes.BIPUSH, 0));
+        this.method.instructions.add(new IntInsnNode(Opcodes.SIPUSH, 1));
+        this.method.instructions.add(new LdcInsnNode(2));
+        this.method.instructions.add(new LdcInsnNode(3L));
+        this.method.instructions.add(new LdcInsnNode(4F));
+        this.method.instructions.add(new LdcInsnNode(5D));
+        this.method.instructions.add(new LdcInsnNode("6th string"));
+        this.method.instructions.add(new LdcInsnNode(Type.getType(Object.class)));
     }
 
     protected CTarget getTarget(final String target, final CTarget.Shift shift, final int ordinal) {
