@@ -109,8 +109,7 @@ public class ConstantTarget implements IInjectionTarget {
         if (!sizeChecker.apply(parts.length)) {
             throw new IllegalArgumentException(constantName + " constant does not have " + this.getAorAN(constantName) + " " + constantName + " as argument");
         }
-        String unparsedVal = "";
-        for (int i = 1; i < parts.length; i++) unparsedVal += (i == 1 ? "" : " ") + parts[i];
+        String unparsedVal = value.substring(parts[0].length() + 1);
         T val;
         try {
             val = parser.apply(unparsedVal);
