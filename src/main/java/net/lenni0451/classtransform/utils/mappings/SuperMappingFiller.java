@@ -12,6 +12,8 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 public class SuperMappingFiller {
 
     /**
@@ -40,7 +42,7 @@ public class SuperMappingFiller {
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
                 for (String className : classesList) {
-                    ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(className.replace(".", "/")));
+                    ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(slash(className)));
                     Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }

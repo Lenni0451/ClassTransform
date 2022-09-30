@@ -22,6 +22,8 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.dot;
+
 public class TransformerManager implements ClassFileTransformer {
 
     private final IClassProvider classProvider;
@@ -191,7 +193,7 @@ public class TransformerManager implements ClassFileTransformer {
         }
         this.transformedClasses.addAll(transformedClasses);
 
-        String name = classNode.name.replace("/", ".");
+        String name = dot(classNode.name);
         this.registeredTransformer.add(name);
         if (this.hotswapClassLoader != null) this.hotswapClassLoader.defineHotswapClass(name);
         return transformedClasses;
@@ -324,7 +326,7 @@ public class TransformerManager implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         if (className == null) return null;
         try {
-            className = className.replace("/", ".");
+            className = dot(className);
             if (this.hotswapClassLoader != null && this.registeredTransformer.contains(className)) {
                 try {
                     ClassNode transformer = ASMUtils.fromBytes(classfileBuffer);

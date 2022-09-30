@@ -5,12 +5,14 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.util.*;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.dot;
+
 public class ClassTree {
 
     private static final Map<String, ClassTree> TREE = new HashMap<>();
 
     public static ClassTree getTreePart(final IClassProvider classProvider, String className) {
-        className = className.replace("/", ".");
+        className = dot(className);
         if (TREE.containsKey(className)) return TREE.get(className);
 
         byte[] bytecode = classProvider.getClass(className);
@@ -39,12 +41,12 @@ public class ClassTree {
 
     public ClassTree(final ClassNode node) {
         this.node = node;
-        this.name = node.name.replace("/", ".");
+        this.name = dot(node.name);
         this.superClass = node.superName;
         this.superClasses = new HashSet<>();
-        if (this.superClass != null) this.superClasses.add(this.superClass.replace("/", "."));
+        if (this.superClass != null) this.superClasses.add(dot(this.superClass));
         if (node.interfaces != null) {
-            for (String inter : node.interfaces) this.superClasses.add(inter.replace("/", "."));
+            for (String inter : node.interfaces) this.superClasses.add(dot(inter));
         }
         this.modifiers = node.access;
     }

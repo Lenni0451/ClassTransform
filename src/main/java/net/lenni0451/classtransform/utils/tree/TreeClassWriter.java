@@ -4,6 +4,8 @@ import org.objectweb.asm.ClassWriter;
 
 import java.lang.reflect.Modifier;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 public class TreeClassWriter extends ClassWriter {
 
     private final IClassProvider classProvider;
@@ -33,7 +35,7 @@ public class TreeClassWriter extends ClassWriter {
                 if (class1 == null) return "java/lang/Object";
             } while (!class2.getSuperClasses().contains(class1.getName()));
 
-            return class1.getName().replace(".", "/");
+            return slash(class1.getName());
         } else {
             return "java/lang/Object";
         }

@@ -7,6 +7,8 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 public class ProguardMapper extends AMapper {
 
     private static final String CLASS_LINE = "^([^ ]+) ?-> ?([^ ]+):$";
@@ -30,8 +32,8 @@ public class ProguardMapper extends AMapper {
             if (line.matches(CLASS_LINE)) {
                 Matcher m = Pattern.compile(CLASS_LINE).matcher(line);
                 if (m.find()) {
-                    currentClass = this.slash(m.group(1));
-                    String newName = this.slash(m.group(2));
+                    currentClass = slash(m.group(1));
+                    String newName = slash(m.group(2));
 
                     if (currentClass.equals(newName)) continue;
                     this.remapper.addClassMapping(currentClass, newName);
@@ -112,7 +114,7 @@ public class ProguardMapper extends AMapper {
                 return arrayCount + "V";
 
             default:
-                return arrayCount + "L" + this.slash(type) + ";";
+                return arrayCount + "L" + slash(type) + ";";
         }
     }
 

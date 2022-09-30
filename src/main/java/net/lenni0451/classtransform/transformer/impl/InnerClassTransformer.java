@@ -14,6 +14,8 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Map;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.dot;
+
 public class InnerClassTransformer extends ATransformer {
 
     @Override
@@ -21,7 +23,7 @@ public class InnerClassTransformer extends ATransformer {
         for (InnerClassNode innerClass : transformer.innerClasses) {
             if (innerClass.outerName != null) continue;
 
-            transformerManager.addRawTransformer(innerClass.name.replace("/", "."), (tm, transformedClass) -> {
+            transformerManager.addRawTransformer(dot(innerClass.name), (tm, transformedClass) -> {
                 for (MethodNode method : transformedClass.methods) method.access = ASMUtils.setAccess(method.access, Opcodes.ACC_PUBLIC);
                 for (FieldNode field : transformedClass.fields) field.access = ASMUtils.setAccess(field.access, Opcodes.ACC_PUBLIC);
                 transformedClass.access = ASMUtils.setAccess(transformedClass.access, Opcodes.ACC_PUBLIC);

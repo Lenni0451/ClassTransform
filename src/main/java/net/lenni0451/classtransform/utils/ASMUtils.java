@@ -464,7 +464,7 @@ public class ASMUtils {
      */
     public static ClassNode createEmptyClass(final String name) {
         ClassNode node = new ClassNode();
-        node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name.replace(".", "/"), null, "java/lang/Object", null);
+        node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, slash(name), null, "java/lang/Object", null);
 
         MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         constructor.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -473,6 +473,26 @@ public class ASMUtils {
         node.methods.add(constructor);
 
         return node;
+    }
+
+    /**
+     * Replace all slashes with dots in the given class/package name
+     *
+     * @param s The class/package name
+     * @return The class/package name with dots
+     */
+    public static String dot(final String s) {
+        return s.replace("/", ".");
+    }
+
+    /**
+     * Replace all dots with slashes in the given class/package name
+     *
+     * @param s The class/package name
+     * @return The class/package name with slashes
+     */
+    public static String slash(final String s) {
+        return s.replace(".", "/");
     }
 
 }

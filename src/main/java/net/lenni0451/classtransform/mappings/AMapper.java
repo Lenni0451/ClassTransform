@@ -25,9 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.dot;
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 public abstract class AMapper {
 
-    private static final String ANNOTATION_PACKAGE = CTransformer.class.getPackage().getName().replace(".", "/");
+    private static final String ANNOTATION_PACKAGE = slash(CTransformer.class.getPackage().getName());
 
     private final MapperConfig config;
     protected final MapRemapper remapper;
@@ -46,7 +49,7 @@ public abstract class AMapper {
     }
 
     public final String mapClassName(final String className) {
-        return this.dot(this.remapper.mapType(this.slash(className)));
+        return dot(this.remapper.mapType(slash(className)));
     }
 
     public final ClassNode mapClass(final IClassProvider classProvider, final ILogger logger, final ClassNode target, final ClassNode transformer) {
@@ -96,14 +99,6 @@ public abstract class AMapper {
             while (s.hasNextLine()) out.add(s.nextLine());
         }
         return out;
-    }
-
-    protected String slash(final String s) {
-        return s.replace('.', '/');
-    }
-
-    protected String dot(final String s) {
-        return s.replace('/', '.');
     }
 
 
@@ -176,7 +171,7 @@ public abstract class AMapper {
                 return Type.getObjectType(owner).getDescriptor() + name + (member.isFieldMapping() ? ":" : "") + desc;
 
             case CLASS:
-                return this.dot(this.remapper.mapType(this.slash(s)));
+                return dot(this.remapper.mapType(slash(s)));
 
             default:
                 throw new IllegalStateException("Unexpected value: " + type);
