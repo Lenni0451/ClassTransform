@@ -36,10 +36,4 @@ public @interface CRedirect {
     @AnnotationRemap(RemapType.ANNOTATION)
     CSlice slice() default @CSlice;
 
-    /**
-     * The ordinal of the target<br>
-     * Use -1 to use all targets
-     */
-    int ordinal() default -1;
-
 }
