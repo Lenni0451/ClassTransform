@@ -133,9 +133,10 @@ public class InjectionClassLoader extends URLClassLoader {
         InputStream classStream = this.getResourceAsStream(name.replace('.', '/') + ".class");
         if (classStream == null) throw new ClassNotFoundException(name);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buf = new byte[1024];
         int len;
 
-        while ((len = classStream.read()) != -1) baos.write(len);
+        while ((len = classStream.read(buf)) != -1) baos.write(buf, 0, len);
         classStream.close();
 
         return baos.toByteArray();
