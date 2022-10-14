@@ -2,6 +2,30 @@
 A lightweight, mixin like injection lib using ASM.  
 The usage is like Mixins. You can almost copy-paste mixins code and it works.
 
+<!-- TOC -->
+* [ClassTransform](#classtransform)
+  * [Why?](#why)
+  * [Usage](#usage)
+    * [Gradle/Maven](#gradlemaven)
+    * [Jar File](#jar-file)
+    * [Transformer Manager](#transformer-manager)
+    * [Transformer types](#transformer-types)
+    * [Annotations](#annotations)
+    * [Injecting using an Agent](#injecting-using-an-agent)
+    * [Injecting using a ClassLoader](#injecting-using-a-classloader)
+    * [Default Transformer](#default-transformer)
+    * [Annotation Examples](#annotation-examples)
+      * [CASM](#casm)
+      * [CInject](#cinject)
+      * [CModifyConstant](#cmodifyconstant)
+      * [COverride](#coverride)
+      * [CRedirect](#credirect)
+      * [CWrapCatch](#cwrapcatch)
+    * [Remapping Transformers](#remapping-transformers)
+      * [Builtin Mappings Loader](#builtin-mappings-loader)
+      * [RawMapper](#rawmapper)
+<!-- TOC -->
+
 ## Why?
 I wanted a lightweight version of mixins which I can easily add into any program.  
 It even contains a custom ClassLoader to inject into classes before loading them if you can't resort to agents.
@@ -18,17 +42,18 @@ If you just want the latest jar file you can download it from my [Jenkins](https
 The ``TransformerManager`` is the main class which handles the entire injection process.  
 When creating a new ``TransformerManager`` you have to provide a ``IClassProvider`` and optionally a ``AMapper``.  
 The ``IClassProvider`` is used to get the bytecode of classes if needed for e.g. frame computation.  
-The ``AMapper`` can provide mappings which get automatically applied to the transformers to allow injection obfuscated code.  
+The ``AMapper`` can provide mappings which get automatically applied to the transformers to allow injection in obfuscated code.  
 
 ### Transformer types
 There are different types of transformers available:
 
-| Transformer Type     | Description                                                                                                       |
-|----------------------|-------------------------------------------------------------------------------------------------------------------|
-| IBytecodeTransformer | The IBytecodeTransformer can modify the bytecode of every class before applying any other transformer             |
-| IRawTransformer      | The IRawTransformer gets access to the ClassNode before the default transformers are applied                      |
-| Default Transformer  | The default transformers are the ones you know from Mixins                                                        |
-| IPostTransformer     | The IPostTransformer gets the modified output bytecode. Mainly used for dumping classes if something doesn't work |
+| Transformer Type         | Description                                                                                                                                                                          |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ITransformerPreprocessor | The ITransformerPreprocessor is used to modify default transformer ClassNodes before the TransformerManager parses them allowing to use custom integrations like the MixinTranslator |
+| IBytecodeTransformer     | The IBytecodeTransformer can modify the bytecode of every class before applying any other transformer                                                                                |
+| IRawTransformer          | The IRawTransformer gets access to the ClassNode before the default transformers are applied                                                                                         |
+| Default Transformer      | The default transformers are the ones you know from Mixins                                                                                                                           |
+| IPostTransformer         | The IPostTransformer gets the modified output bytecode. Mainly used for dumping classes if something doesn't work                                                                    |
 
 ### Annotations
 The following injection annotations are available:
@@ -50,6 +75,7 @@ The following util annotations are available:
 | CSlice          | Choose any target in a method to create a slice to allow more precise injections |
 | CTarget         | Choose the target to inject to                                                   |
 | CTransformer    | Mark a class as a transformer and define the injected classes                    |
+| CUpgrade        | Upgrade the class version of the transformed class                               |
 
 ### Injecting using an Agent
 Using an Agent is the preferred way to inject code using ClassTransform.
@@ -62,7 +88,9 @@ public static void agentmain(String args, Instrumentation instrumentation) throw
     transformerManager.hookInstrumentation(instrumentation);
 }
 ````
-The class ``net.lenni0451.classtransform.TestTransformer`` in this example is our default transformer.
+The class ``net.lenni0451.classtransform.TestTransformer`` in this example is our default transformer.  
+ClassTransform also allows the hotswapping of transformers, but it is disabled by default as it comes with extra overhead.  
+To allow hotswapping replace the ``transformerManager.hookInstrumentation(instrumentation);`` with ``transformerManager.hookInstrumentation(instrumentation, true);``.
 
 ### Injecting using a ClassLoader
 ClassTransform also provides the ``InjectionClassLoader`` to allow injection into classes without transformation access.  
@@ -92,6 +120,7 @@ Example:
 ````java
 @CTransformer(Example.class)
 public class TestTransformer {
+}
 ````
 
 ### Annotation Examples
@@ -203,3 +232,25 @@ This example method wraps the ``OutputStream#close`` method call in a try-catch 
 The exception in the parameter is the exception catched by the try-catch block.  
 The return type must be the one of the original method call.  
 You can even re-throw the exception or throw a new one.
+
+### Remapping Transformers
+ClassTransform supports the remapping of default transformer using supplied mappings.  
+Those mappings can be loaded from a file or generated in code.
+
+#### Builtin Mappings Loader
+| AMapper Implementation |
+|------------------------|
+| ProguardMapper         |
+| RawMapper              |
+| SrgMapper              |
+| TinyV2Mapper           |
+All AMapper implementations not only require the mappings file but also a MapperConfig.  
+Example:
+````java
+new SrgMapper(MapperConfig.create().fillSuperMappings(true).remapTransformer(true), new File("mappings.srg"));
+````
+``fillSuperMappings`` recursively goes through all classes and fills the mappings for overwritten methods/fields.  
+``remapTransformer`` remaps the transformer ClassNode according to the mappings file.
+
+#### RawMapper
+The RawMapper is an integrated AMapper implementation but instead of a file it directly takes a MapRemapper to allow generating mappings from other sources.
