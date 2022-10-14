@@ -7,17 +7,12 @@ I wanted a lightweight version of mixins which I can easily add into any program
 It even contains a custom ClassLoader to inject into classes before loading them if you can't resort to agents.
 
 ## Usage
-### Gradle/Maven/Jar download
-To use ClassTransform with Gradle/Maven you can check out the repo on [Jitpack](https://jitpack.io/#Lenni0451/ClassTransform).  
-If you want a jar file, you can also download it from Jitpack:  
-``
-https://jitpack.io/com/github/Lenni0451/ClassTransform/<version>/ClassTransform-<version>.jar
-``  
-As an example:
-For version ``cf1f3f88ea`` this results in the following link:  
-``
-https://jitpack.io/com/github/Lenni0451/ClassTransform/cf1f3f88ea/ClassTransform-cf1f3f88ea.jar
-``
+### Gradle/Maven
+To use ClassTransform with Gradle/Maven you can use my [maven server](https://maven.lenni0451.net/).  
+You can also find instructions how to implement it into your build script there.
+
+### Jar File
+If you just want the latest jar file you can download it from my [Jenkins](https://build.lenni0451.net/job/ClassTransform/).
 
 ### Transformer Manager
 The ``TransformerManager`` is the main class which handles the entire injection process.  
