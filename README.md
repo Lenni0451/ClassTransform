@@ -1,6 +1,7 @@
 # ClassTransform
 A lightweight, mixin like injection lib using ASM.  
-The usage is like Mixins. You can almost copy-paste mixins code and it works.
+The usage is like Mixins. You can almost copy-paste mixins code and it works.  
+Or you can use [MixinsTranslator](#copy-pasting-mixins) and copy-paste them almost 1:1.
 
 <!-- TOC -->
 * [ClassTransform](#classtransform)
@@ -24,6 +25,7 @@ The usage is like Mixins. You can almost copy-paste mixins code and it works.
     * [Remapping Transformers](#remapping-transformers)
       * [Builtin Mappings Loader](#builtin-mappings-loader)
       * [RawMapper](#rawmapper)
+    * [Copy-Pasting Mixins](#copy-pasting-mixins)
 <!-- TOC -->
 
 ## Why?
@@ -254,3 +256,15 @@ new SrgMapper(MapperConfig.create().fillSuperMappings(true).remapTransformer(tru
 
 #### RawMapper
 The RawMapper is an integrated AMapper implementation but instead of a file it directly takes a MapRemapper to allow generating mappings from other sources.
+
+### Copy-Pasting Mixins
+If you want to copy-paste your mixins for the usage with ClassTransform or just like mixins annotations more you can implement MixinsTranslator into your project.  
+You can find ``ClassTransform-MixinsTranslator`` on my [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/ClassTransform-MixinsTranslator).  
+If you do not have mixins in you class path you also need to add ``ClassTransform-MixinsDummy``.
+
+To allow the usage of mixins annotations you need to add the ``MixinsTranslator`` transformer preprocessor:
+````java
+TransformerManager transformerManager = new TransformerManager(new BasicClassProvider());
+transformerManager.addTransformerPreprocessor(new MixinsTranslator());
+````
+It is now possible to use mixins annotations and ClassTransform annotations together.
