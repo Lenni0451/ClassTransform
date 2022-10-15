@@ -1,17 +1,16 @@
-package net.lenni0451.classtransform.mixinstranslator.annotationtranslator;
+package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.CTarget;
-import net.lenni0451.classtransform.mixinstranslator.IAnnotationTranslator;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import java.util.Map;
 
-public class AtTranslator implements IAnnotationTranslator {
+class AtTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(Map<String, IAnnotationTranslator> translators, AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation) {
         annotation.desc = Type.getDescriptor(CTarget.class);
         Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
         if (values.containsKey("value") && values.containsKey("target")) {

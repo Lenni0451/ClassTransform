@@ -1,7 +1,6 @@
-package net.lenni0451.classtransform.mixinstranslator.annotationtranslator;
+package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.injection.CInject;
-import net.lenni0451.classtransform.mixinstranslator.IAnnotationTranslator;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -9,10 +8,10 @@ import org.objectweb.asm.tree.AnnotationNode;
 import java.util.List;
 import java.util.Map;
 
-public class InjectTranslator implements IAnnotationTranslator {
+class InjectTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(Map<String, IAnnotationTranslator> translators, AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation) {
         annotation.desc = Type.getDescriptor(CInject.class);
         Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
         Boolean optional = null;
@@ -21,14 +20,14 @@ public class InjectTranslator implements IAnnotationTranslator {
         if (values.containsKey("target")) {
             List<AnnotationNode> targets = (List<AnnotationNode>) values.get("target");
             for (AnnotationNode target : targets) {
-                this.dynamicTranslate(translators, target);
+                this.dynamicTranslate(target);
                 if (optional != null) {
                     target.values.add("optional");
                     target.values.add(optional);
                 }
             }
         }
-        if (values.containsKey("slice")) this.dynamicTranslate(translators, (AnnotationNode) values.get("slice"));
+        if (values.containsKey("slice")) this.dynamicTranslate((AnnotationNode) values.get("slice"));
         annotation.values = AnnotationParser.mapToList(values);
     }
 

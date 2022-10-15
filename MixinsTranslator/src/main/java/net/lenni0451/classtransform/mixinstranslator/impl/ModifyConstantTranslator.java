@@ -1,20 +1,19 @@
-package net.lenni0451.classtransform.mixinstranslator.annotationtranslator;
+package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
-import net.lenni0451.classtransform.mixinstranslator.IAnnotationTranslator;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import java.util.Map;
 
-public class ModifyConstantTranslator implements IAnnotationTranslator {
+class ModifyConstantTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(Map<String, IAnnotationTranslator> translators, AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation) {
         annotation.desc = Type.getDescriptor(CModifyConstant.class);
         Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
-        if (values.containsKey("slice")) this.dynamicTranslate(translators, (AnnotationNode) values.get("slice"));
+        if (values.containsKey("slice")) this.dynamicTranslate((AnnotationNode) values.get("slice"));
         if (values.containsKey("constant")) {
             AnnotationNode constant = (AnnotationNode) values.remove("constant");
             Map<String, Object> constantValues = AnnotationParser.listToMap(constant.values);

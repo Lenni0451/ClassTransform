@@ -11,13 +11,13 @@ import org.objectweb.asm.tree.MethodNode;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-public class CallbackRewriter {
+class CallbackRewriter {
 
     private static final Type CALLBACK_INFO = Type.getType(CallbackInfo.class);
     private static final Type CALLBACK_INFO_RETURNABLE = Type.getType(CallbackInfoReturnable.class);
     private static final Type INJECTION_CALLBACK = Type.getType(InjectionCallback.class);
 
-    public static void rewrite(final MethodNode methodNode) {
+    static void rewrite(final MethodNode methodNode) {
         Type[] parameter = Type.getArgumentTypes(methodNode.desc);
         Type returnType = Type.getReturnType(methodNode.desc);
 
