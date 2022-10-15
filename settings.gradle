@@ -5,6 +5,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'ClassTransform'
+rootProject.name = "ClassTransform"
 
+include("MixinsDummy")
 include("MixinsTranslator")

@@ -14,13 +14,13 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Valid constants:
- * - null
- * - int
- * - long
- * - float
- * - double
- * - string
+ * Valid constants:<br>
+ * - null<br>
+ * - int<br>
+ * - long<br>
+ * - float<br>
+ * - double<br>
+ * - string<br>
  * - type
  */
 public class ConstantTarget implements IInjectionTarget {
