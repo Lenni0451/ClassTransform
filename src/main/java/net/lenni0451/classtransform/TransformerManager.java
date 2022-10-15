@@ -139,12 +139,15 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void addTransformer(final String transformer) {
         List<byte[]> classes = new ArrayList<>();
+        boolean wildcard = false;
         if (transformer.endsWith(".**")) {
+            wildcard = true;
             String packageName = transformer.substring(0, transformer.length() - 2);
             for (Map.Entry<String, Supplier<byte[]>> entry : this.classProvider.getAllClasses().entrySet()) {
                 if (entry.getKey().startsWith(packageName)) classes.add(entry.getValue().get());
             }
         } else if (transformer.endsWith(".*")) {
+            wildcard = true;
             String packageName = transformer.substring(0, transformer.length() - 1);
             for (Map.Entry<String, Supplier<byte[]>> entry : this.classProvider.getAllClasses().entrySet()) {
                 if (entry.getKey().startsWith(packageName)) {
@@ -160,7 +163,7 @@ public class TransformerManager implements ClassFileTransformer {
             try {
                 ClassNode classNode = ASMUtils.fromBytes(bytecode);
                 name = classNode.name;
-                this.retransformClasses(this.addTransformer(classNode));
+                this.retransformClasses(this.addTransformer(classNode, !wildcard));
             } catch (Throwable e) {
                 if (name == null) throw new RuntimeException("Unable to parse transformer bytecode", e);
                 else throw new RuntimeException("Unable to load transformer '" + name + "'", e);
@@ -175,10 +178,21 @@ public class TransformerManager implements ClassFileTransformer {
      * @param classNode The {@link ClassNode} to add
      */
     public Set<String> addTransformer(final ClassNode classNode) {
+        return this.addTransformer(classNode, true);
+    }
+
+    /**
+     * Add a {@link ClassNode} directly to the transformer list<br>
+     * The class must still be annotated with {@link CTransformer}
+     *
+     * @param classNode The {@link ClassNode} to add
+     */
+    public Set<String> addTransformer(final ClassNode classNode, final boolean requireAnnotation) {
         for (ITransformerPreprocessor preprocessor : this.transformerPreprocessor) preprocessor.process(classNode);
         List<Object> annotation;
         if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
-            throw new IllegalStateException("Transformer does not have CTransformer annotation");
+            if (requireAnnotation) throw new IllegalStateException("Transformer does not have CTransformer annotation");
+            else return Collections.emptySet();
         }
         Set<String> transformedClasses = new HashSet<>();
         for (int i = 0; i < annotation.size(); i += 2) {
