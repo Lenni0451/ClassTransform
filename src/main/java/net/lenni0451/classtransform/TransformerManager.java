@@ -340,10 +340,12 @@ public class TransformerManager implements ClassFileTransformer {
             for (Class<?> loadedClass : this.instrumentation.getAllLoadedClasses()) {
                 if (loadedClass != null && classSet.contains(loadedClass.getName())) classes.add(loadedClass);
             }
-            try {
-                this.instrumentation.retransformClasses(classes.toArray(new Class[0]));
-            } catch (Throwable t) {
-                this.logger.error("Failed to retransform classes '%s'", classes.stream().map(Class::getName).collect(Collectors.joining(", ")), t);
+            if (!classes.isEmpty()) {
+                try {
+                    this.instrumentation.retransformClasses(classes.toArray(new Class[0]));
+                } catch (Throwable t) {
+                    this.logger.error("Failed to retransform classes '%s'", classes.stream().map(Class::getName).collect(Collectors.joining(", ")), t);
+                }
             }
         }
     }
@@ -356,7 +358,7 @@ public class TransformerManager implements ClassFileTransformer {
                 if (transformedBytecode != null) classDefinitions.add(new ClassDefinition(loadedClass, transformedBytecode));
             }
         }
-        this.instrumentation.redefineClasses(classDefinitions.toArray(new ClassDefinition[0]));
+        if (!classDefinitions.isEmpty()) this.instrumentation.redefineClasses(classDefinitions.toArray(new ClassDefinition[0]));
     }
 
     /**
