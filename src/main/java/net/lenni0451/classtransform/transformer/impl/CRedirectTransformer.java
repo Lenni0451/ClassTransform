@@ -6,7 +6,10 @@ import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.impl.credirect.*;
+import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectField;
+import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
+import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectNew;
+import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
 import net.lenni0451.classtransform.transformer.types.ARemovingTransformer;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -29,8 +32,9 @@ public class CRedirectTransformer extends ARemovingTransformer<CRedirect> {
         super(CRedirect.class);
 
         this.redirectTargets.put("INVOKE", new CRedirectInvoke());
-        this.redirectTargets.put("GETFIELD", new CRedirectGetField());
-        this.redirectTargets.put("PUTFIELD", new CRedirectPutField());
+        this.redirectTargets.put("FIELD", new CRedirectField());
+        this.redirectTargets.put("GETFIELD", new CRedirectField());
+        this.redirectTargets.put("PUTFIELD", new CRedirectField());
         this.redirectTargets.put("NEW", new CRedirectNew());
     }
 
