@@ -24,7 +24,17 @@ class AtTranslator implements IAnnotationTranslator {
                 else if (target.startsWith("doubleValue=")) target = "double " + target.substring(12);
                 else if (target.startsWith("stringValue=")) target = "string " + target.substring(12);
                 else if (target.startsWith("classValue=")) target = "type " + target.substring(11);
+                else throw new IllegalArgumentException("Invalid target: " + target);
                 values.put("target", target);
+            } else if (value.equalsIgnoreCase("JUMP")) {
+                Object opcode = values.get("opcode");
+                if (!(opcode instanceof Integer)) throw new IllegalArgumentException("ClassTransform requires an opcode to be specified");
+                values.put("value", "OPCODE");
+                values.put("target", opcode);
+            } else if (value.equalsIgnoreCase("FIELD")) {
+                if (values.containsKey("opcode")) {
+                    throw new IllegalArgumentException("ClassTransform does not support the FIELD target with opcode. Please refer to the At#opcode javadoc for information");
+                }
             }
         }
         if (values.containsKey("shift")) {

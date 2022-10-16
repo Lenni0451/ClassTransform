@@ -16,6 +16,17 @@ public @interface At {
 
     int ordinal() default -1;
 
+    /**
+     * The opcode field is only supported with the JUMP target.<br>
+     * The FIELD target in ClassTransform has too many differences to the FIELD target with opcode in Mixins.<br>
+     * Please use the GETFIELD or PUTFIELD targets from ClassTransform instead.<br>
+     * The GETFIELD and PUTFIELD targets from ClassTransform include their static counterparts:<br>
+     * GETFIELD -> {@code Opcodes.GETSTATIC} and {@code Opcodes.GETFIELD}<br>
+     * PUTFIELD -> {@code Opcodes.PUTSTATIC} and {@code Opcodes.PUTFIELD}
+     */
+    @Deprecated
+    int opcode() default -1;
+
     @Deprecated
     boolean remap() default true;
 
