@@ -163,7 +163,9 @@ public class TransformerManager implements ClassFileTransformer {
             try {
                 ClassNode classNode = ASMUtils.fromBytes(bytecode);
                 name = classNode.name;
-                this.retransformClasses(this.addTransformer(classNode, !wildcard));
+                Set<String> transformedClasses = this.addTransformer(classNode, !wildcard);
+                if (!transformedClasses.isEmpty()) this.retransformClasses(transformedClasses);
+                else if (!wildcard) this.logger.warn("Transformer '%s' does not transform any classes", name);
             } catch (Throwable e) {
                 if (name == null) throw new RuntimeException("Unable to parse transformer bytecode", e);
                 else throw new RuntimeException("Unable to load transformer '" + name + "'", e);
