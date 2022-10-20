@@ -485,6 +485,10 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                 instructions.add(ASMUtils.getCast(parameter));
             }
         } else {
+            if (loadOpcode == Opcodes.ILOAD) instructions.add(ASMUtils.getPrimitiveToObject(Type.INT_TYPE));
+            else if (loadOpcode == Opcodes.LLOAD) instructions.add(ASMUtils.getPrimitiveToObject(Type.LONG_TYPE));
+            else if (loadOpcode == Opcodes.FLOAD) instructions.add(ASMUtils.getPrimitiveToObject(Type.FLOAT_TYPE));
+            else if (loadOpcode == Opcodes.DLOAD) instructions.add(ASMUtils.getPrimitiveToObject(Type.DOUBLE_TYPE));
             instructions.add(ASMUtils.getCast(parameter));
         }
         return instructions;
