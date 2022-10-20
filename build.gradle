@@ -25,7 +25,7 @@ allprojects {
         repositories {
             maven {
                 name = "reposilite"
-                url = "https://maven.lenni0451.net/releases"
+                url = "https://maven.lenni0451.net/snapshots"
                 credentials(PasswordCredentials)
                 authentication {
                     basic(BasicAuthentication)
@@ -45,9 +45,9 @@ allprojects {
 }
 
 dependencies {
-    api "org.ow2.asm:asm:9.3"
-    api "org.ow2.asm:asm-commons:9.3"
-    api "org.ow2.asm:asm-tree:9.3"
+    api "org.ow2.asm:asm:9.4"
+    api "org.ow2.asm:asm-commons:9.4"
+    api "org.ow2.asm:asm-tree:9.4"
 
     testImplementation platform("org.junit:junit-bom:5.9.0")
     testImplementation "org.junit.jupiter:junit-jupiter"
