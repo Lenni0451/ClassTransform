@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * Specify the target of the class transformation
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.ANNOTATION_TYPE)
+@Target(ElementType.PARAMETER)
 public @interface CTarget {
 
     /**
