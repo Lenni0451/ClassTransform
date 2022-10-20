@@ -35,6 +35,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
 
     @Override
     public void transform(CInject annotation, TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+        boolean hasArgs;
         boolean hasCallback;
         List<CLocalVariable> localVariables = new ArrayList<>();
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
@@ -65,13 +66,22 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                 }
             }
 
-            boolean directMatch = ASMUtils.compareTypes(targetArguments, arguments);
-            boolean callbackMatch = ASMUtils.compareTypes(targetArguments, arguments, false, Type.getType(InjectionCallback.class));
-            if (!directMatch && !callbackMatch) {
-                throw new TransformerException(transformerMethod, transformer, "must have the same arguments as target method with optional InjectionCallback")
+            if (arguments.length == 0) {
+                hasArgs = false;
+                hasCallback = false;
+            } else if (arguments.length == 1 && ASMUtils.compareType(arguments[0], Type.getType(InjectionCallback.class))) {
+                hasArgs = false;
+                hasCallback = true;
+            } else if (ASMUtils.compareTypes(targetArguments, arguments)) {
+                hasArgs = true;
+                hasCallback = false;
+            } else if (ASMUtils.compareTypes(targetArguments, arguments, false, Type.getType(InjectionCallback.class))) {
+                hasArgs = true;
+                hasCallback = true;
+            } else {
+                throw new TransformerException(transformerMethod, transformer, "must have the same arguments as target method or no arguments with optional InjectionCallback")
                         .help(Codifier.of(target).param(Type.getType(InjectionCallback.class)));
             }
-            hasCallback = callbackMatch;
         }
         if (!Type.getReturnType(transformerMethod.desc).equals(Type.VOID_TYPE)) {
             throw new TransformerException(transformerMethod, transformer, "must have void return type")
@@ -97,9 +107,9 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                 InsnList instructions;
 
                 if (this.captureTargets.contains(injectTarget.value().toUpperCase(Locale.ROOT))) {
-                    instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, localVariables, annotation.cancellable(), hasCallback);
+                    instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, localVariables, annotation.cancellable(), hasArgs, hasCallback);
                 } else {
-                    instructions = this.getCallInstructions(transformedClass, target, transformerMethod, localVariables, annotation.cancellable(), hasCallback);
+                    instructions = this.getCallInstructions(transformedClass, target, transformerMethod, localVariables, annotation.cancellable(), hasArgs, hasCallback);
                 }
 
                 if (shift == CTarget.Shift.BEFORE) target.instructions.insertBefore(instruction, instructions);
@@ -108,25 +118,25 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         }
     }
 
-    private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasCallback) {
+    private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasArgs, final boolean hasCallback) {
         Type returnType = Type.getReturnType(target.desc);
         int callbackVar = ASMUtils.getFreeVarIndex(target);
 
-        InsnList instructions = this.getLoadInstructions(target);
+        InsnList instructions = this.getLoadInstructions(target, hasArgs);
         instructions.add(this.createCallback(cancellable, hasCallback, callbackVar, Type.VOID_TYPE, 0));
         instructions.add(this.callInjectionMethod(classNode, target, source, localVariables));
         instructions.add(this.getCancelInstructions(cancellable, hasCallback, callbackVar, returnType));
         return instructions;
     }
 
-    private InsnList getReturnInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasCallback) {
+    private InsnList getReturnInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasArgs, final boolean hasCallback) {
         Type returnType = Type.getReturnType(target.desc);
         boolean isVoid = returnType.equals(Type.VOID_TYPE);
         int callbackVar = ASMUtils.getFreeVarIndex(target);
         //The return value has to be stored locally. We just take the callbackVar + 1 since callbackVar is the last element on the variable table
         int returnVar = callbackVar + 2;
 
-        InsnList instructions = this.getLoadInstructions(target);
+        InsnList instructions = this.getLoadInstructions(target, hasArgs);
         instructions.add(this.createCallback(cancellable, hasCallback, callbackVar, returnType, returnVar));
         instructions.add(this.callInjectionMethod(classNode, target, source, localVariables));
         instructions.add(this.getCancelInstructions(cancellable, hasCallback, callbackVar, returnType));
@@ -137,7 +147,8 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         return instructions;
     }
 
-    private InsnList getLoadInstructions(final MethodNode methodNode) {
+    private InsnList getLoadInstructions(final MethodNode methodNode, final boolean hasArgs) {
+        if (!hasArgs) return new InsnList();
         InsnList instructions = new InsnList();
         Type[] parameter = Type.getArgumentTypes(methodNode.desc);
         int index = Modifier.isStatic(methodNode.access) ? 0 : 1;
