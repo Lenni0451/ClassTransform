@@ -25,7 +25,7 @@ allprojects {
         repositories {
             maven {
                 name = "reposilite"
-                url = "https://maven.lenni0451.net/snapshots"
+                url = "https://maven.lenni0451.net/releases"
                 credentials(PasswordCredentials)
                 authentication {
                     basic(BasicAuthentication)
