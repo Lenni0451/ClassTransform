@@ -29,6 +29,7 @@ public class InnerClassTransformer extends ATransformer {
                 for (MethodNode method : transformedClass.methods) method.access = ASMUtils.setAccess(method.access, Opcodes.ACC_PUBLIC);
                 for (FieldNode field : transformedClass.fields) field.access = ASMUtils.setAccess(field.access, Opcodes.ACC_PUBLIC);
                 transformedClass.access = ASMUtils.setAccess(transformedClass.access, Opcodes.ACC_PUBLIC);
+                transformedClass.outerClass = null;
 
                 return Remapper.remap(transformer.name, injectedClass.name, transformedClass);
             });
