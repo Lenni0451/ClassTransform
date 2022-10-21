@@ -90,6 +90,7 @@ public class ASMUtils {
         } else {
             String regex = combiToRegex(combi);
             for (MethodNode method : classNode.methods) {
+                if ((method.access & Opcodes.ACC_SYNTHETIC) != 0) continue;
                 if (method.name.matches(regex)) methods.add(method);
             }
         }
