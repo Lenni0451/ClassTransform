@@ -90,8 +90,10 @@ public class ASMUtils {
         } else {
             String regex = combiToRegex(combi);
             for (MethodNode method : classNode.methods) {
-                if ((method.access & Opcodes.ACC_SYNTHETIC) != 0) continue;
                 if (method.name.matches(regex)) methods.add(method);
+            }
+            if (methods.size() > 1 && methods.stream().anyMatch(method -> (method.access & Opcodes.ACC_SYNTHETIC) == 0)) {
+                methods.removeIf(method -> (method.access & Opcodes.ACC_SYNTHETIC) != 0);
             }
         }
         return methods;
@@ -133,7 +135,7 @@ public class ASMUtils {
      */
     public static String combiToRegex(String combi) {
         if (combi.replace("*", "").isEmpty()) {
-            combi = ".*";
+            return ".*";
         } else if (combi.contains("*")) {
             boolean startsWith = combi.startsWith("*");
             boolean endsWith = combi.endsWith("*");
