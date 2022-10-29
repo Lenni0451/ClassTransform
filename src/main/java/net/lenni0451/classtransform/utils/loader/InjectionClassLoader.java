@@ -17,6 +17,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 /**
  * Inject into {@link Class}es by using a custom {@link ClassLoader}
  */
@@ -87,7 +89,7 @@ public class InjectionClassLoader extends URLClassLoader {
 
                 if (jarFile != null && jarFile.getManifest() != null) {
                     Manifest manifest = jarFile.getManifest();
-                    JarEntry entry = jarFile.getJarEntry(name.replace('.', '/') + ".class");
+                    JarEntry entry = jarFile.getJarEntry(slash(name) + ".class");
 
                     codeSigner = entry.getCodeSigners();
                     Package pkg = this.getPackage(packageName);
@@ -124,13 +126,13 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     private URLConnection getClassConnection(final String className) throws IOException {
-        URL url = this.findResource(className.replace('.', '/') + ".class");
+        URL url = this.findResource(slash(className) + ".class");
         if (url != null) return url.openConnection();
         return null;
     }
 
     private byte[] getClassBytes(final String name) throws ClassNotFoundException, IOException {
-        InputStream classStream = this.getResourceAsStream(name.replace('.', '/') + ".class");
+        InputStream classStream = this.getResourceAsStream(slash(name) + ".class");
         if (classStream == null) throw new ClassNotFoundException(name);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buf = new byte[1024];
@@ -244,7 +246,7 @@ public class InjectionClassLoader extends URLClassLoader {
      */
     public void copyClass(final IClassProvider classProvider, final String className) {
         byte[] classBytes = classProvider.getClass(className);
-        this.addRuntimeResource(className.replace('.', '/') + ".class", classBytes);
+        this.addRuntimeResource(slash(className) + ".class", classBytes);
     }
 
     /**

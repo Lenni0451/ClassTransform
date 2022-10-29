@@ -485,7 +485,7 @@ public class ASMUtils {
      * @return The class/package name with dots
      */
     public static String dot(final String s) {
-        return s.replace("/", ".");
+        return s.replace('/', '.');
     }
 
     /**
@@ -495,7 +495,7 @@ public class ASMUtils {
      * @return The class/package name with slashes
      */
     public static String slash(final String s) {
-        return s.replace(".", "/");
+        return s.replace('.', '/');
     }
 
 }

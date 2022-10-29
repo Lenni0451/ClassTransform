@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 /**
  * A basic class provider with only the {@link BasicClassProvider#getClass(String)} implemented.<br>
  * You need to register all transformer classes with direct paths
@@ -24,7 +26,7 @@ public class BasicClassProvider implements IClassProvider {
     @Override
     public byte[] getClass(String name) {
         try {
-            InputStream is = this.classLoader.getResourceAsStream(name.replace('.', '/') + ".class");
+            InputStream is = this.classLoader.getResourceAsStream(slash(name) + ".class");
             if (is == null) throw new ClassNotFoundException(name);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];

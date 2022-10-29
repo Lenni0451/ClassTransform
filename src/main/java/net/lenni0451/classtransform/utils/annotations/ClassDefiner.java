@@ -5,6 +5,8 @@ import sun.misc.Unsafe;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 public class ClassDefiner<T> {
 
     private static Unsafe UNSAFE;
@@ -27,7 +29,7 @@ public class ClassDefiner<T> {
     }
 
     public static String generateClassName(final String name) {
-        return ClassDefiner.class.getPackage().getName().replace('.', '/') + "/" + name;
+        return slash(ClassDefiner.class.getPackage().getName()) + "/" + name;
     }
 
     public static <T> ClassDefiner<T> defineAnonymousClass(final byte[] bytecode) {
