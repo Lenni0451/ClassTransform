@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class AnnotationParser<T extends Annotation> {
 
     public static <T extends Annotation> T parse(final Class<T> type, final IClassProvider classProvider, final Map<String, Object> values) {
@@ -81,69 +83,69 @@ public class AnnotationParser<T extends Annotation> {
 
     private void defineBase() {
         this.node = new ClassNode();
-        this.node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassDefiner.generateClassName("AnnotationWrapper"), null, "java/lang/Object", new String[]{Type.getInternalName(this.type), Type.getInternalName(IParsedAnnotation.class)});
+        this.node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassDefiner.generateClassName("AnnotationWrapper"), null, IN_Object, new String[]{internalName(this.type), internalName(IParsedAnnotation.class)});
 
         { //fields
-            this.node.visitField(Opcodes.ACC_PRIVATE, "classProvider", Type.getDescriptor(IClassProvider.class), null, null).visitEnd();
-            this.node.visitField(Opcodes.ACC_PRIVATE, "values", Type.getDescriptor(Map.class), null, null).visitEnd();
+            this.node.visitField(Opcodes.ACC_PRIVATE, "classProvider", typeDescriptor(IClassProvider.class), null, null).visitEnd();
+            this.node.visitField(Opcodes.ACC_PRIVATE, "values", typeDescriptor(Map.class), null, null).visitEnd();
         }
 
         { //<init>
-            MethodVisitor constructor = this.node.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(" + Type.getDescriptor(IClassProvider.class) + Type.getDescriptor(Map.class) + ")V", null, null);
+            MethodVisitor constructor = this.node.visitMethod(Opcodes.ACC_PUBLIC, MN_Init, methodDescriptor(void.class, IClassProvider.class, Map.class), null, null);
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
-            constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+            constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, IN_Object, MN_Init, MD_Void, false);
 
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitVarInsn(Opcodes.ALOAD, 1);
-            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "classProvider", Type.getDescriptor(IClassProvider.class));
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "classProvider", typeDescriptor(IClassProvider.class));
 
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitVarInsn(Opcodes.ALOAD, 2);
-            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "values", Type.getDescriptor(Map.class));
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "values", typeDescriptor(Map.class));
 
             constructor.visitInsn(Opcodes.RETURN);
             constructor.visitEnd();
         }
         { //equals
-            MethodVisitor equals = this.node.visitMethod(Opcodes.ACC_PUBLIC, "equals", "(Ljava/lang/Object;)Z", null, null);
+            MethodVisitor equals = this.node.visitMethod(Opcodes.ACC_PUBLIC, "equals", methodDescriptor(boolean.class, Object.class), null, null);
             equals.visitInsn(Opcodes.ICONST_0);
             equals.visitInsn(Opcodes.IRETURN);
             equals.visitEnd();
         }
         { //hashCode
-            MethodVisitor hashCode = this.node.visitMethod(Opcodes.ACC_PUBLIC, "hashCode", "()I", null, null);
+            MethodVisitor hashCode = this.node.visitMethod(Opcodes.ACC_PUBLIC, "hashCode", methodDescriptor(int.class), null, null);
             hashCode.visitInsn(Opcodes.ICONST_0);
             hashCode.visitInsn(Opcodes.IRETURN);
             hashCode.visitEnd();
         }
         { //toString
-            MethodVisitor toString = this.node.visitMethod(Opcodes.ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null);
+            MethodVisitor toString = this.node.visitMethod(Opcodes.ACC_PUBLIC, "toString", methodDescriptor(String.class), null, null);
             toString.visitLdcInsn("AnnotationWrapper");
             toString.visitInsn(Opcodes.ARETURN);
             toString.visitEnd();
         }
         { //annotationType
-            MethodVisitor annotationType = this.node.visitMethod(Opcodes.ACC_PUBLIC, "annotationType", "()Ljava/lang/Class;", null, null);
-            annotationType.visitLdcInsn(Type.getType(this.type));
+            MethodVisitor annotationType = this.node.visitMethod(Opcodes.ACC_PUBLIC, "annotationType", methodDescriptor(Class.class), null, null);
+            annotationType.visitLdcInsn(type(this.type));
             annotationType.visitInsn(Opcodes.ARETURN);
             annotationType.visitEnd();
         }
         { //getValues
-            MethodVisitor getValues = this.node.visitMethod(Opcodes.ACC_PUBLIC, "getValues", "()" + Type.getDescriptor(Map.class), null, null);
+            MethodVisitor getValues = this.node.visitMethod(Opcodes.ACC_PUBLIC, "getValues", methodDescriptor(Map.class), null, null);
             getValues.visitVarInsn(Opcodes.ALOAD, 0);
-            getValues.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "values", Type.getDescriptor(Map.class));
+            getValues.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "values", typeDescriptor(Map.class));
             getValues.visitInsn(Opcodes.ARETURN);
             getValues.visitEnd();
         }
         { //wasSet
-            MethodVisitor wasSet = this.node.visitMethod(Opcodes.ACC_PUBLIC, "wasSet", "(Ljava/lang/String;)Z", null, null);
+            MethodVisitor wasSet = this.node.visitMethod(Opcodes.ACC_PUBLIC, "wasSet", methodDescriptor(boolean.class, String.class), null, null);
             for (String value : this.values.keySet()) {
                 if (this.initializedDefaultValues.contains(value)) continue;
 
                 Label jumpAfter = new Label();
                 wasSet.visitVarInsn(Opcodes.ALOAD, 1);
                 wasSet.visitLdcInsn(value);
-                wasSet.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
+                wasSet.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", methodDescriptor(boolean.class, Object.class), false);
                 wasSet.visitJumpInsn(Opcodes.IFEQ, jumpAfter);
                 wasSet.visitInsn(Opcodes.ICONST_1);
                 wasSet.visitInsn(Opcodes.IRETURN);
@@ -157,10 +159,10 @@ public class AnnotationParser<T extends Annotation> {
 
     private void declareMethods() {
         for (Method method : this.type.getDeclaredMethods()) {
-            MethodVisitor methodVisitor = this.node.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), null, null);
+            MethodVisitor methodVisitor = this.node.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor(method), null, null);
             Object value = this.values.get(method.getName());
             this.visit(methodVisitor, method.getReturnType(), value);
-            methodVisitor.visitInsn(ASMUtils.getReturnOpcode(Type.getReturnType(method)));
+            methodVisitor.visitInsn(ASMUtils.getReturnOpcode(returnType(method)));
             methodVisitor.visitEnd();
         }
     }
@@ -230,7 +232,7 @@ public class AnnotationParser<T extends Annotation> {
     private void visitClass(final MethodVisitor methodVisitor, final Object value) {
         if (value instanceof Class<?>) {
             Class<?> c = (Class<?>) value;
-            methodVisitor.visitLdcInsn(Type.getType(c));
+            methodVisitor.visitLdcInsn(type(c));
         } else if (value instanceof Type) {
             Type type = (Type) value;
             methodVisitor.visitLdcInsn(type);
@@ -242,10 +244,10 @@ public class AnnotationParser<T extends Annotation> {
     private void visitEnum(final MethodVisitor methodVisitor, final Object value) {
         if (value instanceof Enum<?>) {
             Enum<?> e = (Enum<?>) value;
-            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(e.getDeclaringClass()), e.name(), Type.getDescriptor(e.getDeclaringClass()));
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, internalName(e.getDeclaringClass()), e.name(), typeDescriptor(e.getDeclaringClass()));
         } else if (value instanceof String[]) {
             String[] enumValue = (String[]) value;
-            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, Type.getType(enumValue[0]).getInternalName(), enumValue[1], enumValue[0]);
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, internalName(enumValue[0]), enumValue[1], enumValue[0]);
         } else {
             throw new IllegalArgumentException("Unexpected value class for type 'Enum': " + value.getClass());
         }
@@ -253,16 +255,16 @@ public class AnnotationParser<T extends Annotation> {
 
     private void visitAnnotation(final MethodVisitor methodVisitor, final Object value) {
         Type annotationType;
-        if (value instanceof Annotation) annotationType = Type.getType(((Annotation) value).annotationType());
-        else if (value instanceof AnnotationNode) annotationType = Type.getType(((AnnotationNode) value).desc);
+        if (value instanceof Annotation) annotationType = type(((Annotation) value).annotationType());
+        else if (value instanceof AnnotationNode) annotationType = type(((AnnotationNode) value).desc);
         else throw new IllegalArgumentException("Unexpected value class for type 'Annotation': " + value.getClass());
 
         methodVisitor.visitLdcInsn(annotationType);
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "classProvider", Type.getDescriptor(IClassProvider.class));
-        methodVisitor.visitTypeInsn(Opcodes.NEW, Type.getInternalName(HashMap.class));
+        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "classProvider", typeDescriptor(IClassProvider.class));
+        methodVisitor.visitTypeInsn(Opcodes.NEW, internalName(HashMap.class));
         methodVisitor.visitInsn(Opcodes.DUP);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(HashMap.class), "<init>", "()V", false);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, internalName(HashMap.class), MN_Init, MD_Void, false);
         if (value instanceof Annotation) {
             Annotation a = (Annotation) value;
             for (Method method : a.annotationType().getDeclaredMethods()) {
@@ -279,7 +281,7 @@ public class AnnotationParser<T extends Annotation> {
                 methodVisitor.visitLdcInsn(method.getName());
                 this.visit(methodVisitor, method.getReturnType(), returnValue);
                 this.visitPrimitiveWrap(methodVisitor, method.getReturnType());
-                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(Map.class), "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, internalName(Map.class), "put", methodDescriptor(Object.class, Object.class, Object.class), true);
                 methodVisitor.visitInsn(Opcodes.POP);
             }
         } else {
@@ -290,19 +292,19 @@ public class AnnotationParser<T extends Annotation> {
                 methodVisitor.visitLdcInsn(entry.getKey());
                 this.visit(methodVisitor, entry.getValue().getClass(), entry.getValue());
                 this.visitPrimitiveWrap(methodVisitor, entry.getValue().getClass());
-                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(Map.class), "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, internalName(Map.class), "put", methodDescriptor(Object.class, Object.class, Object.class), true);
                 methodVisitor.visitInsn(Opcodes.POP);
             }
         }
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(AnnotationParser.class), "parse", "(Ljava/lang/Class;Lnet/lenni0451/classtransform/utils/tree/IClassProvider;Ljava/util/Map;)Ljava/lang/annotation/Annotation;", false);
-        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, annotationType.getInternalName());
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(AnnotationParser.class), "parse", methodDescriptor(Annotation.class, Class.class, IClassProvider.class, Map.class), false);
+        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, internalName(annotationType));
     }
 
     private void visitArray(final MethodVisitor methodVisitor, final Class<?> arrayType, final Object value) {
         if (value instanceof Object[]) {
             Object[] array = (Object[]) value;
             methodVisitor.visitIntInsn(Opcodes.BIPUSH, array.length);
-            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(arrayType));
+            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, internalName(arrayType));
             for (int i = 0; i < array.length; i++) {
                 methodVisitor.visitInsn(Opcodes.DUP);
                 methodVisitor.visitLdcInsn(i);
@@ -312,7 +314,7 @@ public class AnnotationParser<T extends Annotation> {
         } else if (value instanceof List) {
             List<?> array = (List<?>) value;
             methodVisitor.visitIntInsn(Opcodes.BIPUSH, array.size());
-            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(arrayType));
+            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, internalName(arrayType));
             for (int i = 0; i < array.size(); i++) {
                 methodVisitor.visitInsn(Opcodes.DUP);
                 methodVisitor.visitLdcInsn(i);
@@ -326,23 +328,23 @@ public class AnnotationParser<T extends Annotation> {
 
     private void visitPrimitiveWrap(final MethodVisitor methodVisitor, final Class<?> type) {
         if (type.equals(boolean.class) || type.equals(Boolean.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Boolean.class), "valueOf", "(Z)Ljava/lang/Boolean;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Boolean.class), "valueOf", methodDescriptor(Boolean.class, boolean.class), false);
         } else if (type.equals(byte.class) || type.equals(Byte.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Byte.class), "valueOf", "(B)Ljava/lang/Byte;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Byte.class), "valueOf", methodDescriptor(Byte.class, byte.class), false);
         } else if (type.equals(short.class) || type.equals(Short.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Short.class), "valueOf", "(S)Ljava/lang/Short;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Short.class), "valueOf", methodDescriptor(Short.class, short.class), false);
         } else if (type.equals(char.class) || type.equals(Character.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Character.class), "valueOf", "(C)Ljava/lang/Character;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Character.class), "valueOf", methodDescriptor(Character.class, char.class), false);
         } else if (type.equals(int.class) || type.equals(Integer.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Integer.class), "valueOf", "(I)Ljava/lang/Integer;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Integer.class), "valueOf", methodDescriptor(Integer.class, int.class), false);
         } else if (type.equals(long.class) || type.equals(Long.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Long.class), "valueOf", "(J)Ljava/lang/Long;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Long.class), "valueOf", methodDescriptor(Long.class, long.class), false);
         } else if (type.equals(float.class) || type.equals(Float.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Float.class), "valueOf", "(F)Ljava/lang/Float;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Float.class), "valueOf", methodDescriptor(Float.class, float.class), false);
         } else if (type.equals(double.class) || type.equals(Double.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Double.class), "valueOf", "(D)Ljava/lang/Double;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Double.class), "valueOf", methodDescriptor(Double.class, double.class), false);
         } else if (type.equals(String.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(String.class), "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;", false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(String.class), "valueOf", methodDescriptor(String.class, Object.class), false);
         }
     }
 
