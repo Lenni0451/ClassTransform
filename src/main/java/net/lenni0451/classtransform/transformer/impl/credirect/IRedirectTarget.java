@@ -6,6 +6,9 @@ import org.objectweb.asm.tree.*;
 
 import java.util.List;
 
+import static net.lenni0451.classtransform.utils.Types.argumentTypes;
+import static net.lenni0451.classtransform.utils.Types.type;
+
 public interface IRedirectTarget {
 
     void inject(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final List<AbstractInsnNode> targetNodes);
@@ -15,13 +18,13 @@ public interface IRedirectTarget {
         InsnList loadOpcodes = new InsnList();
 
         if (owner != null) {
-            Type ownerType = Type.getObjectType(owner);
+            Type ownerType = type(owner);
             storeOpcodes.add(new VarInsnNode(ASMUtils.getStoreOpcode(ownerType), freeVarIndex));
             loadOpcodes.add(new VarInsnNode(ASMUtils.getLoadOpcode(ownerType), freeVarIndex));
             freeVarIndex += ownerType.getSize();
         }
 
-        Type[] argumentTypes = Type.getArgumentTypes(desc);
+        Type[] argumentTypes = argumentTypes(desc);
         for (Type argumentType : argumentTypes) {
             int storeOpcode = ASMUtils.getStoreOpcode(argumentType);
             int loadOpcode = ASMUtils.getLoadOpcode(argumentType);

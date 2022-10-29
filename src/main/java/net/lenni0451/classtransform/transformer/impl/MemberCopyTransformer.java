@@ -12,6 +12,8 @@ import org.objectweb.asm.tree.*;
 
 import java.util.*;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class MemberCopyTransformer extends ATransformer {
 
     @Override
@@ -43,18 +45,18 @@ public class MemberCopyTransformer extends ATransformer {
         Map<MethodNode, MethodNode> initializers = new HashMap<>();
         List<MethodNode> unresolvedInitializers = new ArrayList<>();
         for (MethodNode method : transformedClass.methods) {
-            if (!method.name.equals("<init>")) continue;
+            if (!method.name.equals(MN_Init)) continue;
 
             MethodNode targetMethod = ASMUtils.getMethod(transformer, method.name, method.desc);
             if (targetMethod != null) initializers.put(targetMethod, method);
             else unresolvedInitializers.add(method);
         }
         if (!unresolvedInitializers.isEmpty()) {
-            MethodNode emptyConstructor = ASMUtils.getMethod(transformer, "<init>", "()V");
+            MethodNode emptyConstructor = ASMUtils.getMethod(transformer, MN_Init, MD_Void);
             if (emptyConstructor == null) throw new IllegalStateException("Unable to merge all constructors in target class '" + transformedClass.name + "'");
             for (MethodNode unresolvedInitializer : unresolvedInitializers) initializers.put(emptyConstructor, unresolvedInitializer);
         }
-        MethodNode staticBlock = ASMUtils.getMethod(transformer, "<clinit>", "()V");
+        MethodNode staticBlock = ASMUtils.getMethod(transformer, MN_Clinit, MD_Void);
         if (staticBlock != null) initializers.put(staticBlock, this.createStaticBlock(transformedClass));
         for (Map.Entry<MethodNode, MethodNode> entry : initializers.entrySet()) this.copyInitializers(transformer, entry.getKey(), transformedClass, entry.getValue());
     }
@@ -69,7 +71,7 @@ public class MemberCopyTransformer extends ATransformer {
 
         {
             AbstractInsnNode first;
-            if (from.name.equals("<init>")) first = ASMUtils.getFirstConstructorInstruction(fromClass.superName, from);
+            if (from.name.equals(MN_Init)) first = ASMUtils.getFirstConstructorInstruction(fromClass.superName, from);
             else first = from.instructions.getFirst();
             if (first == null) return;
 
@@ -108,8 +110,8 @@ public class MemberCopyTransformer extends ATransformer {
 
     private InsnList remapInstructions(final InsnList instructions, final String fromName, final String toName) {
         ClassNode tempClassHolder = new ClassNode();
-        tempClassHolder.visit(0, 0, "temp", null, "java/lang/Object", null);
-        MethodNode tempMethodHolder = new MethodNode(0, "temp", "()V", null, null);
+        tempClassHolder.visit(0, 0, "temp", null, IN_Object, null);
+        MethodNode tempMethodHolder = new MethodNode(0, "temp", MD_Void, null, null);
         tempMethodHolder.instructions = instructions;
         Remapper.remapAndAdd(fromName, toName, tempClassHolder, tempMethodHolder);
         return tempClassHolder.methods.get(0).instructions;
@@ -120,7 +122,7 @@ public class MemberCopyTransformer extends ATransformer {
             if (method.name.equals("<clinit>")) return method;
         }
 
-        MethodVisitor staticBlock = transformedClass.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+        MethodVisitor staticBlock = transformedClass.visitMethod(Opcodes.ACC_STATIC, MN_Clinit, MD_Void, null, null);
         staticBlock.visitCode();
         staticBlock.visitInsn(Opcodes.RETURN);
         staticBlock.visitEnd();

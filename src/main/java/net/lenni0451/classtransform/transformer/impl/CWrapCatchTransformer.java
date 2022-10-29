@@ -18,6 +18,8 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class CWrapCatchTransformer extends ARemovingTargetTransformer<CWrapCatch> {
 
     public CWrapCatchTransformer() {
@@ -31,14 +33,14 @@ public class CWrapCatchTransformer extends ARemovingTargetTransformer<CWrapCatch
             throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
                     .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
         }
-        Type[] args = Type.getArgumentTypes(transformerMethod.desc);
-        Type returnType = Type.getReturnType(transformerMethod.desc);
+        Type[] args = argumentTypes(transformerMethod.desc);
+        Type returnType = returnType(transformerMethod.desc);
         if (args.length != 1) {
             throw new TransformerException(transformerMethod, transformer, "must have one argument (Exception to catch)")
-                    .help(Codifier.of(transformerMethod).param(null).param(Type.getType(Exception.class)));
+                    .help(Codifier.of(transformerMethod).param(null).param(type(Exception.class)));
         }
         if (annotation.target().isEmpty()) {
-            Type targetReturnType = Type.getReturnType(target.desc);
+            Type targetReturnType = returnType(target.desc);
             if (!ASMUtils.compareType(targetReturnType, returnType)) {
                 throw new TransformerException(transformerMethod, transformer, "must have the same return type as the target method")
                         .help(Codifier.of(transformerMethod).returnType(targetReturnType));
@@ -58,7 +60,7 @@ public class CWrapCatchTransformer extends ARemovingTargetTransformer<CWrapCatch
                 target.instructions.add(new InsnNode(Opcodes.SWAP));
                 target.instructions.add(new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc));
             }
-            if (cast) target.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, Type.getReturnType(target.desc).getInternalName()));
+            if (cast) target.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, returnType(target.desc).getInternalName()));
             target.instructions.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
 
             target.tryCatchBlocks.add(new TryCatchBlockNode(start, end_handler, end_handler, exceptionType.getInternalName()));
@@ -66,7 +68,7 @@ public class CWrapCatchTransformer extends ARemovingTargetTransformer<CWrapCatch
             List<AbstractInsnNode> targetInstructions = injectionTargets.get("INVOKE").getTargets(injectionTargets, target, new MethodCTarget(annotation.target(), annotation.ordinal()), annotation.slice());
             boolean copied = false;
             for (AbstractInsnNode instruction : targetInstructions) {
-                Type instructionReturnType = Type.getReturnType(((MethodInsnNode) instruction).desc);
+                Type instructionReturnType = returnType(((MethodInsnNode) instruction).desc);
                 if (!ASMUtils.compareType(instructionReturnType, returnType)) {
                     throw new TransformerException(transformerMethod, transformer, "must have the same return type as the target instruction")
                             .help(Codifier.of(transformerMethod).returnType(instructionReturnType));
@@ -92,7 +94,7 @@ public class CWrapCatchTransformer extends ARemovingTargetTransformer<CWrapCatch
                     insertAfter.add(new InsnNode(Opcodes.SWAP));
                     insertAfter.add(new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc));
                 }
-                if (cast) insertAfter.add(new TypeInsnNode(Opcodes.CHECKCAST, Type.getReturnType(target.desc).getInternalName()));
+                if (cast) insertAfter.add(new TypeInsnNode(Opcodes.CHECKCAST, returnType(target.desc).getInternalName()));
                 insertAfter.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
                 insertAfter.add(jumpAfter);
                 target.instructions.insert(instruction, insertAfter);

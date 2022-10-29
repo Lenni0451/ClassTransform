@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class CModifyConstantTransformer extends ARemovingTransformer<CModifyConstant> implements IInjectionTarget {
 
     public CModifyConstantTransformer() {
@@ -37,7 +39,7 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
         boolean hasDoubleValue = parsedAnnotation.wasSet("doubleValue");
         boolean hasStringValue = parsedAnnotation.wasSet("stringValue");
         boolean hasTypeValue = parsedAnnotation.wasSet("typeValue");
-        Type typeValue = hasTypeValue ? Type.getType((String) parsedAnnotation.getValues().get("typeValue")) : null;
+        Type typeValue = hasTypeValue ? type(parsedAnnotation.getValues().get("typeValue")) : null;
 
         for (String targetCombi : annotation.method()) {
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
@@ -48,7 +50,7 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
                     throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
                             .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
                 }
-                if (Type.getArgumentTypes(transformerMethod.desc).length != 0) {
+                if (argumentTypes(transformerMethod.desc).length != 0) {
                     throw new TransformerException(transformerMethod, transformer, "must have no arguments")
                             .help(Codifier.of(transformerMethod).param(null));
                 }
@@ -62,19 +64,19 @@ public class CModifyConstantTransformer extends ARemovingTransformer<CModifyCons
                     else if (hasLongValue) returnType = Type.LONG_TYPE;
                     else if (hasFloatValue) returnType = Type.FLOAT_TYPE;
                     else if (hasDoubleValue) returnType = Type.DOUBLE_TYPE;
-                    else if (hasStringValue) returnType = Type.getType(String.class);
-                    else if (hasTypeValue) returnType = Type.getType(Class.class);
+                    else if (hasStringValue) returnType = type(String.class);
+                    else if (hasTypeValue) returnType = type(Class.class);
                     else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
                     if (returnType != null) {
-                        if (!Type.getReturnType(transformerMethod.desc).equals(returnType)) {
+                        if (!returnType(transformerMethod.desc).equals(returnType)) {
                             throw new TransformerException(transformerMethod, transformer, "must have return type of modified constant")
                                     .help(Codifier.of(transformerMethod).returnType(returnType));
                         }
                     } else {
-                        Type methodReturnType = Type.getReturnType(transformerMethod.desc);
+                        Type methodReturnType = returnType(transformerMethod.desc);
                         if (methodReturnType.equals(Type.VOID_TYPE) || methodReturnType.getDescriptor().length() == 1) {
                             throw new TransformerException(transformerMethod, transformer, "must have any object return type")
-                                    .help(Codifier.of(transformerMethod).returnType(Type.getType(Object.class)));
+                                    .help(Codifier.of(transformerMethod).returnType(type(Object.class)));
                         }
                     }
                 }

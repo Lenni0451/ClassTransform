@@ -21,6 +21,8 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
 
     private final List<String> captureTargets = new ArrayList<>();
@@ -44,8 +46,8 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                     .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
         }
         {
-            Type[] arguments = Type.getArgumentTypes(transformerMethod.desc);
-            Type[] targetArguments = Type.getArgumentTypes(target.desc);
+            Type[] arguments = argumentTypes(transformerMethod.desc);
+            Type[] targetArguments = argumentTypes(target.desc);
 
             if (transformerMethod.invisibleParameterAnnotations != null) {
                 List<AnnotationNode>[] annotations = transformerMethod.invisibleParameterAnnotations;
@@ -54,7 +56,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                         List<AnnotationNode> paramAnnotations = annotations[i];
                         if (paramAnnotations != null) {
                             for (AnnotationNode paramAnnotation : paramAnnotations) {
-                                if (paramAnnotation.desc.equals(Type.getDescriptor(CLocalVariable.class))) {
+                                if (paramAnnotation.desc.equals(typeDescriptor(CLocalVariable.class))) {
                                     CLocalVariable localVariable = AnnotationParser.parse(CLocalVariable.class, classProvider, AnnotationParser.listToMap(paramAnnotation.values));
                                     localVariables.add(localVariable);
                                 }
@@ -69,21 +71,21 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             if (arguments.length == 0) {
                 hasArgs = false;
                 hasCallback = false;
-            } else if (arguments.length == 1 && ASMUtils.compareType(arguments[0], Type.getType(InjectionCallback.class))) {
+            } else if (arguments.length == 1 && ASMUtils.compareType(arguments[0], type(InjectionCallback.class))) {
                 hasArgs = false;
                 hasCallback = true;
             } else if (ASMUtils.compareTypes(targetArguments, arguments)) {
                 hasArgs = true;
                 hasCallback = false;
-            } else if (ASMUtils.compareTypes(targetArguments, arguments, false, Type.getType(InjectionCallback.class))) {
+            } else if (ASMUtils.compareTypes(targetArguments, arguments, false, type(InjectionCallback.class))) {
                 hasArgs = true;
                 hasCallback = true;
             } else {
                 throw new TransformerException(transformerMethod, transformer, "must have the same arguments as target method or no arguments with optional InjectionCallback")
-                        .help(Codifier.of(target).param(Type.getType(InjectionCallback.class)));
+                        .help(Codifier.of(target).param(type(InjectionCallback.class)));
             }
         }
-        if (!Type.getReturnType(transformerMethod.desc).equals(Type.VOID_TYPE)) {
+        if (!returnType(transformerMethod.desc).equals(Type.VOID_TYPE)) {
             throw new TransformerException(transformerMethod, transformer, "must have void return type")
                     .help(Codifier.of(target).returnType(Type.VOID_TYPE));
         }
@@ -119,7 +121,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
     }
 
     private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasArgs, final boolean hasCallback) {
-        Type returnType = Type.getReturnType(target.desc);
+        Type returnType = returnType(target.desc);
         int callbackVar = ASMUtils.getFreeVarIndex(target);
 
         InsnList instructions = this.getLoadInstructions(target, hasArgs);
@@ -130,7 +132,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
     }
 
     private InsnList getReturnInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasArgs, final boolean hasCallback) {
-        Type returnType = Type.getReturnType(target.desc);
+        Type returnType = returnType(target.desc);
         boolean isVoid = returnType.equals(Type.VOID_TYPE);
         int callbackVar = ASMUtils.getFreeVarIndex(target);
         //The return value has to be stored locally. We just take the callbackVar + 1 since callbackVar is the last element on the variable table
@@ -150,7 +152,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
     private InsnList getLoadInstructions(final MethodNode methodNode, final boolean hasArgs) {
         if (!hasArgs) return new InsnList();
         InsnList instructions = new InsnList();
-        Type[] parameter = Type.getArgumentTypes(methodNode.desc);
+        Type[] parameter = argumentTypes(methodNode.desc);
         int index = Modifier.isStatic(methodNode.access) ? 0 : 1;
         for (Type type : parameter) {
             if (type.equals(Type.BOOLEAN_TYPE)) {
@@ -187,16 +189,16 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
 
     private void createCallback(final InsnList instructions, final boolean cancellable, final boolean hasCallback, final int callbackVar, final Type returnType, final int returnVar) {
         if (hasCallback) { //Create the callback instance
-            instructions.add(new TypeInsnNode(Opcodes.NEW, Type.getInternalName(InjectionCallback.class)));
+            instructions.add(new TypeInsnNode(Opcodes.NEW, internalName(InjectionCallback.class)));
             instructions.add(new InsnNode(Opcodes.DUP));
             instructions.add(new InsnNode(cancellable ? Opcodes.ICONST_1 : Opcodes.ICONST_0));
             if (!Type.VOID_TYPE.equals(returnType)) {
                 instructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(returnType), returnVar));
                 AbstractInsnNode convertOpcode = ASMUtils.getPrimitiveToObject(returnType);
                 if (convertOpcode != null) instructions.add(convertOpcode);
-                instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Type.getInternalName(InjectionCallback.class), "<init>", "(ZLjava/lang/Object;)V"));
+                instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, internalName(InjectionCallback.class), MN_Init, methodDescriptor(void.class, boolean.class, Object.class)));
             } else {
-                instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Type.getInternalName(InjectionCallback.class), "<init>", "(Z)V"));
+                instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, internalName(InjectionCallback.class), MN_Init, methodDescriptor(void.class, boolean.class)));
             }
             instructions.add(new VarInsnNode(Opcodes.ASTORE, callbackVar));
             instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
@@ -208,7 +210,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
 
         InsnList loadLocals = new InsnList();
         if (!localVariables.isEmpty()) {
-            Type[] parameter = Type.getArgumentTypes(source.desc);
+            Type[] parameter = argumentTypes(source.desc);
             for (int i = 0; i < localVariables.size(); i++) {
                 InsnList loadInsns = this.resolveLocalVariable(target, source, localVariables.get(i), parameter[parameter.length - localVariables.size() + i]);
                 loadLocals.add(loadInsns);
@@ -230,11 +232,11 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             //Get if the callback is cancelled
             LabelNode jump = new LabelNode();
             instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
-            instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, Type.getInternalName(InjectionCallback.class), "isCancelled", "()Z"));
+            instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "isCancelled", methodDescriptor(boolean.class)));
             instructions.add(new JumpInsnNode(Opcodes.IFEQ, jump));
             if (!Type.VOID_TYPE.equals(returnType)) { //If the method has a return value, take the value from the callback
                 instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
-                instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, Type.getInternalName(InjectionCallback.class), "getReturnValue", "()Ljava/lang/Object;"));
+                instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "getReturnValue", methodDescriptor(Object.class)));
                 instructions.add(ASMUtils.getCast(returnType));
                 instructions.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
             } else { //If the method is void, simply return
@@ -346,7 +348,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             else if (loadOpcode == Opcodes.LLOAD) instructions.add(new InsnNode(Opcodes.L2D));
             else if (loadOpcode == Opcodes.FLOAD) instructions.add(new InsnNode(Opcodes.F2D));
             else if (loadOpcode == Opcodes.ALOAD) instructions.add(ASMUtils.getCast(parameter));
-        } else if (parameter.equals(Type.getType(Boolean.class))) {
+        } else if (parameter.equals(type(Boolean.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.BOOLEAN_TYPE));
             } else if (loadOpcode == Opcodes.LLOAD) {
@@ -361,7 +363,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Byte.class))) {
+        } else if (parameter.equals(type(Byte.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(new InsnNode(Opcodes.I2B));
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.BYTE_TYPE));
@@ -380,7 +382,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Short.class))) {
+        } else if (parameter.equals(type(Short.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(new InsnNode(Opcodes.I2S));
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.SHORT_TYPE));
@@ -399,7 +401,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Character.class))) {
+        } else if (parameter.equals(type(Character.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(new InsnNode(Opcodes.I2C));
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.CHAR_TYPE));
@@ -418,7 +420,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Integer.class))) {
+        } else if (parameter.equals(type(Integer.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.INT_TYPE));
             } else if (loadOpcode == Opcodes.LLOAD) {
@@ -433,7 +435,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Long.class))) {
+        } else if (parameter.equals(type(Long.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(new InsnNode(Opcodes.I2L));
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.LONG_TYPE));
@@ -448,7 +450,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Float.class))) {
+        } else if (parameter.equals(type(Float.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(new InsnNode(Opcodes.I2F));
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.FLOAT_TYPE));
@@ -463,7 +465,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
             } else if (loadOpcode == Opcodes.ALOAD) {
                 instructions.add(ASMUtils.getCast(parameter));
             }
-        } else if (parameter.equals(Type.getType(Double.class))) {
+        } else if (parameter.equals(type(Double.class))) {
             if (loadOpcode == Opcodes.ILOAD) {
                 instructions.add(new InsnNode(Opcodes.I2D));
                 instructions.add(ASMUtils.getPrimitiveToObject(Type.DOUBLE_TYPE));

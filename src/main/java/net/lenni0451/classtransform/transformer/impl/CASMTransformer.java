@@ -39,16 +39,16 @@ public class CASMTransformer extends ARemovingTransformer<CASM> {
             throw new TransformerException(transformerMethod, transformer, "must be static")
                     .help(Codifier.of(transformerMethod).access(transformerMethod.access | Modifier.STATIC));
         }
-        Type[] args = Type.getArgumentTypes(transformerMethod.desc);
-        Type returnType = Type.getReturnType(transformerMethod.desc);
+        Type[] args = argumentTypes(transformerMethod.desc);
+        Type returnType = returnType(transformerMethod.desc);
         if (!returnType.equals(Type.VOID_TYPE)) {
             throw new TransformerException(transformerMethod, transformer, "must be a void method")
                     .help(Codifier.of(transformerMethod).returnType(Type.VOID_TYPE));
         }
         if (annotation.value().length == 0) {
-            if (args.length != 1 || !Type.getType(ClassNode.class).equals(args[0])) {
+            if (args.length != 1 || !type(ClassNode.class).equals(args[0])) {
                 throw new TransformerException(transformerMethod, transformer, "must have one argument (ClassNode)")
-                        .help(Codifier.of(transformerMethod).param(null).param(Type.getType(ClassNode.class)));
+                        .help(Codifier.of(transformerMethod).param(null).param(type(ClassNode.class)));
             }
 
             ClassDefiner<?> classDefiner = this.isolateMethod(classProvider, transformer, transformerMethod);
@@ -61,9 +61,9 @@ public class CASMTransformer extends ARemovingTransformer<CASM> {
                 throw new IllegalStateException("Failed to call isolated method '" + transformerMethod.name + "' of transformer '" + transformer.name + "'", t);
             }
         } else {
-            if (args.length != 1 || !Type.getType(MethodNode.class).equals(args[0])) {
+            if (args.length != 1 || !type(MethodNode.class).equals(args[0])) {
                 throw new TransformerException(transformerMethod, transformer, "must have one argument (MethodNode)")
-                        .help(Codifier.of(transformerMethod).param(null).param(Type.getType(MethodNode.class)));
+                        .help(Codifier.of(transformerMethod).param(null).param(type(MethodNode.class)));
             }
 
             ClassDefiner<?> classDefiner = this.isolateMethod(classProvider, transformer, transformerMethod);

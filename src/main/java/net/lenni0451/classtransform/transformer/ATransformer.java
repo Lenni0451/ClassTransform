@@ -6,7 +6,6 @@ import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -17,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
 public abstract class ATransformer {
 
@@ -53,7 +54,7 @@ public abstract class ATransformer {
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final List<AnnotationNode> annotations, final IClassProvider classProvider) {
         if (annotations != null) {
             for (AnnotationNode annotation : annotations) {
-                if (annotation.desc.equals(Type.getDescriptor(annotationClass))) {
+                if (annotation.desc.equals(typeDescriptor(annotationClass))) {
                     return AnnotationParser.parse(annotationClass, classProvider, AnnotationParser.listToMap(annotation.values));
                 }
             }
@@ -62,7 +63,7 @@ public abstract class ATransformer {
     }
 
     protected void prepareForCopy(final ClassNode transformer, final MethodNode method) {
-        AnnotationNode injectionInfo = new AnnotationNode(Type.getDescriptor(InjectionInfo.class));
+        AnnotationNode injectionInfo = new AnnotationNode(typeDescriptor(InjectionInfo.class));
         injectionInfo.values = Arrays.asList(
                 "transformer", transformer.name,
                 "originalName", method.name + method.desc

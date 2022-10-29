@@ -9,12 +9,13 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Modifier;
 import java.util.Map;
+
+import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 
 public class COverrideTransformer extends ARemovingTargetTransformer<COverride> {
 
@@ -29,7 +30,7 @@ public class COverrideTransformer extends ARemovingTargetTransformer<COverride> 
             throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
                     .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
         }
-        if (!ASMUtils.compareTypes(Type.getArgumentTypes(target.desc), Type.getArgumentTypes(transformerMethod.desc))) {
+        if (!ASMUtils.compareTypes(argumentTypes(target.desc), argumentTypes(transformerMethod.desc))) {
             throw new TransformerException(transformerMethod, transformer, "must have the same arguments as the target method")
                     .help(Codifier.of(target));
         }

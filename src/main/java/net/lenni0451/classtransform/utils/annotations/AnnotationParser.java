@@ -336,7 +336,7 @@ public class AnnotationParser<T extends Annotation> {
         } else if (type.equals(char.class) || type.equals(Character.class)) {
             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Character, "valueOf", methodDescriptor(Character.class, char.class), false);
         } else if (type.equals(int.class) || type.equals(Integer.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Character, "valueOf", methodDescriptor(Integer.class, int.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Integer, "valueOf", methodDescriptor(Integer.class, int.class), false);
         } else if (type.equals(long.class) || type.equals(Long.class)) {
             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Long, "valueOf", methodDescriptor(Long.class, long.class), false);
         } else if (type.equals(float.class) || type.equals(Float.class)) {
