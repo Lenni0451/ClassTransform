@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class ASMUtils {
 
     /**
@@ -274,29 +276,29 @@ public class ASMUtils {
     public static InsnList getCast(final Type wantedType) {
         InsnList list = new InsnList();
         if (wantedType.equals(Type.BOOLEAN_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Boolean"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Boolean));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Boolean, "booleanValue", methodDescriptor(boolean.class), false));
         } else if (wantedType.equals(Type.BYTE_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Byte"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Byte));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Byte, "byteValue", methodDescriptor(byte.class), false));
         } else if (wantedType.equals(Type.CHAR_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Character"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Character", "charValue", "()C", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Character));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Character, "charValue", methodDescriptor(char.class), false));
         } else if (wantedType.equals(Type.SHORT_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Short"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Short));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Short, "shortValue", methodDescriptor(short.class), false));
         } else if (wantedType.equals(Type.INT_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Integer"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Integer));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Integer, "intValue", methodDescriptor(int.class), false));
         } else if (wantedType.equals(Type.FLOAT_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Float"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Float));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Float, "floatValue", methodDescriptor(float.class), false));
         } else if (wantedType.equals(Type.LONG_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Long"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Long));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Long, "longValue", methodDescriptor(long.class), false));
         } else if (wantedType.equals(Type.DOUBLE_TYPE)) {
-            list.add(new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/Double"));
-            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false));
+            list.add(new TypeInsnNode(Opcodes.CHECKCAST, IN_Double));
+            list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, IN_Double, "doubleValue", methodDescriptor(double.class), false));
         } else {
             list.add(new TypeInsnNode(Opcodes.CHECKCAST, wantedType.getInternalName()));
         }
@@ -311,21 +313,21 @@ public class ASMUtils {
      */
     public static AbstractInsnNode getPrimitiveToObject(final Type primitive) {
         if (primitive.equals(Type.BOOLEAN_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Boolean.class), "valueOf", "(Z)Ljava/lang/Boolean;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Boolean, "valueOf", methodDescriptor(Boolean.class, boolean.class), false);
         } else if (primitive.equals(Type.BYTE_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Byte.class), "valueOf", "(B)Ljava/lang/Byte;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Byte, "valueOf", methodDescriptor(Byte.class, byte.class), false);
         } else if (primitive.equals(Type.SHORT_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Short.class), "valueOf", "(S)Ljava/lang/Short;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Short, "valueOf", methodDescriptor(Short.class, short.class), false);
         } else if (primitive.equals(Type.CHAR_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Character.class), "valueOf", "(C)Ljava/lang/Character;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Character, "valueOf", methodDescriptor(Character.class, char.class), false);
         } else if (primitive.equals(Type.INT_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Integer.class), "valueOf", "(I)Ljava/lang/Integer;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Integer, "valueOf", methodDescriptor(Integer.class, int.class), false);
         } else if (primitive.equals(Type.LONG_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Long.class), "valueOf", "(J)Ljava/lang/Long;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Long, "valueOf", methodDescriptor(Long.class, long.class), false);
         } else if (primitive.equals(Type.FLOAT_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Float.class), "valueOf", "(F)Ljava/lang/Float;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Float, "valueOf", methodDescriptor(Float.class, float.class), false);
         } else if (primitive.equals(Type.DOUBLE_TYPE)) {
-            return new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(Double.class), "valueOf", "(D)Ljava/lang/Double;", false);
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Double, "valueOf", methodDescriptor(Double.class, double.class), false);
         } else {
             return null;
         }
@@ -467,11 +469,11 @@ public class ASMUtils {
      */
     public static ClassNode createEmptyClass(final String name) {
         ClassNode node = new ClassNode();
-        node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, slash(name), null, "java/lang/Object", null);
+        node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, slash(name), null, IN_Object, null);
 
-        MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, MN_Init, MD_Void, null, null);
         constructor.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        constructor.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V"));
+        constructor.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, IN_Object, MN_Init, MD_Void));
         constructor.instructions.add(new InsnNode(Opcodes.RETURN));
         node.methods.add(constructor);
 

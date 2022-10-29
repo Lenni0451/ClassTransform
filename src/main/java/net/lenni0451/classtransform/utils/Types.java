@@ -8,7 +8,16 @@ import java.lang.reflect.Method;
 public class Types {
 
     //internal names
-    public static final String IN_Object = Type.getType(Object.class).getInternalName();
+    public static final String IN_Object = internalName(Object.class);
+    public static final String IN_String = internalName(String.class);
+    public static final String IN_Boolean = internalName(Boolean.class);
+    public static final String IN_Byte = internalName(Byte.class);
+    public static final String IN_Short = internalName(Short.class);
+    public static final String IN_Character = internalName(Character.class);
+    public static final String IN_Integer = internalName(Integer.class);
+    public static final String IN_Long = internalName(Long.class);
+    public static final String IN_Float = internalName(Float.class);
+    public static final String IN_Double = internalName(Double.class);
     //method descriptor
     public static final String MD_Void = methodDescriptor(void.class);
     //method name
@@ -35,6 +44,13 @@ public class Types {
         throw new IllegalArgumentException("Unable to convert " + asString(ob) + " into a type");
     }
 
+    public static Type returnType(final Object ob) {
+        if (ob instanceof String) return Type.getReturnType((String) ob);
+        else if (ob instanceof Method) return Type.getReturnType((Method) ob);
+        else if (ob instanceof Type) return ((Type) ob).getReturnType();
+        throw new IllegalArgumentException("Unable to get return type of " + asString(ob));
+    }
+
     public static String internalName(final Object ob) {
         try {
             return type(ob).getInternalName();
@@ -49,13 +65,6 @@ public class Types {
         } catch (Throwable t) {
             throw new IllegalArgumentException("Unable to convert " + asString(ob) + " into a descriptor", t);
         }
-    }
-
-    public static Type returnType(final Object ob) {
-        if (ob instanceof String) return Type.getReturnType((String) ob);
-        else if (ob instanceof Method) return Type.getReturnType((Method) ob);
-        else if (ob instanceof Type) return ((Type) ob).getReturnType();
-        throw new IllegalArgumentException("Unable to get return type of " + asString(ob));
     }
 
     public static String methodDescriptor(final Object returnType, final Object... arguments) {

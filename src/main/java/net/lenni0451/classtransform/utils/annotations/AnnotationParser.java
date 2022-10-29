@@ -145,7 +145,7 @@ public class AnnotationParser<T extends Annotation> {
                 Label jumpAfter = new Label();
                 wasSet.visitVarInsn(Opcodes.ALOAD, 1);
                 wasSet.visitLdcInsn(value);
-                wasSet.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", methodDescriptor(boolean.class, Object.class), false);
+                wasSet.visitMethodInsn(Opcodes.INVOKEVIRTUAL, IN_String, "equals", methodDescriptor(boolean.class, Object.class), false);
                 wasSet.visitJumpInsn(Opcodes.IFEQ, jumpAfter);
                 wasSet.visitInsn(Opcodes.ICONST_1);
                 wasSet.visitInsn(Opcodes.IRETURN);
@@ -328,23 +328,23 @@ public class AnnotationParser<T extends Annotation> {
 
     private void visitPrimitiveWrap(final MethodVisitor methodVisitor, final Class<?> type) {
         if (type.equals(boolean.class) || type.equals(Boolean.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Boolean.class), "valueOf", methodDescriptor(Boolean.class, boolean.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Boolean, "valueOf", methodDescriptor(Boolean.class, boolean.class), false);
         } else if (type.equals(byte.class) || type.equals(Byte.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Byte.class), "valueOf", methodDescriptor(Byte.class, byte.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Byte, "valueOf", methodDescriptor(Byte.class, byte.class), false);
         } else if (type.equals(short.class) || type.equals(Short.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Short.class), "valueOf", methodDescriptor(Short.class, short.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Short, "valueOf", methodDescriptor(Short.class, short.class), false);
         } else if (type.equals(char.class) || type.equals(Character.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Character.class), "valueOf", methodDescriptor(Character.class, char.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Character, "valueOf", methodDescriptor(Character.class, char.class), false);
         } else if (type.equals(int.class) || type.equals(Integer.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Integer.class), "valueOf", methodDescriptor(Integer.class, int.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Character, "valueOf", methodDescriptor(Integer.class, int.class), false);
         } else if (type.equals(long.class) || type.equals(Long.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Long.class), "valueOf", methodDescriptor(Long.class, long.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Long, "valueOf", methodDescriptor(Long.class, long.class), false);
         } else if (type.equals(float.class) || type.equals(Float.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Float.class), "valueOf", methodDescriptor(Float.class, float.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Float, "valueOf", methodDescriptor(Float.class, float.class), false);
         } else if (type.equals(double.class) || type.equals(Double.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(Double.class), "valueOf", methodDescriptor(Double.class, double.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Double, "valueOf", methodDescriptor(Double.class, double.class), false);
         } else if (type.equals(String.class)) {
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(String.class), "valueOf", methodDescriptor(String.class, Object.class), false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_String, "valueOf", methodDescriptor(String.class, Object.class), false);
         }
     }
 

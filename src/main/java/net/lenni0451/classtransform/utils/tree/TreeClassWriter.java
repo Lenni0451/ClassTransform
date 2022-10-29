@@ -5,6 +5,7 @@ import org.objectweb.asm.ClassWriter;
 import java.lang.reflect.Modifier;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+import static net.lenni0451.classtransform.utils.Types.IN_Object;
 
 public class TreeClassWriter extends ClassWriter {
 
@@ -18,7 +19,7 @@ public class TreeClassWriter extends ClassWriter {
 
     @Override
     protected String getCommonSuperClass(String type1, String type2) {
-        if (type1.equals("java/lang/Object") || type2.equals("java/lang/Object")) return "java/lang/Object";
+        if (type1.equals(IN_Object) || type2.equals(IN_Object)) return IN_Object;
 
         ClassTree class1 = ClassTree.getTreePart(this.classProvider, type1);
         if (class1 == null) throw new TypeNotPresentException(type1, new NullPointerException());
@@ -32,12 +33,12 @@ public class TreeClassWriter extends ClassWriter {
         } else if (!Modifier.isInterface(class1.getModifiers()) && !Modifier.isInterface(class2.getModifiers())) {
             do {
                 class1 = class1.parseSuperClass(this.classProvider);
-                if (class1 == null) return "java/lang/Object";
+                if (class1 == null) return IN_Object;
             } while (!class2.getSuperClasses().contains(class1.getName()));
 
             return slash(class1.getName());
         } else {
-            return "java/lang/Object";
+            return IN_Object;
         }
     }
 
