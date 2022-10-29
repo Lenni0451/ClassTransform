@@ -10,6 +10,8 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class CRedirectInvoke implements IRedirectTarget {
 
     @Override
@@ -19,10 +21,10 @@ public class CRedirectInvoke implements IRedirectTarget {
 
             boolean cast;
             {
-                Type returnType = Type.getReturnType(transformerMethod.desc);
-                Type[] argumentTypes = Type.getArgumentTypes(transformerMethod.desc);
-                Type originalReturnType = Type.getReturnType(methodInsnNode.desc);
-                Type[] originalArgumentTypes = Type.getArgumentTypes(methodInsnNode.desc);
+                Type returnType = returnType(transformerMethod.desc);
+                Type[] argumentTypes = argumentTypes(transformerMethod.desc);
+                Type originalReturnType = returnType(methodInsnNode.desc);
+                Type[] originalArgumentTypes = argumentTypes(methodInsnNode.desc);
                 if (!ASMUtils.compareType(originalReturnType, returnType)) {
                     throw new TransformerException(transformerMethod, transformer, "does not have same return type as original invoke")
                             .help(Codifier.of(transformerMethod).returnType(originalReturnType).param(null).params(originalArgumentTypes));
@@ -34,9 +36,9 @@ public class CRedirectInvoke implements IRedirectTarget {
                                 .help(Codifier.of(transformerMethod).param(null).params(originalArgumentTypes));
                     }
                 } else {
-                    if (!ASMUtils.compareTypes(originalArgumentTypes, argumentTypes, true, Type.getObjectType(methodInsnNode.owner))) {
+                    if (!ASMUtils.compareTypes(originalArgumentTypes, argumentTypes, true, type(methodInsnNode.owner))) {
                         throw new TransformerException(transformerMethod, transformer, "does not have same argument types as original invoke with instance")
-                                .help(Codifier.of(transformerMethod).param(null).params(Type.getObjectType(methodInsnNode.owner)).params(originalArgumentTypes));
+                                .help(Codifier.of(transformerMethod).param(null).params(type(methodInsnNode.owner)).params(originalArgumentTypes));
                     }
                 }
             }
@@ -46,7 +48,7 @@ public class CRedirectInvoke implements IRedirectTarget {
             InsnList storeOpcodes = loadStoreOpcodes[0];
             InsnList loadOpcodes = loadStoreOpcodes[1];
 
-            if (cast) targetMethod.instructions.insert(methodInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, Type.getReturnType(methodInsnNode.desc).getInternalName()));
+            if (cast) targetMethod.instructions.insert(methodInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, returnType(methodInsnNode.desc).getInternalName()));
             if (!Modifier.isStatic(transformerMethod.access)) {
                 targetMethod.instructions.insertBefore(methodInsnNode, storeOpcodes);
                 targetMethod.instructions.insertBefore(methodInsnNode, new VarInsnNode(Opcodes.ALOAD, 0));

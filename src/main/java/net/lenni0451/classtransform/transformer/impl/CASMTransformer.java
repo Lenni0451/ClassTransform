@@ -18,11 +18,14 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static net.lenni0451.classtransform.utils.Types.*;
 
 public class CASMTransformer extends ARemovingTransformer<CASM> {
 
@@ -87,10 +90,10 @@ public class CASMTransformer extends ARemovingTransformer<CASM> {
             classNode.visit(transformer.version, Opcodes.ACC_PUBLIC, ClassDefiner.generateClassName("IsolatedASMTransformer"), null, "java/lang/Object", null);
 
             { //<init>
-                MethodVisitor init = classNode.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+                MethodVisitor init = classNode.visitMethod(Opcodes.ACC_PUBLIC, MN_Init, MD_Void, null, null);
                 init.visitCode();
                 init.visitVarInsn(Opcodes.ALOAD, 0);
-                init.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+                init.visitMethodInsn(Opcodes.INVOKESPECIAL, IN_Object, MN_Init, MD_Void, false);
                 init.visitInsn(Opcodes.RETURN);
             }
             List<MethodNode> methodsToCopy = new ArrayList<>();
@@ -112,7 +115,7 @@ public class CASMTransformer extends ARemovingTransformer<CASM> {
 
                 @Override
                 public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-                    if (bootstrapMethodHandle.getOwner().equals("java/lang/invoke/LambdaMetafactory")) {
+                    if (bootstrapMethodHandle.getOwner().equals(internalName(LambdaMetafactory.class))) {
                         throw new IllegalStateException("CASM transformer can not access LambdaMetafactory");
 
                         //LambdaMetaFactory can not access the anonymous class, so we sadly can't use it here

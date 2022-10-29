@@ -10,6 +10,8 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class CRedirectNew implements IRedirectTarget {
 
     @Override
@@ -19,10 +21,10 @@ public class CRedirectNew implements IRedirectTarget {
 
             boolean cast;
             {
-                Type returnType = Type.getReturnType(transformerMethod.desc);
-                Type[] argumentTypes = Type.getArgumentTypes(transformerMethod.desc);
-                Type originalReturnType = Type.getType("L" + methodInsnNode.owner + ";");
-                Type[] originalArgumentTypes = Type.getArgumentTypes(methodInsnNode.desc);
+                Type returnType = returnType(transformerMethod.desc);
+                Type[] argumentTypes = argumentTypes(transformerMethod.desc);
+                Type originalReturnType = type(methodInsnNode.owner);
+                Type[] originalArgumentTypes = argumentTypes(methodInsnNode.desc);
                 if (!ASMUtils.compareType(originalReturnType, returnType)) {
                     throw new TransformerException(transformerMethod, transformer, "does not have same return type as original object")
                             .help(Codifier.of(transformerMethod).returnType(originalReturnType).param(null).params(originalArgumentTypes));
@@ -41,7 +43,7 @@ public class CRedirectNew implements IRedirectTarget {
 
             targetMethod.instructions.insertBefore(methodInsnNode, storeOpcodes);
             targetMethod.instructions.insertBefore(methodInsnNode, new InsnNode(Opcodes.POP2));
-            if (cast) targetMethod.instructions.insert(methodInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, Type.getReturnType(methodInsnNode.desc).getInternalName()));
+            if (cast) targetMethod.instructions.insert(methodInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, returnType(methodInsnNode.desc).getInternalName()));
             if (!Modifier.isStatic(transformerMethod.access)) {
                 targetMethod.instructions.insertBefore(methodInsnNode, new VarInsnNode(Opcodes.ALOAD, 0));
                 targetMethod.instructions.insertBefore(methodInsnNode, loadOpcodes);

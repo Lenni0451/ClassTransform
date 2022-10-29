@@ -10,6 +10,8 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
+import static net.lenni0451.classtransform.utils.Types.*;
+
 public class CRedirectField implements IRedirectTarget {
 
     @Override
@@ -24,10 +26,10 @@ public class CRedirectField implements IRedirectTarget {
     }
 
     private void redirectGetField(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, FieldInsnNode fieldInsnNode) {
-        Type returnType = Type.getReturnType(transformerMethod.desc);
-        Type[] argumentTypes = Type.getArgumentTypes(transformerMethod.desc);
-        Type originalType = Type.getType(fieldInsnNode.desc);
-        Type originalOwnerType = Type.getObjectType(fieldInsnNode.owner);
+        Type returnType = returnType(transformerMethod.desc);
+        Type[] argumentTypes = argumentTypes(transformerMethod.desc);
+        Type originalType = type(fieldInsnNode.desc);
+        Type originalOwnerType = type(fieldInsnNode.owner);
         if (!ASMUtils.compareType(originalType, returnType)) {
             throw new TransformerException(transformerMethod, transformer, "does not have same return type as field")
                     .help(Codifier.of(transformerMethod).returnType(originalType));
@@ -61,10 +63,10 @@ public class CRedirectField implements IRedirectTarget {
     }
 
     private void redirectPutField(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, FieldInsnNode fieldInsnNode) {
-        Type returnType = Type.getReturnType(transformerMethod.desc);
-        Type[] argumentTypes = Type.getArgumentTypes(transformerMethod.desc);
-        Type originalType = Type.getType(fieldInsnNode.desc);
-        Type originalOwnerType = Type.getObjectType(fieldInsnNode.owner);
+        Type returnType = returnType(transformerMethod.desc);
+        Type[] argumentTypes = argumentTypes(transformerMethod.desc);
+        Type originalType = type(fieldInsnNode.desc);
+        Type originalOwnerType = type(fieldInsnNode.owner);
         if (!returnType.equals(Type.VOID_TYPE)) {
             throw new TransformerException(transformerMethod, transformer, "must be a void method")
                     .help(Codifier.of(transformerMethod).returnType(Type.VOID_TYPE));

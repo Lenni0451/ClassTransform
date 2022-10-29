@@ -51,6 +51,12 @@ public class Types {
         throw new IllegalArgumentException("Unable to get return type of " + asString(ob));
     }
 
+    public static Type[] argumentTypes(final Object ob) {
+        if (ob instanceof String) return Type.getArgumentTypes((String) ob);
+        else if (ob instanceof Method) return Type.getArgumentTypes((Method) ob);
+        throw new IllegalArgumentException("Unable to get argument types of " + ob);
+    }
+
     public static String internalName(final Object ob) {
         try {
             return type(ob).getInternalName();
