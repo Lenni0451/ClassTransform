@@ -24,6 +24,18 @@ public class Types {
     public static final String MN_Init = "<init>";
     public static final String MN_Clinit = "<clinit>";
 
+    public static boolean isPrimitive(final Type type) {
+        if (type.equals(Type.BOOLEAN_TYPE)) return true;
+        else if (type.equals(Type.BYTE_TYPE)) return true;
+        else if (type.equals(Type.SHORT_TYPE)) return true;
+        else if (type.equals(Type.CHAR_TYPE)) return true;
+        else if (type.equals(Type.INT_TYPE)) return true;
+        else if (type.equals(Type.LONG_TYPE)) return true;
+        else if (type.equals(Type.FLOAT_TYPE)) return true;
+        else if (type.equals(Type.DOUBLE_TYPE)) return true;
+        return false;
+    }
+
     public static Type type(final Object ob) {
         if (ob instanceof String) {
             String s = (String) ob;

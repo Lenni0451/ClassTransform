@@ -11,6 +11,7 @@ import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.types.ARemovingTargetTransformer;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
+import net.lenni0451.classtransform.utils.Types;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -90,6 +91,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                     .help(Codifier.of(target).returnType(Type.VOID_TYPE));
         }
 
+        this.copyBackLocalVars(transformerMethod, localVariables);
         this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CInject");
         for (CTarget injectTarget : annotation.target()) {
             IInjectionTarget injectionTarget = injectionTargets.get(injectTarget.value().toUpperCase(Locale.ROOT));
@@ -120,6 +122,52 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         }
     }
 
+    private void copyBackLocalVars(final MethodNode source, final List<CLocalVariable> localVariables) {
+        int modifiableVariableCount = this.getModifiableVariableCount(localVariables);
+        if (modifiableVariableCount <= 0) return;
+
+        //Add Object[] to the args which is used to store the new value of the local variables
+        Type returnType = returnType(source.desc);
+        Type[] parameterTypes = argumentTypes(source.desc);
+        Type[] newParameterTypes = new Type[parameterTypes.length + 1];
+        System.arraycopy(parameterTypes, 0, newParameterTypes, 0, parameterTypes.length);
+        newParameterTypes[newParameterTypes.length - 1] = type(Object[].class);
+        source.desc = methodDescriptor(returnType, (Object[]) newParameterTypes);
+
+        //Calculate the indices of the local variables
+        List<Integer> localVariableIndices = new ArrayList<>();
+        int varIndex = Modifier.isStatic(source.access) ? 0 : 1;
+        for (Type parameterType : newParameterTypes) {
+            localVariableIndices.add(varIndex);
+            varIndex += parameterType.getSize();
+        }
+        //Set the unmodifiable local variables to -1 to filter them later
+        for (int i = 0; i < localVariables.size(); i++) {
+            if (!localVariables.get(i).modifiable()) localVariableIndices.set(newParameterTypes.length - localVariables.size() - 1 + i, -1);
+        }
+
+        //Insert the values into the array
+        InsnList createAndStore = new InsnList();
+        int arrayIndex = 0;
+        for (int i = localVariableIndices.size() - 1 - localVariables.size(); i < localVariableIndices.size() - 1; i++) {
+            Type localVariableType = newParameterTypes[i];
+            int localVariableIndex = localVariableIndices.get(i);
+            if (localVariableIndex == -1) continue;
+
+            createAndStore.add(new VarInsnNode(Opcodes.ALOAD, localVariableIndices.get(localVariableIndices.size() - 1)));
+            createAndStore.add(ASMUtils.intPush(arrayIndex++));
+            createAndStore.add(new VarInsnNode(ASMUtils.getLoadOpcode(localVariableType), localVariableIndex));
+            if (Types.isPrimitive(localVariableType)) createAndStore.add(ASMUtils.getPrimitiveToObject(localVariableType));
+            createAndStore.add(new InsnNode(Opcodes.AASTORE));
+        }
+
+        for (AbstractInsnNode insn : source.instructions.toArray()) {
+            if ((insn.getOpcode() >= Opcodes.IRETURN && insn.getOpcode() <= Opcodes.RETURN) || insn.getOpcode() == Opcodes.ATHROW) {
+                source.instructions.insertBefore(insn, createAndStore);
+            }
+        }
+    }
+
     private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final List<CLocalVariable> localVariables, final boolean cancellable, final boolean hasArgs, final boolean hasCallback) {
         Type returnType = returnType(target.desc);
         int callbackVar = ASMUtils.getFreeVarIndex(target);
@@ -136,7 +184,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         boolean isVoid = returnType.equals(Type.VOID_TYPE);
         int callbackVar = ASMUtils.getFreeVarIndex(target);
         //The return value has to be stored locally. We just take the callbackVar + 1 since callbackVar is the last element on the variable table
-        int returnVar = callbackVar + 2;
+        int returnVar = callbackVar + 1;
 
         InsnList instructions = this.getLoadInstructions(target, hasArgs);
         this.createCallback(instructions, cancellable, hasCallback, callbackVar, returnType, returnVar);
@@ -209,21 +257,48 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         boolean isInterface = Modifier.isInterface(classNode.access);
 
         InsnList loadLocals = new InsnList();
+        InsnList postExecuteInstructions = new InsnList();
         if (!localVariables.isEmpty()) {
+            List<Integer> storeBackVariableIndices = new ArrayList<>();
+            int modifiableVariableCount = this.getModifiableVariableCount(localVariables);
+            int parameterOffset = modifiableVariableCount > 0 ? 1 : 0;
             Type[] parameter = argumentTypes(source.desc);
             for (int i = 0; i < localVariables.size(); i++) {
-                InsnList loadInsns = this.resolveLocalVariable(target, source, localVariables.get(i), parameter[parameter.length - localVariables.size() + i]);
+                InsnList loadInsns = this.resolveLocalVariable(target, source, localVariables.get(i), parameter[parameter.length - parameterOffset - localVariables.size() + i], storeBackVariableIndices);
                 loadLocals.add(loadInsns);
+            }
+
+            if (modifiableVariableCount > 0) {
+                int arrayVar = ASMUtils.getFreeVarIndex(target) + 2;
+                loadLocals.add(ASMUtils.intPush(modifiableVariableCount));
+                loadLocals.add(new TypeInsnNode(Opcodes.ANEWARRAY, internalName(Object.class)));
+                loadLocals.add(new InsnNode(Opcodes.DUP));
+                loadLocals.add(new VarInsnNode(Opcodes.ASTORE, arrayVar));
+
+                int arrayIndex = 0;
+                for (int i = 0; i < localVariables.size(); i++) {
+                    CLocalVariable localVariable = localVariables.get(i);
+                    Type variable = parameter[parameter.length - 1 - localVariables.size() + i];
+                    if (!localVariable.modifiable()) continue;
+
+                    postExecuteInstructions.add(new VarInsnNode(Opcodes.ALOAD, arrayVar));
+                    postExecuteInstructions.add(ASMUtils.intPush(arrayIndex++));
+                    postExecuteInstructions.add(new InsnNode(Opcodes.AALOAD));
+                    postExecuteInstructions.add(ASMUtils.getCast(variable));
+                    postExecuteInstructions.add(new VarInsnNode(ASMUtils.getStoreOpcode(variable), storeBackVariableIndices.get(i)));
+                }
             }
         }
 
         if (Modifier.isStatic(target.access)) {
             instructions.add(loadLocals);
             instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, classNode.name, source.name, source.desc, isInterface));
+            instructions.add(postExecuteInstructions);
         } else {
             instructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
             instructions.add(loadLocals);
             instructions.add(new MethodInsnNode(isInterface ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, classNode.name, source.name, source.desc, isInterface));
+            instructions.add(postExecuteInstructions);
         }
     }
 
@@ -246,7 +321,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         }
     }
 
-    private InsnList resolveLocalVariable(final MethodNode target, final MethodNode source, final CLocalVariable localVariable, final Type parameter) {
+    private InsnList resolveLocalVariable(final MethodNode target, final MethodNode source, final CLocalVariable localVariable, final Type parameter, final List<Integer> storeBackVariableIndices) {
         IParsedAnnotation parsedAnnotation = (IParsedAnnotation) localVariable;
         if (parsedAnnotation.wasSet("name") == parsedAnnotation.wasSet("index")) throw new IllegalStateException("Local variable needs name or index");
         if (parsedAnnotation.wasSet("name") && target.localVariables == null) {
@@ -282,6 +357,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         else if (parameter.equals(Type.SHORT_TYPE) && loadOpcode == Opcodes.ILOAD) instructions.add(new InsnNode(Opcodes.I2S));
         else if (parameter.equals(Type.CHAR_TYPE) && loadOpcode == Opcodes.ILOAD) instructions.add(new InsnNode(Opcodes.I2C));
         else if (loadOpcode == Opcodes.ALOAD) instructions.add(ASMUtils.getCast(parameter));
+        storeBackVariableIndices.add(varIndex);
         return instructions;
     }
 
@@ -305,6 +381,14 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
                 return opcode;
         }
         throw new IllegalStateException("Unknown opcode " + opcode);
+    }
+
+    private int getModifiableVariableCount(final List<CLocalVariable> localVariables) {
+        int i = 0;
+        for (CLocalVariable localVariable : localVariables) {
+            if (localVariable.modifiable()) i++;
+        }
+        return i;
     }
 
 }
