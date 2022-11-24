@@ -170,7 +170,7 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
 
         for (AbstractInsnNode insn : source.instructions.toArray()) {
             if ((insn.getOpcode() >= Opcodes.IRETURN && insn.getOpcode() <= Opcodes.RETURN) || insn.getOpcode() == Opcodes.ATHROW) {
-                source.instructions.insertBefore(insn, createAndStore);
+                source.instructions.insertBefore(insn, ASMUtils.cloneInsnList(createAndStore));
             }
         }
     }

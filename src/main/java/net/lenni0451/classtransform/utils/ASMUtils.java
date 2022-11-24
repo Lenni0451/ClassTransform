@@ -9,7 +9,9 @@ import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -459,6 +461,22 @@ public class ASMUtils {
         MethodNode clonedMethod = new MethodNode(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature, methodNode.exceptions.toArray(new String[0]));
         methodNode.accept(clonedMethod);
         return clonedMethod;
+    }
+
+    /**
+     * Clone a {@link InsnList}
+     *
+     * @param insnList The {@link InsnList} to clone
+     * @return The cloned {@link InsnList}
+     */
+    public static InsnList cloneInsnList(final InsnList insnList) {
+        InsnList clonedInsnList = new InsnList();
+        Map<LabelNode, LabelNode> clonedLabels = new HashMap<>();
+        for (AbstractInsnNode insn : insnList) {
+            if (insn instanceof LabelNode) clonedLabels.put((LabelNode) insn, new LabelNode());
+        }
+        for (AbstractInsnNode instruction : insnList.toArray()) clonedInsnList.add(instruction.clone(clonedLabels));
+        return clonedInsnList;
     }
 
     /**
