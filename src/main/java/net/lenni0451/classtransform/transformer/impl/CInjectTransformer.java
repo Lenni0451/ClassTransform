@@ -145,6 +145,13 @@ public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
         for (int i = 0; i < localVariables.size(); i++) {
             if (!localVariables.get(i).modifiable()) localVariableIndices.set(newParameterTypes.length - localVariables.size() - 1 + i, -1);
         }
+        //Make room for the Object[] in the local variable table
+        for (AbstractInsnNode insn : source.instructions) {
+            if (insn instanceof VarInsnNode) {
+                VarInsnNode varInsn = (VarInsnNode) insn;
+                if (varInsn.var >= localVariableIndices.get(localVariableIndices.size() - 1)) varInsn.var++;
+            }
+        }
 
         //Insert the values into the array
         InsnList createAndStore = new InsnList();
