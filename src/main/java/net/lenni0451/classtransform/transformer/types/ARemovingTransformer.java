@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.transformer.types;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.ATransformer;
+import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -28,7 +29,7 @@ public abstract class ARemovingTransformer<T extends Annotation> extends ATransf
             if (annotation == null) continue;
             it.remove();
 
-            this.transform(annotation, transformerManager, classProvider, injectionTargets, transformedClass, transformer, transformerMethod);
+            this.transform(annotation, transformerManager, classProvider, injectionTargets, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod));
         }
     }
 

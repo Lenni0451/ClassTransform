@@ -458,7 +458,7 @@ public class ASMUtils {
      * @return The cloned {@link MethodNode}
      */
     public static MethodNode cloneMethod(final MethodNode methodNode) {
-        MethodNode clonedMethod = new MethodNode(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature, methodNode.exceptions.toArray(new String[0]));
+        MethodNode clonedMethod = new MethodNode(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature, methodNode.exceptions == null ? null : methodNode.exceptions.toArray(new String[0]));
         methodNode.accept(clonedMethod);
         return clonedMethod;
     }

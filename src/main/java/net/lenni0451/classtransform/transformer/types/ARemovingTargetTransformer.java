@@ -28,7 +28,7 @@ public abstract class ARemovingTargetTransformer<T extends Annotation> extends A
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
             if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
             for (MethodNode target : targets) {
-                this.transform(annotation, transformerManager, classProvider, injectionTargets, transformedClass, transformer, transformerMethod, target);
+                this.transform(annotation, transformerManager, classProvider, injectionTargets, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod), target);
             }
         }
     }
