@@ -48,7 +48,7 @@ public class ProguardMapper extends AMapper {
                     if (m.find()) {
                         String returnType = this.typeToInternal(m.group(2));
                         String name = m.group(3);
-                        String descriptor = "(" + this.descriptorToInternal(m.group(4)) + ")";
+                        String descriptor = this.descriptorToInternal(m.group(4));
                         String newName = m.group(6);
 
                         if (name.equals(newName)) continue;
@@ -120,10 +120,12 @@ public class ProguardMapper extends AMapper {
 
     private String descriptorToInternal(String descriptor) {
         descriptor = descriptor.substring(1, descriptor.length() - 1);
+        if (descriptor.isEmpty()) return "()";
+
         String[] parts = descriptor.split(",");
         String out = "";
         for (String part : parts) out += this.typeToInternal(part);
-        return out;
+        return "(" + out + ")";
     }
 
 }
