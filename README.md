@@ -1,6 +1,6 @@
 # ClassTransform
-A lightweight, mixin like injection lib using ASM.  
-The usage is like Mixins. You can almost copy-paste mixins code and it works.  
+A lightweight, mixin like injection lib using ASM.\
+The usage is like Mixins. You can almost copy-paste mixins code and it works.\
 Or you can use [MixinsTranslator](#copy-pasting-mixins) and copy-paste them almost 1:1.
 
 <!-- TOC -->
@@ -29,22 +29,23 @@ Or you can use [MixinsTranslator](#copy-pasting-mixins) and copy-paste them almo
 <!-- TOC -->
 
 ## Why?
-I wanted a lightweight version of mixins which I can easily add into any program.  
+I wanted a lightweight version of mixins which I can easily add into any program.\
 It even contains a custom ClassLoader to inject into classes before loading them if you can't resort to agents.
 
 ## Usage
 ### Gradle/Maven
-To use ClassTransform with Gradle/Maven you can use my [maven server](https://maven.lenni0451.net/).  
-You can also find instructions how to implement it into your build script there.
+To use ClassTransform with Gradle/Maven you can use my [maven server](https://maven.lenni0451.net/).\
+You can also find instructions how to implement it into your build script there.\
+<b> Important! You should use the new maven name [net.lenni0451.classtransform:core:](https://maven.lenni0451.net/#/releases/net/lenni0451/classtransform) </b>
 
 ### Jar File
 If you just want the latest jar file you can download it from my [Jenkins](https://build.lenni0451.net/job/ClassTransform/).
 
 ### Transformer Manager
-The ``TransformerManager`` is the main class which handles the entire injection process.  
-When creating a new ``TransformerManager`` you have to provide a ``IClassProvider`` and optionally a ``AMapper``.  
-The ``IClassProvider`` is used to get the bytecode of classes if needed for e.g. frame computation.  
-The ``AMapper`` can provide mappings which get automatically applied to the transformers to allow injection in obfuscated code.  
+The ``TransformerManager`` is the main class which handles the entire injection process.\
+When creating a new ``TransformerManager`` you have to provide a ``IClassProvider`` and optionally a ``AMapper``.\
+The ``IClassProvider`` is used to get the bytecode of classes if needed for e.g. frame computation.\
+The ``AMapper`` can provide mappings which get automatically applied to the transformers to allow injection in obfuscated code.\
 
 ### Transformer types
 There are different types of transformers available:
@@ -90,14 +91,14 @@ public static void agentmain(String args, Instrumentation instrumentation) throw
     transformerManager.hookInstrumentation(instrumentation);
 }
 ````
-The class ``net.lenni0451.classtransform.TestTransformer`` in this example is our default transformer.  
-ClassTransform also allows the hotswapping of transformers, but it is disabled by default as it comes with extra overhead.  
+The class ``net.lenni0451.classtransform.TestTransformer`` in this example is our default transformer.\
+ClassTransform also allows the hotswapping of transformers, but it is disabled by default as it comes with extra overhead.\
 To allow hotswapping replace the ``transformerManager.hookInstrumentation(instrumentation);`` with ``transformerManager.hookInstrumentation(instrumentation, true);``.
 
 ### Injecting using a ClassLoader
-ClassTransform also provides the ``InjectionClassLoader`` to allow injection into classes without transformation access.  
-When creating a new ``InjectionClassLoader`` you have to provide a ``TransformerManager`` and an ``URL[]`` array with the classpath.  
-Optionally a parent ClassLoader can be provided.  
+ClassTransform also provides the ``InjectionClassLoader`` to allow injection into classes without transformation access.\
+When creating a new ``InjectionClassLoader`` you have to provide a ``TransformerManager`` and an ``URL[]`` array with the classpath.\
+Optionally a parent ClassLoader can be provided.\
 Example:
 ````java
 public static void main(String[] args) throws Throwable {
@@ -108,7 +109,7 @@ public static void main(String[] args) throws Throwable {
 }
 ````
 
-You can add resources to the ClassLoader by using the ``addRuntimeResource`` method.  
+You can add resources to the ClassLoader by using the ``addRuntimeResource`` method.\
 Example:
 ````java
 classLoader.addRuntimeResource("test", new byte[123]);
@@ -116,8 +117,8 @@ classLoader.addRuntimeResource("test", new byte[123]);
 This also works with (runtime generated) classes.
 
 ### Default Transformer
-The default transformers are annotated with ``@CTransformer``.  
-As the arguments of the annotation you can pass a class array and/or a String array with class names.  
+The default transformers are annotated with ``@CTransformer``.\
+As the arguments of the annotation you can pass a class array and/or a String array with class names.\
 Example:
 ````java
 @CTransformer(Example.class)
@@ -127,7 +128,7 @@ public class TestTransformer {
 
 ### Annotation Examples
 #### CASM
-With the ``CASM`` annotation you can access the ClassNode of the entire class or a MethodNode of the wanted method.  
+With the ``CASM`` annotation you can access the ClassNode of the entire class or a MethodNode of the wanted method.\
 Example:
 ````java
 @CASM
@@ -142,7 +143,7 @@ public void test(MethodNode methodNode) {
 ````
 
 #### CInject
-With the ``CInject`` annotation you can inject into any method at the given targets.  
+With the ``CInject`` annotation you can inject into any method at the given targets.\
 Example:
 ````java
 @CInject(method = "equals(Ljava/lang/Object;)Z",
@@ -159,14 +160,14 @@ public void test(Object other, InjectionCallback callback) {
     System.out.println("Checking equals: " + other);
 }
 ````
-This example method injects into the ``equals`` method of the given class.  
-It injects a method call above the second ``throw`` instruction after the first ``Objects#equals`` call.  
-The called method is your injection method, and you can cancel the rest of the original method by using the ``InjectionCallback``.  
-In this case the ``equals`` method must return a boolean. So you have to call ``InjectionCallback#setReturnValue`` with a boolean.  
+This example method injects into the ``equals`` method of the given class.\
+It injects a method call above the second ``throw`` instruction after the first ``Objects#equals`` call.\
+The called method is your injection method, and you can cancel the rest of the original method by using the ``InjectionCallback``.\
+In this case the ``equals`` method must return a boolean. So you have to call ``InjectionCallback#setReturnValue`` with a boolean.\
 If your inject target is ``RETURN/TAIL/THROW`` you can use ``InjectionCallback#getReturnValue`` to get the current return value/thrown exception.
 
 #### CModifyConstant
-With the ``CModifyConstant`` annotation you can modify a constant value in a method (null/int/long/float/double/string).  
+With the ``CModifyConstant`` annotation you can modify a constant value in a method (null/int/long/float/double/string).\
 Example:
 ````java
 @CModifyConstant(
@@ -176,12 +177,12 @@ public String infoToFatal(String originalConstant) {
     return "[FATAL]";
 }
 ````
-This example method modifies the string constant value of the ``log`` method.  
-The method is called with the original constant value as argument and must return the new constant value.  
+This example method modifies the string constant value of the ``log`` method.\
+The method is called with the original constant value as argument and must return the new constant value.\
 Only one constant value can be modified at a time.
 
 #### COverride
-With the ``COverride`` annotation you can override any method in the target class.  
+With the ``COverride`` annotation you can override any method in the target class.\
 Example:
 ````java
 @COverride
@@ -189,8 +190,8 @@ public String toString() {
     return "Test";
 }
 ````
-This example method overrides the ``toString`` method of the given class.  
-The arguments and return type of the overridden method need to be the same.  
+This example method overrides the ``toString`` method of the given class.\
+The arguments and return type of the overridden method need to be the same.\
 You can also set the target method name as a parameter in the annotation.
 
 #### CRedirect
@@ -210,7 +211,7 @@ public Random makeSecure() {
     return new SecureRandom();
 }
 ````
-This example method redirects the ``new Random()`` call to the ``makeSecure`` method.  
+This example method redirects the ``new Random()`` call to the ``makeSecure`` method.\
 This replaces the original ``Random`` instance with a ``Secure Random``.
 
 #### CWrapCatch
@@ -221,22 +222,22 @@ public int dontThrow(IOException e) {
     return 404;
 }
 ````
-This example method wraps the ``getResponseCode`` method in a try-catch block and handles the exception.  
-The exception in the parameter is the exception catched by the try-catch block.  
-The return type must be the one of the original method.  
+This example method wraps the ``getResponseCode`` method in a try-catch block and handles the exception.\
+The exception in the parameter is the exception catched by the try-catch block.\
+The return type must be the one of the original method.\
 You can even re-throw the exception or throw a new one.
 ````java
 @CWrapCatch(value = "closeConnection", target = "Ljava/io/OutputStream;close()V")
 public void dontThrow(IOException e) {
 }
 ````
-This example method wraps the ``OutputStream#close`` method call in a try-catch block and handles the exception.  
-The exception in the parameter is the exception catched by the try-catch block.  
-The return type must be the one of the original method call.  
+This example method wraps the ``OutputStream#close`` method call in a try-catch block and handles the exception.\
+The exception in the parameter is the exception catched by the try-catch block.\
+The return type must be the one of the original method call.\
 You can even re-throw the exception or throw a new one.
 
 ### Remapping Transformers
-ClassTransform supports the remapping of default transformer using supplied mappings.  
+ClassTransform supports the remapping of default transformer using supplied mappings.\
 Those mappings can be loaded from a file or generated in code.
 
 #### Builtin Mappings Loader
@@ -246,20 +247,20 @@ Those mappings can be loaded from a file or generated in code.
 | RawMapper              |
 | SrgMapper              |
 | TinyV2Mapper           |
-All AMapper implementations not only require the mappings file but also a MapperConfig.  
+All AMapper implementations not only require the mappings file but also a MapperConfig.\
 Example:
 ````java
 new SrgMapper(MapperConfig.create().fillSuperMappings(true).remapTransformer(true), new File("mappings.srg"));
 ````
-``fillSuperMappings`` recursively goes through all classes and fills the mappings for overwritten methods/fields.  
+``fillSuperMappings`` recursively goes through all classes and fills the mappings for overwritten methods/fields.\
 ``remapTransformer`` remaps the transformer ClassNode according to the mappings file.
 
 #### RawMapper
 The RawMapper is an integrated AMapper implementation but instead of a file it directly takes a MapRemapper to allow generating mappings from other sources.
 
 ### Copy-Pasting Mixins
-If you want to copy-paste your mixins for the usage with ClassTransform or just like mixins annotations more you can implement MixinsTranslator into your project.  
-You can find ``ClassTransform-MixinsTranslator`` on my [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/ClassTransform-MixinsTranslator).  
+If you want to copy-paste your mixins for the usage with ClassTransform or just like mixins annotations more you can implement MixinsTranslator into your project.\
+You can find ``ClassTransform-MixinsTranslator`` on my [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/ClassTransform-MixinsTranslator).\
 If you do not have mixins in you class path you also need to add ``ClassTransform-MixinsDummy``.
 
 To allow the usage of mixins annotations you need to add the ``MixinsTranslator`` transformer preprocessor:
