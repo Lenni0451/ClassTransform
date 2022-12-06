@@ -69,6 +69,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.internalTransformer.add(new CInjectTransformer());
         this.internalTransformer.add(new CRedirectTransformer());
         this.internalTransformer.add(new CModifyConstantTransformer());
+        this.internalTransformer.add(new CInlineTransformer());
         //General transformer
         this.internalTransformer.add(new InnerClassTransformer());
         this.internalTransformer.add(new MemberCopyTransformer());

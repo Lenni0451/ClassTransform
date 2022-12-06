@@ -48,6 +48,7 @@ dependencies {
     api "org.ow2.asm:asm:9.4"
     api "org.ow2.asm:asm-commons:9.4"
     api "org.ow2.asm:asm-tree:9.4"
+    api "org.ow2.asm:asm-analysis:9.4"
 
     testImplementation platform("org.junit:junit-bom:5.9.0")
     testImplementation "org.junit.jupiter:junit-jupiter"
