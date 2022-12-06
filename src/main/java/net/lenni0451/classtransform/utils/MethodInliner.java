@@ -40,11 +40,12 @@ public class MethodInliner {
         Type inlinedReturnType = Type.getReturnType(inlinedMethod.desc);
         LabelNode returnLabel = new LabelNode();
         InsnList instructions = new InsnList();
-        { //Store method arguments in local variables
-            for (int i = inlinedMethodArgs.length - 1; i >= 0; i--) {
+        {
+            int thisOffset = Modifier.isStatic(inlinedMethod.access) ? 0 : 1;
+            for (int i = inlinedMethodArgs.length - 1; i >= 0; i--) { //Store method arguments in local variables
                 Type argType = inlinedMethodArgs[i];
                 instructions.add(new VarInsnNode(argType.getOpcode(Opcodes.ISTORE), freeVarSpace));
-                varMappings.put(i, freeVarSpace);
+                varMappings.put(i + thisOffset, freeVarSpace);
                 freeVarSpace += argType.getSize();
             }
             if (!Modifier.isStatic(inlinedMethod.access)) {
