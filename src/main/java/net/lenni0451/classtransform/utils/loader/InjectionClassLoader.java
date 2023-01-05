@@ -89,9 +89,9 @@ public class InjectionClassLoader extends URLClassLoader {
 
                 if (jarFile != null && jarFile.getManifest() != null) {
                     Manifest manifest = jarFile.getManifest();
-                    JarEntry entry = jarFile.getJarEntry(slash(name) + ".class");
+                    JarEntry entry = jarFile.getJarEntry(this.getJarPath(name, connection.getURL()));
 
-                    codeSigner = entry.getCodeSigners();
+                    if (entry != null) codeSigner = entry.getCodeSigners();
                     Package pkg = this.getPackage(packageName);
                     if (pkg == null) {
                         this.definePackage(packageName, manifest, jarConnection.getJarFileURL());
@@ -129,6 +129,15 @@ public class InjectionClassLoader extends URLClassLoader {
         URL url = this.findResource(slash(className) + ".class");
         if (url != null) return url.openConnection();
         return null;
+    }
+
+    private String getJarPath(final String className, final URL url) {
+        // jar:file:/library.jar!/META-INF/versions/9/Test.class
+        // /META-INF/versions/9/Test.class
+        //TODO: JarFiles can not access entries in the META-INF folder
+        // maybe find another way to get the code signers
+
+        return slash(className) + ".class";
     }
 
     private byte[] getClassBytes(final String name) throws ClassNotFoundException, IOException {
