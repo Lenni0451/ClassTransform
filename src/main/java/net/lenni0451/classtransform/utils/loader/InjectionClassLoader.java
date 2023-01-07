@@ -43,6 +43,7 @@ public class InjectionClassLoader extends URLClassLoader {
         this.protectedPackages.add("java.");
         this.protectedPackages.add("javax.");
         this.protectedPackages.add("sun.");
+        this.protectedPackages.add("com.sun.");
         this.protectedPackages.add("jdk.");
     }
 
