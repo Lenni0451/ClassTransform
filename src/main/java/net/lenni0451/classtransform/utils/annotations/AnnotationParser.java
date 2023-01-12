@@ -177,10 +177,10 @@ public class AnnotationParser<T extends Annotation> {
         else if (type.equals(float.class) || type.equals(Float.class)) this.visitFloat(methodVisitor, value);
         else if (type.equals(double.class) || type.equals(Double.class)) this.visitDouble(methodVisitor, value);
         else if (type.equals(String.class)) this.visitString(methodVisitor, value);
-        else if (type.equals(Class.class)) this.visitClass(methodVisitor, value);
+        else if (type.equals(Class.class) || type.equals(Type.class)) this.visitClass(methodVisitor, value);
         else if (type.isEnum()) this.visitEnum(methodVisitor, value);
         else if (type.isAnnotation() || type.equals(AnnotationNode.class)) this.visitAnnotation(methodVisitor, value);
-        else if (type.isArray()) this.visitArray(methodVisitor, type.getComponentType(), value);
+        else if (type.isArray() || List.class.isAssignableFrom(type)) this.visitArray(methodVisitor, type.getComponentType(), value);
         else throw new IllegalArgumentException("Unsupported type: " + type);
     }
 
@@ -230,15 +230,8 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     private void visitClass(final MethodVisitor methodVisitor, final Object value) {
-        if (value instanceof Class<?>) {
-            Class<?> c = (Class<?>) value;
-            methodVisitor.visitLdcInsn(type(c));
-        } else if (value instanceof Type) {
-            Type type = (Type) value;
-            methodVisitor.visitLdcInsn(type);
-        } else {
-            throw new IllegalArgumentException("Unexpected value class for type 'Class': " + value.getClass());
-        }
+        if (value instanceof Class<?> || value instanceof Type) visitType(methodVisitor, value);
+        else throw new IllegalArgumentException("Unexpected value class for type 'Class': " + value.getClass());
     }
 
     private void visitEnum(final MethodVisitor methodVisitor, final Object value) {
@@ -345,6 +338,34 @@ public class AnnotationParser<T extends Annotation> {
             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_Double, "valueOf", methodDescriptor(Double.class, double.class), false);
         } else if (type.equals(String.class)) {
             methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, IN_String, "valueOf", methodDescriptor(String.class, Object.class), false);
+        }
+    }
+
+    private void visitType(final MethodVisitor methodVisitor, final Object typeOrClass) {
+        if (Type.VOID_TYPE.equals(typeOrClass) || void.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Void, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.BOOLEAN_TYPE.equals(typeOrClass) || boolean.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Boolean, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.BYTE_TYPE.equals(typeOrClass) || byte.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Byte, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.SHORT_TYPE.equals(typeOrClass) || short.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Short, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.CHAR_TYPE.equals(typeOrClass) || char.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Character, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.INT_TYPE.equals(typeOrClass) || int.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Integer, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.LONG_TYPE.equals(typeOrClass) || long.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Long, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.FLOAT_TYPE.equals(typeOrClass) || float.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Float, "TYPE", "Ljava/lang/Class;");
+        } else if (Type.DOUBLE_TYPE.equals(typeOrClass) || double.class.equals(typeOrClass)) {
+            methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, IN_Double, "TYPE", "Ljava/lang/Class;");
+        } else if (typeOrClass instanceof Class<?>) {
+            methodVisitor.visitLdcInsn(type(typeOrClass));
+        } else if (typeOrClass instanceof Type) {
+            methodVisitor.visitLdcInsn(typeOrClass);
+        } else {
+            throw new IllegalArgumentException("Unexpected type or class: " + typeOrClass);
         }
     }
 
