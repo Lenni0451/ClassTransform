@@ -10,6 +10,7 @@ public class Types {
     //internal names
     public static final String IN_Object = internalName(Object.class);
     public static final String IN_String = internalName(String.class);
+    public static final String IN_Void = internalName(Void.class);
     public static final String IN_Boolean = internalName(Boolean.class);
     public static final String IN_Byte = internalName(Byte.class);
     public static final String IN_Short = internalName(Short.class);
@@ -25,7 +26,8 @@ public class Types {
     public static final String MN_Clinit = "<clinit>";
 
     public static boolean isPrimitive(final Type type) {
-        if (type.equals(Type.BOOLEAN_TYPE)) return true;
+        if (type.equals(Type.VOID_TYPE)) return true;
+        else if (type.equals(Type.BOOLEAN_TYPE)) return true;
         else if (type.equals(Type.BYTE_TYPE)) return true;
         else if (type.equals(Type.SHORT_TYPE)) return true;
         else if (type.equals(Type.CHAR_TYPE)) return true;
