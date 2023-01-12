@@ -8,7 +8,7 @@ import net.lenni0451.classtransform.annotations.injection.CInject;
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.types.ARemovingTargetTransformer;
+import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.Types;
@@ -24,11 +24,11 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
-public class CInjectTransformer extends ARemovingTargetTransformer<CInject> {
+public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CInject> {
 
     private final List<String> captureTargets = new ArrayList<>();
 
-    public CInjectTransformer() {
+    public CInjectAnnotationHandler() {
         super(CInject.class, CInject::method);
 
         this.captureTargets.add("RETURN");

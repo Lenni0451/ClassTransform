@@ -5,7 +5,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CWrapCatch;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.types.ARemovingTargetTransformer;
+import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -20,9 +20,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
-public class CWrapCatchTransformer extends ARemovingTargetTransformer<CWrapCatch> {
+public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler<CWrapCatch> {
 
-    public CWrapCatchTransformer() {
+    public CWrapCatchAnnotationHandler() {
         super(CWrapCatch.class, CWrapCatch::value);
     }
 

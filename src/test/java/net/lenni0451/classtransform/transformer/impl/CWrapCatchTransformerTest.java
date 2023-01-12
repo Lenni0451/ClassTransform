@@ -5,16 +5,16 @@ import net.lenni0451.classtransform.annotations.injection.CWrapCatch;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.test.VCalculator;
-import net.lenni0451.classtransform.transformer.ATransformerTest;
+import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CWrapCatchTransformerTest extends ATransformerTest {
+class CWrapCatchTransformerTest extends AnnotationHandlerTest {
 
-    private final CWrapCatchTransformer transformer = new CWrapCatchTransformer();
+    private final CWrapCatchAnnotationHandler transformer = new CWrapCatchAnnotationHandler();
 
     @Test
     @DisplayName("Wrap static method")

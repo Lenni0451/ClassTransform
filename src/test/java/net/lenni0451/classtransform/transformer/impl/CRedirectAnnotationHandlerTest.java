@@ -8,7 +8,7 @@ import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.test.VCalculator;
-import net.lenni0451.classtransform.transformer.ATransformerTest;
+import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
@@ -17,9 +17,9 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CRedirectTransformerTest extends ATransformerTest {
+class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
 
-    private final CRedirectTransformer transformer = new CRedirectTransformer();
+    private final CRedirectAnnotationHandler transformer = new CRedirectAnnotationHandler();
 
     @Test
     @DisplayName("Redirect invalid target")

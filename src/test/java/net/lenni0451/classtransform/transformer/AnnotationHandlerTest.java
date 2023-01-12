@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ATransformerTest {
+public abstract class AnnotationHandlerTest {
 
     protected final VoidMapper voidMapper = new VoidMapper();
     protected IClassProvider classProvider = new BasicClassProvider();

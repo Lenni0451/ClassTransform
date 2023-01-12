@@ -5,7 +5,7 @@ import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.test.VCalculator;
-import net.lenni0451.classtransform.transformer.ATransformerTest;
+import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
@@ -13,9 +13,9 @@ import org.objectweb.asm.tree.ClassNode;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MemberCopyTransformerTest extends ATransformerTest {
+class MemberCopyAnnotationHandlerTest extends AnnotationHandlerTest {
 
-    private final MemberCopyTransformer transformer = new MemberCopyTransformer();
+    private final MemberCopyAnnotationHandler transformer = new MemberCopyAnnotationHandler();
 
     @Test
     @DisplayName("Copy static field")
@@ -41,7 +41,7 @@ class MemberCopyTransformerTest extends ATransformerTest {
     }
 
     private void removeShadows(final ClassNode transformer) {
-        CShadowTransformer shadowTransformer = new CShadowTransformer();
+        CShadowAnnotationHandler shadowTransformer = new CShadowAnnotationHandler();
         shadowTransformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         shadowTransformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
     }

@@ -2,7 +2,7 @@ package net.lenni0451.classtransform.transformer.types;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.ATransformer;
+import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.ClassNode;
@@ -12,11 +12,11 @@ import java.lang.annotation.Annotation;
 import java.util.Iterator;
 import java.util.Map;
 
-public abstract class ARemovingTransformer<T extends Annotation> extends ATransformer {
+public abstract class RemovingAnnotationHandler<T extends Annotation> extends AnnotationHandler {
 
     private final Class<? extends Annotation> annotationClass;
 
-    public ARemovingTransformer(final Class<T> annotationClass) {
+    public RemovingAnnotationHandler(final Class<T> annotationClass) {
         this.annotationClass = annotationClass;
     }
 

@@ -3,7 +3,7 @@ package net.lenni0451.classtransform.transformer.impl;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.test.SCalculator;
-import net.lenni0451.classtransform.transformer.ATransformerTest;
+import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,9 +16,9 @@ import org.objectweb.asm.tree.MethodNode;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CASMTransformerTest extends ATransformerTest {
+class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
 
-    private final CASMTransformer transformer = new CASMTransformer();
+    private final CASMAnnotationHandler transformer = new CASMAnnotationHandler();
 
     @Test
     @DisplayName("Method isolation")

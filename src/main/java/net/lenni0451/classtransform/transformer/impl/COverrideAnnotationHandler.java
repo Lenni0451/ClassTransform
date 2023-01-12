@@ -4,7 +4,7 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.injection.COverride;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.types.ARemovingTargetTransformer;
+import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
@@ -17,9 +17,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 
-public class COverrideTransformer extends ARemovingTargetTransformer<COverride> {
+public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<COverride> {
 
-    public COverrideTransformer() {
+    public COverrideAnnotationHandler() {
         super(COverride.class, COverride::value);
     }
 

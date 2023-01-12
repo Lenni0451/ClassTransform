@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class ARemovingTargetTransformer<T extends Annotation> extends ARemovingTransformer<T> {
+public abstract class RemovingTargetAnnotationHandler<T extends Annotation> extends RemovingAnnotationHandler<T> {
 
     private final Function<T, String[]> targetCombis;
 
-    public ARemovingTargetTransformer(final Class<T> annotationClass, final Function<T, String[]> targetCombis) {
+    public RemovingTargetAnnotationHandler(final Class<T> annotationClass, final Function<T, String[]> targetCombis) {
         super(annotationClass);
         this.targetCombis = targetCombis;
     }

@@ -2,7 +2,7 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.ATransformer;
+import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -14,7 +14,7 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
-public class MemberCopyTransformer extends ATransformer {
+public class MemberCopyAnnotationHandler extends AnnotationHandler {
 
     @Override
     public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {

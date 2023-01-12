@@ -29,13 +29,13 @@ public class TransformerManager implements ClassFileTransformer {
 
     private final IClassProvider classProvider;
     private final AMapper mapper;
-    private final List<ATransformer> internalTransformer = new ArrayList<>();
+    private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private ILogger logger = new DefaultLogger();
     private Instrumentation instrumentation;
     private HotswapClassLoader hotswapClassLoader;
 
-    private final List<ITransformerPreprocessor> transformerPreprocessor = new ArrayList<>();
+    private final List<IAnnotationHandlerPreprocessor> annotationHandlerPreprocessor = new ArrayList<>();
     private final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
     private final Map<String, List<IRawTransformer>> rawTransformer = new HashMap<>();
     private final Map<String, List<ClassNode>> transformer = new HashMap<>();
@@ -61,18 +61,18 @@ public class TransformerManager implements ClassFileTransformer {
         this.mapper.load();
 
         //Annotation transformer
-        this.internalTransformer.add(new CASMTransformer());
-        this.internalTransformer.add(new CShadowTransformer());
-        this.internalTransformer.add(new COverrideTransformer());
-        this.internalTransformer.add(new CWrapCatchTransformer());
-        this.internalTransformer.add(new CInjectTransformer());
-        this.internalTransformer.add(new CRedirectTransformer());
-        this.internalTransformer.add(new CModifyConstantTransformer());
-        this.internalTransformer.add(new CInlineTransformer());
+        this.annotationHandler.add(new CASMAnnotationHandler());
+        this.annotationHandler.add(new CShadowAnnotationHandler());
+        this.annotationHandler.add(new COverrideAnnotationHandler());
+        this.annotationHandler.add(new CWrapCatchAnnotationHandler());
+        this.annotationHandler.add(new CInjectAnnotationHandler());
+        this.annotationHandler.add(new CRedirectAnnotationHandler());
+        this.annotationHandler.add(new CModifyConstantAnnotationHandler());
+        this.annotationHandler.add(new CInlineAnnotationHandler());
         //General transformer
-        this.internalTransformer.add(new CUpgradeTransformer());
-        this.internalTransformer.add(new InnerClassTransformer());
-        this.internalTransformer.add(new MemberCopyTransformer());
+        this.annotationHandler.add(new CUpgradeAnnotationHandler());
+        this.annotationHandler.add(new InnerClassAnnotationHandler());
+        this.annotationHandler.add(new MemberCopyAnnotationHandler());
 
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());
@@ -101,10 +101,10 @@ public class TransformerManager implements ClassFileTransformer {
      * Add a transformer preprocessor to the transformer list<br>
      * You can modify class transform annotations before they get parsed
      *
-     * @param transformerPreprocessor The {@link ITransformerPreprocessor} instance
+     * @param annotationHandlerPreprocessor The {@link IAnnotationHandlerPreprocessor} instance
      */
-    public void addTransformerPreprocessor(final ITransformerPreprocessor transformerPreprocessor) {
-        this.transformerPreprocessor.add(transformerPreprocessor);
+    public void addTransformerPreprocessor(final IAnnotationHandlerPreprocessor annotationHandlerPreprocessor) {
+        this.annotationHandlerPreprocessor.add(annotationHandlerPreprocessor);
     }
 
     /**
@@ -191,7 +191,7 @@ public class TransformerManager implements ClassFileTransformer {
      * @param classNode The {@link ClassNode} to add
      */
     public Set<String> addTransformer(final ClassNode classNode, final boolean requireAnnotation) {
-        for (ITransformerPreprocessor preprocessor : this.transformerPreprocessor) preprocessor.process(classNode);
+        for (IAnnotationHandlerPreprocessor preprocessor : this.annotationHandlerPreprocessor) preprocessor.process(classNode);
         List<Object> annotation;
         if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
             if (requireAnnotation) throw new IllegalStateException("Transformer does not have CTransformer annotation");
@@ -237,12 +237,12 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a custom annotation transformer into the handler chain
+     * Add a custom annotation handler into the handler chain
      *
-     * @param transformer The {@link ATransformer} instance
+     * @param transformer The {@link AnnotationHandler} instance
      */
-    public void addCustomATransformer(final ATransformer transformer, final HandlerPosition handlerPosition) {
-        handlerPosition.add(this.internalTransformer, transformer);
+    public void addCustomAnnotationHandler(final AnnotationHandler transformer, final HandlerPosition handlerPosition) {
+        handlerPosition.add(this.annotationHandler, transformer);
     }
 
     /**
@@ -291,11 +291,11 @@ public class TransformerManager implements ClassFileTransformer {
                     this.logger.error("Failed to remap and fill annotation details of transformer '%s'", classNode.name, t);
                 }
 
-                for (ATransformer aTransformer : this.internalTransformer) {
+                for (AnnotationHandler annotationHandler : this.annotationHandler) {
                     try {
-                        aTransformer.transform(this, this.classProvider, this.injectionTargets, clazz, classNode);
+                        annotationHandler.transform(this, this.classProvider, this.injectionTargets, clazz, classNode);
                     } catch (Throwable t) {
-                        this.logger.error("Transformer '%s' failed to transform class '%s'", aTransformer.getClass().getSimpleName(), clazz.name, t);
+                        this.logger.error("Transformer '%s' failed to transform class '%s'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                     }
                 }
             }

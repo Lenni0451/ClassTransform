@@ -10,7 +10,7 @@ import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectField;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectNew;
 import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
-import net.lenni0451.classtransform.transformer.types.ARemovingTransformer;
+import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class CRedirectTransformer extends ARemovingTransformer<CRedirect> {
+public class CRedirectAnnotationHandler extends RemovingAnnotationHandler<CRedirect> {
 
     private final Map<String, IRedirectTarget> redirectTargets = new HashMap<>();
 
-    public CRedirectTransformer() {
+    public CRedirectAnnotationHandler() {
         super(CRedirect.class);
 
         this.redirectTargets.put("INVOKE", new CRedirectInvoke());

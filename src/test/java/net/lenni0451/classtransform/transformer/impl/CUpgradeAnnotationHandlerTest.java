@@ -3,16 +3,16 @@ package net.lenni0451.classtransform.transformer.impl;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.CUpgrade;
 import net.lenni0451.classtransform.test.SCalculator;
-import net.lenni0451.classtransform.transformer.ATransformerTest;
+import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
-class CUpgradeTransformerTest extends ATransformerTest {
+class CUpgradeAnnotationHandlerTest extends AnnotationHandlerTest {
 
-    private final CUpgradeTransformer transformer = new CUpgradeTransformer();
+    private final CUpgradeAnnotationHandler transformer = new CUpgradeAnnotationHandler();
 
     @Test
     @DisplayName("Downgrade class version")

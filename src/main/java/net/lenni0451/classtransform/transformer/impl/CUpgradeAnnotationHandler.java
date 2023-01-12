@@ -3,14 +3,14 @@ package net.lenni0451.classtransform.transformer.impl;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CUpgrade;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.ATransformer;
+import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.Map;
 
-public class CUpgradeTransformer extends ATransformer {
+public class CUpgradeAnnotationHandler extends AnnotationHandler {
 
     @Override
     public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {

@@ -7,7 +7,7 @@ import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.types.ARemovingTransformer;
+import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
@@ -23,9 +23,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
-public class CModifyConstantTransformer extends ARemovingTransformer<CModifyConstant> implements IInjectionTarget {
+public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<CModifyConstant> implements IInjectionTarget {
 
-    public CModifyConstantTransformer() {
+    public CModifyConstantAnnotationHandler() {
         super(CModifyConstant.class);
     }
 

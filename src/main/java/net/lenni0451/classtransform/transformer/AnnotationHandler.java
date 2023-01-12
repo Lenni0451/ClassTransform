@@ -19,7 +19,7 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
-public abstract class ATransformer {
+public abstract class AnnotationHandler {
 
     /**
      * Transform the target class using the given transformer class

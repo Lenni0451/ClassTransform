@@ -5,7 +5,7 @@ import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.types.ARemovingTransformer;
+import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.ClassDefiner;
@@ -27,9 +27,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
-public class CASMTransformer extends ARemovingTransformer<CASM> {
+public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
 
-    public CASMTransformer() {
+    public CASMAnnotationHandler() {
         super(CASM.class);
     }
 
