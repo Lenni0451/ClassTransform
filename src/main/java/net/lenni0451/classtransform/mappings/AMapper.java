@@ -1,6 +1,5 @@
 package net.lenni0451.classtransform.mappings;
 
-import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -29,8 +28,6 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
 public abstract class AMapper {
-
-    private static final String ANNOTATION_PACKAGE = slash(CTransformer.class.getPackage().getName());
 
     private final MapperConfig config;
     protected final MapRemapper remapper;
@@ -180,9 +177,7 @@ public abstract class AMapper {
 
     private void checkAnnotations(final Object holder, final List<AnnotationNode> annotations, final List<AnnotationHolder> out) {
         if (annotations == null) return;
-        for (AnnotationNode annotation : annotations) {
-            if (annotation.desc.startsWith("L" + ANNOTATION_PACKAGE)) out.add(new AnnotationHolder(holder, annotation));
-        }
+        for (AnnotationNode annotation : annotations) out.add(new AnnotationHolder(holder, annotation));
     }
 
 

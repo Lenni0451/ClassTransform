@@ -61,7 +61,6 @@ public class TransformerManager implements ClassFileTransformer {
         this.mapper.load();
 
         //Annotation transformer
-        this.internalTransformer.add(new CUpgradeTransformer());
         this.internalTransformer.add(new CASMTransformer());
         this.internalTransformer.add(new CShadowTransformer());
         this.internalTransformer.add(new COverrideTransformer());
@@ -71,6 +70,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.internalTransformer.add(new CModifyConstantTransformer());
         this.internalTransformer.add(new CInlineTransformer());
         //General transformer
+        this.internalTransformer.add(new CUpgradeTransformer());
         this.internalTransformer.add(new InnerClassTransformer());
         this.internalTransformer.add(new MemberCopyTransformer());
 
@@ -234,6 +234,15 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void addPostTransformConsumer(final IPostTransformer postTransformer) {
         this.postTransformer.add(postTransformer);
+    }
+
+    /**
+     * Add a custom annotation transformer into the handler chain
+     *
+     * @param transformer The {@link ATransformer} instance
+     */
+    public void addCustomATransformer(final ATransformer transformer, final HandlerPosition handlerPosition) {
+        handlerPosition.add(this.internalTransformer, transformer);
     }
 
     /**
