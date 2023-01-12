@@ -20,7 +20,7 @@ class MemberCopyAnnotationHandlerTest extends AnnotationHandlerTest {
     @Test
     @DisplayName("Copy static field")
     public void copyStaticField() {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyTransformerTest$StaticMemberCopyTest");
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyAnnotationHandlerTest$StaticMemberCopyTest");
         this.removeShadows(transformer);
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
@@ -31,7 +31,7 @@ class MemberCopyAnnotationHandlerTest extends AnnotationHandlerTest {
     @Test
     @DisplayName("Copy virtual field")
     public void copyVirtualField() {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyTransformerTest$VirtualMemberCopyTest");
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyAnnotationHandlerTest$VirtualMemberCopyTest");
         this.removeShadows(transformer);
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);

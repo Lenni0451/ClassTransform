@@ -23,7 +23,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     @Test
     @DisplayName("Method isolation")
     public void methodIsolation() {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMTransformerTest$IsolationTestTransformer");
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$IsolationTestTransformer");
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         assertEquals(0, this.staticCalculatorClass.fields.size());
     }
@@ -31,7 +31,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     @Test
     @DisplayName("Modify method node")
     public void modifyMethodNode() {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMTransformerTest$ModifyMethodNodeTestTransformer");
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$ModifyMethodNodeTestTransformer");
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         MethodNode method = ASMUtils.getMethod(this.staticCalculatorClass, "add", "(II)I");
         assertNotNull(method);
@@ -47,7 +47,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     })
     @DisplayName("Throw if using invalid operations")
     public void throwIfUsingInvalidOperations(final String transformerName) {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMTransformerTest$" + transformerName);
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$" + transformerName);
         assertThrows(IllegalStateException.class, () -> this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer));
     }
 
