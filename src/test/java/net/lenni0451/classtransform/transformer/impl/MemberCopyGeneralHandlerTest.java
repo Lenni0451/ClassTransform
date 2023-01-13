@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.test.VCalculator;
 import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
+import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
@@ -13,14 +14,14 @@ import org.objectweb.asm.tree.ClassNode;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MemberCopyAnnotationHandlerTest extends AnnotationHandlerTest {
+class MemberCopyGeneralHandlerTest extends AnnotationHandlerTest {
 
-    private final MemberCopyAnnotationHandler transformer = new MemberCopyAnnotationHandler();
+    private final MemberCopyGeneralHandler transformer = new MemberCopyGeneralHandler();
 
     @Test
     @DisplayName("Copy static field")
     public void copyStaticField() {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyAnnotationHandlerTest$StaticMemberCopyTest");
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyGeneralHandlerTest$StaticMemberCopyTest");
         this.removeShadows(transformer);
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
@@ -31,7 +32,7 @@ class MemberCopyAnnotationHandlerTest extends AnnotationHandlerTest {
     @Test
     @DisplayName("Copy virtual field")
     public void copyVirtualField() {
-        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyAnnotationHandlerTest$VirtualMemberCopyTest");
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyGeneralHandlerTest$VirtualMemberCopyTest");
         this.removeShadows(transformer);
         this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);

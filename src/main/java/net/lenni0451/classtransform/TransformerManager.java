@@ -7,6 +7,9 @@ import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.targets.impl.*;
 import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.impl.*;
+import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHandler;
+import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
+import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGeneralHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
 import net.lenni0451.classtransform.utils.log.DefaultLogger;
@@ -60,19 +63,21 @@ public class TransformerManager implements ClassFileTransformer {
         this.mapper = mapper;
         this.mapper.load();
 
-        //Annotation transformer
+        //Annotation handler
         this.annotationHandler.add(new CASMAnnotationHandler());
+        this.annotationHandler.add(new InnerClassGeneralHandler()); //Make inner classes public to allow access from the transformed class
+        this.annotationHandler.add(new SyntheticMethodGeneralHandler()); //Rename synthetic members to be unique
+        //HandlerPosition#PRE
         this.annotationHandler.add(new CShadowAnnotationHandler());
         this.annotationHandler.add(new COverrideAnnotationHandler());
         this.annotationHandler.add(new CWrapCatchAnnotationHandler());
         this.annotationHandler.add(new CInjectAnnotationHandler());
         this.annotationHandler.add(new CRedirectAnnotationHandler());
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
+        //HandlerPosition#POST
         this.annotationHandler.add(new CInlineAnnotationHandler());
-        //General transformer
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
-        this.annotationHandler.add(new InnerClassAnnotationHandler());
-        this.annotationHandler.add(new MemberCopyAnnotationHandler());
+        this.annotationHandler.add(new MemberCopyGeneralHandler()); //Copy all leftover members to the transformed class
 
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());

@@ -1,4 +1,4 @@
-package net.lenni0451.classtransform.transformer.impl;
+package net.lenni0451.classtransform.transformer.impl.general;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
@@ -14,31 +14,14 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
-public class MemberCopyAnnotationHandler extends AnnotationHandler {
+public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     @Override
     public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
         this.mergeInitializers(transformedClass, transformer);
-        for (MethodNode method : transformer.methods) {
-            if (method.name.startsWith("<")) continue;
-            if (ASMUtils.getMethod(transformedClass, method.name, method.desc) != null) {
-                throw new IllegalStateException("Method '" + method.name + method.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "' and does not override it");
-            }
-            Remapper.remapAndAdd(transformer, transformedClass, method);
-        }
-        for (FieldNode field : transformer.fields) {
-            if (ASMUtils.getField(transformedClass, field.name, field.desc) != null) {
-                throw new IllegalStateException("Field '" + field.name + field.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "'");
-            }
-            Remapper.remapAndAdd(transformer, transformedClass, field);
-        }
-        if (transformer.interfaces != null) {
-            List<String> interfaces = transformedClass.interfaces;
-            if (interfaces == null) interfaces = transformedClass.interfaces = new ArrayList<>();
-            for (String anInterface : transformer.interfaces) {
-                if (!interfaces.contains(anInterface)) interfaces.add(anInterface);
-            }
-        }
+        this.mergeMethods(transformedClass, transformer);
+        this.mergeFields(transformedClass, transformer);
+        this.mergeInterfaces(transformedClass, transformer);
     }
 
     private void mergeInitializers(ClassNode transformedClass, ClassNode transformer) {
@@ -59,6 +42,35 @@ public class MemberCopyAnnotationHandler extends AnnotationHandler {
         MethodNode staticBlock = ASMUtils.getMethod(transformer, MN_Clinit, MD_Void);
         if (staticBlock != null) initializers.put(staticBlock, this.createStaticBlock(transformedClass));
         for (Map.Entry<MethodNode, MethodNode> entry : initializers.entrySet()) this.copyInitializers(transformer, entry.getKey(), transformedClass, entry.getValue());
+    }
+
+    private void mergeMethods(final ClassNode transformedClass, final ClassNode transformer) {
+        for (MethodNode method : transformer.methods) {
+            if (method.name.startsWith("<")) continue;
+            if (ASMUtils.getMethod(transformedClass, method.name, method.desc) != null) {
+                throw new IllegalStateException("Method '" + method.name + method.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "' and does not override it");
+            }
+            Remapper.remapAndAdd(transformer, transformedClass, method);
+        }
+    }
+
+    private void mergeFields(final ClassNode transformedClass, final ClassNode transformer) {
+        for (FieldNode field : transformer.fields) {
+            if (ASMUtils.getField(transformedClass, field.name, field.desc) != null) {
+                throw new IllegalStateException("Field '" + field.name + field.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "'");
+            }
+            Remapper.remapAndAdd(transformer, transformedClass, field);
+        }
+    }
+
+    private void mergeInterfaces(final ClassNode transformedClass, final ClassNode transformer) {
+        if (transformer.interfaces != null) {
+            List<String> interfaces = transformedClass.interfaces;
+            if (interfaces == null) interfaces = transformedClass.interfaces = new ArrayList<>();
+            for (String anInterface : transformer.interfaces) {
+                if (!interfaces.contains(anInterface)) interfaces.add(anInterface);
+            }
+        }
     }
 
     private void copyInitializers(final ClassNode fromClass, final MethodNode from, final ClassNode toClass, final MethodNode to) {

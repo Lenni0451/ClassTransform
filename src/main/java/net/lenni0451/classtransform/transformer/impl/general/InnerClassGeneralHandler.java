@@ -1,9 +1,10 @@
-package net.lenni0451.classtransform.transformer.impl;
+package net.lenni0451.classtransform.transformer.impl.general;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
@@ -16,10 +17,12 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
-public class InnerClassAnnotationHandler extends AnnotationHandler {
+public class InnerClassGeneralHandler extends AnnotationHandler {
 
     @Override
     public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode injectedClass, ClassNode transformer) {
+        final ClassNode fInjectedClass = ASMUtils.cloneClass(injectedClass);
+        final ClassNode fTransformer = ASMUtils.cloneClass(transformer);
         boolean hasInnerClasses = false;
         for (InnerClassNode innerClass : transformer.innerClasses) {
             if (innerClass.outerName != null) continue;
@@ -31,7 +34,10 @@ public class InnerClassAnnotationHandler extends AnnotationHandler {
                 transformedClass.access = ASMUtils.setAccess(transformedClass.access, Opcodes.ACC_PUBLIC);
                 transformedClass.outerClass = null;
 
-                return Remapper.remap(transformer.name, injectedClass.name, transformedClass);
+                MapRemapper remapper = new MapRemapper();
+                remapper.addClassMapping(fTransformer.name, fInjectedClass.name);
+                SyntheticMethodGeneralHandler.fillSyntheticMappings(fTransformer, fInjectedClass, remapper);
+                return Remapper.remap(transformedClass, remapper);
             });
         }
         if (hasInnerClasses) {

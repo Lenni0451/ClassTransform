@@ -1,7 +1,7 @@
 package net.lenni0451.classtransform.transformer;
 
-import net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandler;
 import net.lenni0451.classtransform.transformer.impl.CInlineAnnotationHandler;
+import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGeneralHandler;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ public enum HandlerPosition {
     /**
      * Add an annotation handler on the top of the handler chain
      */
-    PRE(CASMAnnotationHandler.class, InsertPosition.AFTER),
+    PRE(SyntheticMethodGeneralHandler.class, InsertPosition.AFTER),
     /**
      * Add an annotation handler in the end of the handler chain
      */
