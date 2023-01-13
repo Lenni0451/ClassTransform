@@ -27,6 +27,7 @@ public abstract class RemovingAnnotationHandler<T extends Annotation> extends An
             MethodNode transformerMethod = it.next();
             T annotation = (T) this.getAnnotation(this.annotationClass, transformerMethod, classProvider);
             if (annotation == null) continue;
+            if (!this.shouldExecute(annotation)) continue;
             it.remove();
 
             this.transform(annotation, transformerManager, classProvider, injectionTargets, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod));
@@ -45,5 +46,16 @@ public abstract class RemovingAnnotationHandler<T extends Annotation> extends An
      * @param transformerMethod  The current {@link MethodNode} of the transformer
      */
     public abstract void transform(final T annotation, final TransformerManager transformerManager, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod);
+
+    /**
+     * Check if the transformer should be executed<br>
+     * If the transformer is not executed the method will not be removed
+     *
+     * @param annotation The annotation of the transformer
+     * @return If the transformer should be executed
+     */
+    public boolean shouldExecute(final T annotation) {
+        return true;
+    }
 
 }

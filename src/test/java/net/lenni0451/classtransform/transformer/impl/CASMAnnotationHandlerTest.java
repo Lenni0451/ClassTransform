@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
 
-    private final CASMAnnotationHandler transformer = new CASMAnnotationHandler();
+    private final CASMAnnotationHandler transformer = new CASMAnnotationHandler(CASM.Shift.TOP);
 
     @Test
     @DisplayName("Method isolation")

@@ -40,6 +40,14 @@ public class AnnotationParser<T extends Annotation> {
         return list;
     }
 
+    public static boolean hasAnnotation(final List<AnnotationNode> nodes, final String desc) {
+        if (nodes == null) return false;
+        for (AnnotationNode annotation : nodes) {
+            if (annotation.desc.equals(desc)) return true;
+        }
+        return false;
+    }
+
 
     private final Class<T> type;
     private final IClassProvider classProvider;

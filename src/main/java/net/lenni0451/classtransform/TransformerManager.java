@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform;
 
 import net.lenni0451.classtransform.annotations.CTransformer;
+import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
@@ -64,7 +65,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.mapper.load();
 
         //Annotation handler
-        this.annotationHandler.add(new CASMAnnotationHandler());
+        this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.TOP));
         this.annotationHandler.add(new InnerClassGeneralHandler()); //Make inner classes public to allow access from the transformed class
         this.annotationHandler.add(new SyntheticMethodGeneralHandler()); //Rename synthetic members to be unique
         //HandlerPosition#PRE
@@ -78,6 +79,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CInlineAnnotationHandler());
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
         this.annotationHandler.add(new MemberCopyGeneralHandler()); //Copy all leftover members to the transformed class
+        this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.BOTTOM));
 
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());

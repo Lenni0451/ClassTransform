@@ -25,4 +25,21 @@ public @interface CASM {
     @AnnotationRemap(value = RemapType.SHORT_MEMBER, fill = FillType.KEEP_EMPTY)
     String[] value() default {};
 
+    /**
+     * The shift of the CASM injection
+     */
+    Shift shift() default Shift.TOP;
+
+
+    enum Shift {
+        /**
+         * Execute the transformer at the top of the handler chain
+         */
+        TOP,
+        /**
+         * Execute the transformer at the bottom of the handler chain
+         */
+        BOTTOM
+    }
+
 }

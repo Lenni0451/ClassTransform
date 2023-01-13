@@ -1,9 +1,11 @@
 package net.lenni0451.classtransform.transformer.impl.general;
 
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.MethodVisitor;
@@ -47,6 +49,7 @@ public class MemberCopyGeneralHandler extends AnnotationHandler {
     private void mergeMethods(final ClassNode transformedClass, final ClassNode transformer) {
         for (MethodNode method : transformer.methods) {
             if (method.name.startsWith("<")) continue;
+            if (AnnotationParser.hasAnnotation(method.invisibleAnnotations, typeDescriptor(CASM.class))) continue; //Special case for CASM bottom handler
             if (ASMUtils.getMethod(transformedClass, method.name, method.desc) != null) {
                 throw new IllegalStateException("Method '" + method.name + method.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "' and does not override it");
             }

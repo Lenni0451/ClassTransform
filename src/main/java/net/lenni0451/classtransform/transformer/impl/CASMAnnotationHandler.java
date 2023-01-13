@@ -29,8 +29,11 @@ import static net.lenni0451.classtransform.utils.Types.*;
 
 public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
 
-    public CASMAnnotationHandler() {
+    private final CASM.Shift shift;
+
+    public CASMAnnotationHandler(final CASM.Shift shift) {
         super(CASM.class);
+        this.shift = shift;
     }
 
     @Override
@@ -82,6 +85,11 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean shouldExecute(CASM annotation) {
+        return annotation.shift().equals(this.shift);
     }
 
     private ClassDefiner<?> isolateMethod(final IClassProvider classProvider, final ClassNode transformer, final MethodNode transformerMethod) {
