@@ -7,6 +7,8 @@ import org.objectweb.asm.tree.AnnotationNode;
 
 import java.util.Map;
 
+import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
+
 class AtTranslator implements IAnnotationTranslator {
 
     @Override
@@ -39,7 +41,10 @@ class AtTranslator implements IAnnotationTranslator {
         }
         if (values.containsKey("shift")) {
             String[] shift = (String[]) values.get("shift");
-            shift[0] = Type.getDescriptor(CTarget.Shift.class);
+            shift[0] = typeDescriptor(CTarget.Shift.class);
+        } else {
+            //Mixins injects before by default most of the time
+            values.put("shift", new String[]{typeDescriptor(CTarget.Shift.class), "BEFORE"});
         }
         annotation.values = AnnotationParser.mapToList(values);
     }

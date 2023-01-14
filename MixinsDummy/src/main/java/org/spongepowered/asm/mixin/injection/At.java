@@ -12,7 +12,7 @@ public @interface At {
 
     String target() default "";
 
-    Shift shift() default Shift.AFTER;
+    Shift shift() default Shift.BEFORE;
 
     int ordinal() default -1;
 
