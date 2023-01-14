@@ -39,8 +39,19 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
         boolean hasDoubleValue = parsedAnnotation.wasSet("doubleValue");
         boolean hasStringValue = parsedAnnotation.wasSet("stringValue");
         boolean hasTypeValue = parsedAnnotation.wasSet("typeValue");
-        Type typeValue = hasTypeValue ? type(parsedAnnotation.getValues().get("typeValue")) : null;
 
+        if (this.getTrueCount(hasNullValue, hasIntValue, hasLongValue, hasFloatValue, hasDoubleValue, hasStringValue, hasTypeValue) != 1) {
+            throw new TransformerException(transformerMethod, transformer, "must have exactly one target constant");
+        }
+        Type constantType;
+        if (hasNullValue) constantType = null;
+        else if (hasIntValue) constantType = Type.INT_TYPE;
+        else if (hasLongValue) constantType = Type.LONG_TYPE;
+        else if (hasFloatValue) constantType = Type.FLOAT_TYPE;
+        else if (hasDoubleValue) constantType = Type.DOUBLE_TYPE;
+        else if (hasStringValue) constantType = type(String.class);
+        else if (hasTypeValue) constantType = type(Class.class);
+        else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
         for (String targetCombi : annotation.method()) {
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
             if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
@@ -50,34 +61,25 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
                     throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
                             .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
                 }
-                if (argumentTypes(transformerMethod.desc).length != 0) {
-                    throw new TransformerException(transformerMethod, transformer, "must have no arguments")
-                            .help(Codifier.of(transformerMethod).param(null));
-                }
-                if (this.getTrueCount(hasNullValue, hasIntValue, hasLongValue, hasFloatValue, hasDoubleValue, hasStringValue, hasTypeValue) != 1) {
-                    throw new TransformerException(transformerMethod, transformer, "must have exactly one target constant");
-                }
-                {
-                    Type returnType;
-                    if (hasNullValue) returnType = null;
-                    else if (hasIntValue) returnType = Type.INT_TYPE;
-                    else if (hasLongValue) returnType = Type.LONG_TYPE;
-                    else if (hasFloatValue) returnType = Type.FLOAT_TYPE;
-                    else if (hasDoubleValue) returnType = Type.DOUBLE_TYPE;
-                    else if (hasStringValue) returnType = type(String.class);
-                    else if (hasTypeValue) returnType = type(Class.class);
-                    else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
-                    if (returnType != null) {
-                        if (!returnType(transformerMethod.desc).equals(returnType)) {
-                            throw new TransformerException(transformerMethod, transformer, "must have return type of modified constant")
-                                    .help(Codifier.of(transformerMethod).returnType(returnType));
-                        }
-                    } else {
-                        Type methodReturnType = returnType(transformerMethod.desc);
-                        if (methodReturnType.equals(Type.VOID_TYPE) || methodReturnType.getDescriptor().length() == 1) {
-                            throw new TransformerException(transformerMethod, transformer, "must have any object return type")
-                                    .help(Codifier.of(transformerMethod).returnType(type(Object.class)));
-                        }
+                Type[] transformerArguments = argumentTypes(transformerMethod.desc);
+                if (constantType != null) {
+                    if (transformerArguments.length != 0 && (transformerArguments.length != 1 || !transformerArguments[0].equals(constantType))) {
+                        throw new TransformerException(transformerMethod, transformer, "must have no arguments or the constant as argument")
+                                .help(Codifier.of(transformerMethod).param(null).param(constantType));
+                    }
+                    if (!returnType(transformerMethod.desc).equals(constantType)) {
+                        throw new TransformerException(transformerMethod, transformer, "must have return type of modified constant")
+                                .help(Codifier.of(transformerMethod).returnType(constantType));
+                    }
+                } else {
+                    if (transformerArguments.length != 0) {
+                        throw new TransformerException(transformerMethod, transformer, "must have no arguments")
+                                .help(Codifier.of(transformerMethod).param(null));
+                    }
+                    Type methodReturnType = returnType(transformerMethod.desc);
+                    if (methodReturnType.equals(Type.VOID_TYPE) || methodReturnType.getDescriptor().length() == 1) {
+                        throw new TransformerException(transformerMethod, transformer, "must have any object return type")
+                                .help(Codifier.of(transformerMethod).returnType(type(Object.class)));
                     }
                 }
 
@@ -113,7 +115,7 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
                             toReplace.add(instruction);
                         }
                     } else if (hasTypeValue) {
-                        if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst.equals(typeValue)) {
+                        if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst.equals(type(parsedAnnotation.getValues().get("typeValue")))) {
                             toReplace.add(instruction);
                         }
                     }
@@ -125,9 +127,13 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
 
                     if (!Modifier.isStatic(transformerMethod.access)) {
                         target.instructions.insertBefore(instruction, new VarInsnNode(Opcodes.ALOAD, 0));
-                        target.instructions.set(instruction, new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc));
+                        MethodInsnNode invoke = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
+                        if (transformerArguments.length == 1) target.instructions.insert(instruction, invoke);
+                        else target.instructions.set(instruction, invoke);
                     } else {
-                        target.instructions.set(instruction, new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access)));
+                        MethodInsnNode invoke = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
+                        if (transformerArguments.length == 1) target.instructions.insert(instruction, invoke);
+                        else target.instructions.set(instruction, invoke);
                     }
                 }
             }
