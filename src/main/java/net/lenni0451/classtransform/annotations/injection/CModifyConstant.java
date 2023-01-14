@@ -35,6 +35,11 @@ public @interface CModifyConstant {
     @AnnotationRemap(RemapType.ANNOTATION)
     CSlice slice() default @CSlice;
 
+    /**
+     * If the target is optional or an exception should be thrown if not found
+     */
+    boolean optional() default false;
+
 
     /**
      * Set ACONST_NULL as target
@@ -54,12 +59,12 @@ public @interface CModifyConstant {
     /**
      * Set the given float as target
      */
-    float floatValue() default 0.0F;
+    float floatValue() default 0F;
 
     /**
      * Set the given double as target
      */
-    double doubleValue() default 0.0D;
+    double doubleValue() default 0D;
 
     /**
      * Set the given String as target

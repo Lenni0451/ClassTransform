@@ -121,6 +121,10 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
                     }
                 }
 
+                if (toReplace.isEmpty() && !annotation.optional()) {
+                    throw new TransformerException(transformerMethod, transformer, "target constant could not be found in '" + targetCombi + "'")
+                            .help("e.g. intValue = 0");
+                }
                 for (int i = 0; i < toReplace.size(); i++) {
                     AbstractInsnNode instruction = toReplace.get(i);
                     if (annotation.ordinal() != -1 && i != annotation.ordinal()) continue;
