@@ -1,10 +1,11 @@
 package net.lenni0451.classtransform.mappings.impl;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
 
 /**
- * Only used internally when no {@link AMapper} has been specified in {@link net.lenni0451.classtransform.TransformerManager}
+ * Only used internally when no {@link AMapper} has been specified in {@link TransformerManager}
  */
 public class VoidMapper extends AMapper {
 

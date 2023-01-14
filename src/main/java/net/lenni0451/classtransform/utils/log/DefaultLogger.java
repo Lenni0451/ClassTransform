@@ -6,7 +6,7 @@ import java.util.Locale;
 
 public class DefaultLogger implements ILogger {
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy mm:HH:ss");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     @Override
     public void info(String message, Object... args) {

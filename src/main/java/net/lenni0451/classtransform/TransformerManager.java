@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform;
 
+import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.mappings.AMapper;
@@ -12,6 +13,7 @@ import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHa
 import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGeneralHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
 import net.lenni0451.classtransform.utils.log.DefaultLogger;
 import net.lenni0451.classtransform.utils.log.ILogger;
@@ -36,6 +38,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private ILogger logger = new DefaultLogger();
+    private FailStrategy failStrategy = FailStrategy.EXIT;
     private Instrumentation instrumentation;
     private HotswapClassLoader hotswapClassLoader;
 
@@ -102,6 +105,15 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void setLogger(final ILogger logger) {
         this.logger = logger;
+    }
+
+    /**
+     * Set the fail strategy used when a transformer fails
+     *
+     * @param failStrategy The fail strategy to use
+     */
+    public void setFailStrategy(final FailStrategy failStrategy) {
+        this.failStrategy = failStrategy;
     }
 
     /**
@@ -253,7 +265,7 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a new injection target for use with the {@link net.lenni0451.classtransform.annotations.CTarget} annotation
+     * Add a new injection target for use with the {@link CTarget} annotation
      *
      * @param name   The name of the injection target
      * @param target The injection target
@@ -296,6 +308,8 @@ public class TransformerManager implements ClassFileTransformer {
                     classNode = this.mapper.mapClass(this.classProvider, this.logger, clazz, classNode);
                 } catch (Throwable t) {
                     this.logger.error("Failed to remap and fill annotation details of transformer '%s'", classNode.name, t);
+                    if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
+                    else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
                 }
 
                 for (AnnotationHandler annotationHandler : this.annotationHandler) {
@@ -303,6 +317,8 @@ public class TransformerManager implements ClassFileTransformer {
                         annotationHandler.transform(this, this.classProvider, this.injectionTargets, clazz, classNode);
                     } catch (Throwable t) {
                         this.logger.error("Transformer '%s' failed to transform class '%s'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
+                        if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
+                        else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
                     }
                 }
             }
@@ -362,6 +378,7 @@ public class TransformerManager implements ClassFileTransformer {
                     this.instrumentation.retransformClasses(classes.toArray(new Class[0]));
                 } catch (Throwable t) {
                     this.logger.error("Failed to retransform classes '%s'", classes.stream().map(Class::getName).collect(Collectors.joining(", ")), t);
+                    if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
                 }
             }
         }
@@ -379,8 +396,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Support method for {@link java.lang.instrument.Instrumentation}<br>
-     * You can simply add the {@link TransformerManager} as a {@link ClassFileTransformer} using {@link java.lang.instrument.Instrumentation#addTransformer(ClassFileTransformer)} or call {@link TransformerManager#hookInstrumentation(Instrumentation)}
+     * Support method for {@link Instrumentation}<br>
+     * You can simply add the {@link TransformerManager} as a {@link ClassFileTransformer} using {@link Instrumentation#addTransformer(ClassFileTransformer)} or call {@link TransformerManager#hookInstrumentation(Instrumentation)}
      */
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -404,6 +421,7 @@ public class TransformerManager implements ClassFileTransformer {
             if (newBytes != null) return newBytes;
         } catch (Throwable t) {
             this.logger.error("Failed to transform class '%s'", className, t);
+            if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
         }
         return null;
     }
