@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.mappings;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.log.ILogger;
@@ -54,7 +55,13 @@ public abstract class AMapper {
             try {
                 SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
             } catch (Throwable t) {
-                logger.warn("Unable to fill super mappings for class '%s'. Trying without", transformer.name, t);
+                if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
+                    logger.warn("Unable to fill super mappings for class '%s'. Trying without", transformer.name, t);
+                } else if (FailStrategy.CANCEL.equals(this.config.superMappingsFailStrategy)) {
+                    throw new RuntimeException("Unable to fill super mappings for class '" + transformer.name + "'", t);
+                } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
+                    System.exit(-1);
+                }
             }
         }
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();
