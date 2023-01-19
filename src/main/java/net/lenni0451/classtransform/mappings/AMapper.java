@@ -27,6 +27,7 @@ import java.util.Scanner;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+import static net.lenni0451.classtransform.utils.Types.type;
 
 public abstract class AMapper {
 
@@ -76,8 +77,15 @@ public abstract class AMapper {
             this.checkAnnotations(method, method.invisibleAnnotations, annotationsToRemap);
         }
         for (AnnotationHolder annotation : annotationsToRemap) {
+            Class<?> annotationClass;
             try {
-                Class<?> annotationClass = Class.forName(Type.getType(annotation.annotation.desc).getClassName());
+                annotationClass = Class.forName(type(annotation.annotation.desc).getClassName());
+            } catch (ClassNotFoundException e) {
+                //In bytecode it is possible to add annotations that are not in the classpath
+                //If this is the case it can't be a ClassTransform annotation, so we can ignore it
+                continue;
+            }
+            try {
                 Map<String, Object> annotationMap = AnnotationParser.listToMap(annotation.annotation.values);
                 this.mapAnnotation(annotation.holder, annotationClass, annotationMap, target, transformer);
                 annotation.annotation.values = AnnotationParser.mapToList(annotationMap);
