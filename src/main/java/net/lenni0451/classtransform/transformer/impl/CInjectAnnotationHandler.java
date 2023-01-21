@@ -24,6 +24,9 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * The annotation handler for the {@link CInject} annotation.
+ */
 public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CInject> {
 
     private final List<String> captureTargets = new ArrayList<>();

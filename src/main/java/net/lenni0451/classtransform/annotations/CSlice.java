@@ -9,22 +9,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specify a slice of bytecode to make choosing the target easier
+ * Specify a slice of bytecode to make choosing the injection target easier.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface CSlice {
 
     /**
-     * The start of the slice<br>
-     * The target <b>must</b> match only a single instruction
+     * The start of the slice.<br>
+     * The target <b>must</b> match only a single instruction.
+     *
+     * @return The start of the slice
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CTarget from() default @CTarget("");
 
     /**
-     * The end of the slice<br>
-     * The target <b>must</b> match only a single instruction
+     * The end of the slice.<br>
+     * The target <b>must</b> match only a single instruction.
+     *
+     * @return The end of the slice
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CTarget to() default @CTarget("");

@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+/**
+ * Util class to assist with in memory resources.
+ */
 class BytesURLConnection extends URLConnection {
 
     private final byte[] data;

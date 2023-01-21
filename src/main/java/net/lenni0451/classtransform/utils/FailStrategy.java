@@ -1,5 +1,8 @@
 package net.lenni0451.classtransform.utils;
 
+/**
+ * The strategy used to handle transformer failures.
+ */
 public enum FailStrategy {
 
     /**

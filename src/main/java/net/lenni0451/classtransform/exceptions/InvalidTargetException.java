@@ -5,6 +5,9 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Collection;
 
+/**
+ * An exception which is thrown when the target of an injection could not be found.
+ */
 public class InvalidTargetException extends RuntimeException {
 
     private final String memberType;

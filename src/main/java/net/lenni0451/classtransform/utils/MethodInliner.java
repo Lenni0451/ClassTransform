@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils;
 
+import net.lenni0451.classtransform.annotations.CInline;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -11,8 +12,21 @@ import org.objectweb.asm.tree.analysis.Frame;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+/**
+ * Util to inline methods into other methods.<br>
+ * This is used for the {@link CInline} annotation.
+ */
 public class MethodInliner {
 
+    /**
+     * Inline a method into all methods of a class.<br>
+     * Return opcodes are replaced with a jump instruction behind the inlined method instructions.<br>
+     * Direct modifications of arguments are not supported.
+     *
+     * @param classNode          The class with the methods to inline into
+     * @param inlinedMethod      The method to inline
+     * @param inlinedMethodOwner The owner of the method to inline
+     */
     public static void wrappedInline(final ClassNode classNode, final MethodNode inlinedMethod, final String inlinedMethodOwner) {
         for (MethodNode method : classNode.methods) {
             AbstractInsnNode[] inlinedInstructions = instructionCalling(method, Modifier.isStatic(inlinedMethod.access) ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, inlinedMethodOwner, inlinedMethod.name, inlinedMethod.desc);

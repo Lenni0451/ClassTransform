@@ -8,7 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class StringReader {
+/**
+ * The string reader used by the {@link StringParser}.
+ */
+class StringReader {
 
     private static final char QUOTE_CHAR = '"';
 

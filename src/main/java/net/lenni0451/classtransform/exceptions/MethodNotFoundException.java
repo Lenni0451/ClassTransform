@@ -2,6 +2,9 @@ package net.lenni0451.classtransform.exceptions;
 
 import org.objectweb.asm.tree.ClassNode;
 
+/**
+ * An exception which is thrown when a method could not be found during the transformation.
+ */
 public class MethodNotFoundException extends RuntimeException {
 
     private final String targetClassName;

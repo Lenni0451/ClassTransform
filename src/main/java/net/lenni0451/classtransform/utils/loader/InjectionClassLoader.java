@@ -20,7 +20,7 @@ import java.util.jar.Manifest;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
 /**
- * Inject into {@link Class}es by using a custom {@link ClassLoader}
+ * Inject into classes by using a custom class loader.
  */
 public class InjectionClassLoader extends URLClassLoader {
 
@@ -194,7 +194,7 @@ public class InjectionClassLoader extends URLClassLoader {
 
 
     /**
-     * Add a protected package to prevent the classes from being transformed
+     * Add a protected package to prevent the classes from being transformed.
      *
      * @param protectedPackage The package to protect
      */
@@ -203,23 +203,23 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
-     * Get the {@link TransformerManager} used by this {@link InjectionClassLoader}
+     * @return The transformer manager used by this class loader
      */
     public TransformerManager getTransformerManager() {
         return this.transformerManager;
     }
 
     /**
-     * Add an {@link URL} to the classpath
+     * Add an url to the classpath.
      *
-     * @param url The {@link URL} to add
+     * @param url The url to add
      */
     public void addURL(final URL url) {
         super.addURL(url);
     }
 
     /**
-     * Add a new resource to the classpath during runtime
+     * Add a new resource to the classpath during runtime.
      *
      * @param path The path to the resource
      * @param data The data of the resource
@@ -229,9 +229,9 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
-     * Copy a resource from a {@link ClassLoader} to this {@link InjectionClassLoader}
+     * Copy a resource from a class loader to the runtime resources.
      *
-     * @param classLoader The {@link ClassLoader} to copy the resource from
+     * @param classLoader The class loader to copy the resource from
      * @param path        The path to the resource
      */
     public void copyResource(final ClassLoader classLoader, final String path) {
@@ -249,10 +249,10 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
-     * Copy a {@link Class} to this {@link InjectionClassLoader}
+     * Copy a class to the runtime resources.
      *
-     * @param classProvider The {@link IClassProvider} providing the {@link Class} to copy
-     * @param className     The name of the {@link Class} to copy
+     * @param classProvider The class provider to get the bytecode from
+     * @param className     The name of the class to copy
      */
     public void copyClass(final IClassProvider classProvider, final String className) {
         byte[] classBytes = classProvider.getClass(className);
@@ -260,7 +260,7 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
-     * Set the priority of the load class method
+     * Set the priority of the load class method.
      *
      * @param priority The priority
      */
@@ -269,15 +269,16 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
-     * Execute the main method of the given {@link Class}
+     * Execute the main method of the given class.<br>
+     * The only argument of the main method has to be a {@code String[]}.
      *
-     * @param className  The name of the {@link Class} containing the main method
+     * @param className  The name of the class containing the main method
      * @param methodName The name of the main method
      * @param args       The arguments to pass to the main method
-     * @throws ClassNotFoundException    If the {@link Class} is not found
-     * @throws NoSuchMethodException     If the main method is not found
+     * @throws ClassNotFoundException    If the class could not be found
+     * @throws NoSuchMethodException     If the main method could not be found
      * @throws InvocationTargetException If the main method throws an exception
-     * @throws IllegalAccessException    If the main method is not accessible
+     * @throws IllegalAccessException    If the main method could not be accessed
      */
     public void executeMain(final String className, final String methodName, final String... args) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Thread.currentThread().setContextClassLoader(this);

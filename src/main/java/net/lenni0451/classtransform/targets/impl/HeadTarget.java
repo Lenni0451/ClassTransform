@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A target for the head (before first instruction) of a method.
+ */
 public class HeadTarget implements IInjectionTarget {
 
     @Override

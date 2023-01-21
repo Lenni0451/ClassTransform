@@ -5,14 +5,17 @@ import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGene
 
 import java.util.List;
 
+/**
+ * The position to add an annotation handler to in the handler chain.
+ */
 public enum HandlerPosition {
 
     /**
-     * Add an annotation handler on the top of the handler chain
+     * Add an annotation handler on the top of the handler chain.
      */
     PRE(SyntheticMethodGeneralHandler.class, InsertPosition.AFTER),
     /**
-     * Add an annotation handler in the end of the handler chain
+     * Add an annotation handler in the end of the handler chain.
      */
     POST(CInlineAnnotationHandler.class, InsertPosition.BEFORE);
 

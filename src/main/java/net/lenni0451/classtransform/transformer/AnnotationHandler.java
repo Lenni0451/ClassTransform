@@ -19,38 +19,76 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
+/**
+ * The abstract base for all annotation handlers.
+ */
 public abstract class AnnotationHandler {
 
     /**
-     * Transform the target class using the given transformer class
+     * Handle all annotations in the transformer class.
      *
      * @param transformerManager The transformer manager
      * @param classProvider      The class provider
      * @param injectionTargets   The available injection targets
-     * @param transformedClass   The target {@link ClassNode}
-     * @param transformer        The transformer {@link ClassNode}
+     * @param transformedClass   The target class node
+     * @param transformer        The transformer class node
      */
     public abstract void transform(final TransformerManager transformerManager, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer);
 
-
+    /**
+     * Get a parsed annotation from a class node.
+     *
+     * @param annotationClass The annotation class
+     * @param classNode       The class node
+     * @param classProvider   The class provider
+     * @param <T>             The annotation type
+     * @return The parsed annotation or null if not found
+     */
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final ClassNode classNode, final IClassProvider classProvider) {
         T annotation = this.getAnnotation(annotationClass, classNode.visibleAnnotations, classProvider);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, classNode.invisibleAnnotations, classProvider);
         return annotation;
     }
 
+    /**
+     * Get a parsed annotation from a field node.
+     *
+     * @param annotationClass The annotation class
+     * @param field           The field node
+     * @param classProvider   The class provider
+     * @param <T>             The annotation type
+     * @return The parsed annotation or null if not found
+     */
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final FieldNode field, final IClassProvider classProvider) {
         T annotation = this.getAnnotation(annotationClass, field.visibleAnnotations, classProvider);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, field.invisibleAnnotations, classProvider);
         return annotation;
     }
 
+    /**
+     * Get a parsed annotation from a method node.
+     *
+     * @param annotationClass The annotation class
+     * @param method          The method node
+     * @param classProvider   The class provider
+     * @param <T>             The annotation type
+     * @return The parsed annotation or null if not found
+     */
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final MethodNode method, final IClassProvider classProvider) {
         T annotation = this.getAnnotation(annotationClass, method.visibleAnnotations, classProvider);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, method.invisibleAnnotations, classProvider);
         return annotation;
     }
 
+    /**
+     * Get a parsed annotation from a list of annotation nodes.
+     *
+     * @param annotationClass The annotation class
+     * @param annotations     The annotation nodes
+     * @param classProvider   The class provider
+     * @param <T>             The annotation type
+     * @return The parsed annotation or null if not found
+     */
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final List<AnnotationNode> annotations, final IClassProvider classProvider) {
         if (annotations != null) {
             for (AnnotationNode annotation : annotations) {
@@ -62,6 +100,12 @@ public abstract class AnnotationHandler {
         return null;
     }
 
+    /**
+     * Add the {@link InjectionInfo} annotation to the given method.
+     *
+     * @param transformer The transformer class node
+     * @param method      The method node
+     */
     protected void prepareForCopy(final ClassNode transformer, final MethodNode method) {
         AnnotationNode injectionInfo = new AnnotationNode(typeDescriptor(InjectionInfo.class));
         injectionInfo.values = Arrays.asList(
@@ -72,6 +116,15 @@ public abstract class AnnotationHandler {
         method.invisibleAnnotations.add(injectionInfo);
     }
 
+    /**
+     * Rename a method and add it to the target class node.
+     *
+     * @param injectionMethod  The transformer method node
+     * @param targetMethod     The target method node
+     * @param transformer      The transformer class node
+     * @param transformedClass The target class node
+     * @param extra            Extra data for the generated method name
+     */
     protected void renameAndCopy(final MethodNode injectionMethod, final MethodNode targetMethod, final ClassNode transformer, final ClassNode transformedClass, final String extra) {
         this.prepareForCopy(transformer, injectionMethod);
         int i = 0;

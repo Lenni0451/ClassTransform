@@ -14,14 +14,19 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
+ * A target for constants in the bytecode.<br>
  * Valid constants:<br>
  * - null<br>
  * - int<br>
  * - long<br>
  * - float<br>
  * - double<br>
- * - string<br>
- * - type
+ * - {@link String}<br>
+ * - {@link Class}<br>
+ * <br>
+ * The constant is defined in {@link CTarget#target()}.<br>
+ * e.g. {@code "int 1"} or {@code "String Hello World"}<br>
+ * The constant type is case-insensitive.
  */
 public class ConstantTarget implements IInjectionTarget {
 

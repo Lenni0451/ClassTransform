@@ -3,9 +3,15 @@ package net.lenni0451.classtransform.utils;
 import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 
+import java.lang.instrument.ClassFileTransformer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Internal class loader required for transformer hotswapping.<br>
+ * Fake classes with the same name as the transformer classes are loaded from this class loader.<br>
+ * This causes the JVM to pass the changed transformer bytecode into the instrumentation {@link ClassFileTransformer} which the reapplies the transformer to the unmodified class bytecode.
+ */
 public class HotswapClassLoader extends ClassLoader {
 
     private final IClassProvider classProvider;
@@ -20,10 +26,22 @@ public class HotswapClassLoader extends ClassLoader {
         this.hotswapClasses = new HashMap<>();
     }
 
+    /**
+     * Get the bytecode of a fake class.<br>
+     * This fake class only contains a constructor.
+     *
+     * @param name The name of the class
+     * @return The bytecode of the class
+     */
     public byte[] getHotswapClass(final String name) {
         return this.hotswapClasses.computeIfAbsent(name, n -> ASMUtils.toBytes(ASMUtils.createEmptyClass(n), this.classProvider));
     }
 
+    /**
+     * Define a fake class in this class loader.
+     *
+     * @param name The name of the class
+     */
     public void defineHotswapClass(final String name) {
         if (this.hotswapClasses.containsKey(name)) return;
         try {

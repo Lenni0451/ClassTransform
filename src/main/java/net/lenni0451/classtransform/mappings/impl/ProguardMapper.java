@@ -9,6 +9,9 @@ import java.util.regex.Pattern;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
+/**
+ * A remapper that uses a proguard mapping file for remapping.
+ */
 public class ProguardMapper extends AMapper {
 
     private static final String CLASS_LINE = "^([^ ]+) ?-> ?([^ ]+):$";

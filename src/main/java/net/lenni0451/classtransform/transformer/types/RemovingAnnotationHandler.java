@@ -12,6 +12,12 @@ import java.lang.annotation.Annotation;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * An abstract annotation handler which handles all annotations of the given type.<br>
+ * The handled transformer methods are removed from the transformer class afterwards.
+ *
+ * @param <T> The annotation type
+ */
 public abstract class RemovingAnnotationHandler<T extends Annotation> extends AnnotationHandler {
 
     private final Class<? extends Annotation> annotationClass;
@@ -35,21 +41,21 @@ public abstract class RemovingAnnotationHandler<T extends Annotation> extends An
     }
 
     /**
-     * Transform the target class using the given transformer class
+     * Handle a transformer method of the transformer with the given annotation.
      *
-     * @param annotation         The annotation of the transformer
+     * @param annotation         The annotation of the transformer method
      * @param transformerManager The transformer manager
      * @param classProvider      The class provider
      * @param injectionTargets   The available injection targets
-     * @param transformedClass   The target {@link ClassNode}
-     * @param transformer        The transformer {@link ClassNode}
-     * @param transformerMethod  The current {@link MethodNode} of the transformer
+     * @param transformedClass   The target class node
+     * @param transformer        The transformer class node
+     * @param transformerMethod  The method node of the transformer
      */
     public abstract void transform(final T annotation, final TransformerManager transformerManager, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod);
 
     /**
-     * Check if the transformer should be executed<br>
-     * If the transformer is not executed the method will not be removed
+     * Check if the transformer should be executed.<br>
+     * If the transformer is not executed the method will not be removed.
      *
      * @param annotation The annotation of the transformer
      * @return If the transformer should be executed

@@ -4,6 +4,9 @@ import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 
+/**
+ * A remapper that uses the given {@link MapRemapper} for remapping.
+ */
 public class RawMapper extends AMapper {
 
     private final MapRemapper remapper;

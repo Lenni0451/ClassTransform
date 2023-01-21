@@ -1,7 +1,9 @@
 package net.lenni0451.classtransform.targets.impl;
 
+import net.lenni0451.classtransform.InjectionCallback;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
+import net.lenni0451.classtransform.annotations.injection.CInject;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -11,6 +13,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A target for the tail (before last {@link Opcodes#RETURN}) of a method.<br>
+ * When using {@link CInject} the original return value is accessible using the {@link InjectionCallback}.
+ */
 public class TailTarget implements IInjectionTarget {
 
     @Override

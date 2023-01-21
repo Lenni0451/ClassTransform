@@ -12,6 +12,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * A target for the given opcode.<br>
+ * The opcode can be specified as a number or as its name.<br>
+ * Invalid opcodes will be ignored.<br>
+ * e.g. {@code INVOKESTATIC} or {@code 184}
+ */
 public class OpcodeTarget implements IInjectionTarget {
 
     @Override

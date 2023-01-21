@@ -10,6 +10,9 @@ import org.objectweb.asm.tree.ClassNode;
 
 import java.util.Map;
 
+/**
+ * The annotation handler for the {@link CUpgrade} annotation.
+ */
 public class CUpgradeAnnotationHandler extends AnnotationHandler {
 
     @Override

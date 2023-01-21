@@ -4,6 +4,9 @@ import org.objectweb.asm.commons.Remapper;
 
 import java.util.*;
 
+/**
+ * An asm remapper implementation using a map to store the mappings.
+ */
 public class MapRemapper extends Remapper {
 
     private final Map<String, String> mappings;
@@ -26,10 +29,25 @@ public class MapRemapper extends Remapper {
         return Collections.unmodifiableMap(this.mappings);
     }
 
+    /**
+     * Add a class mapping to the remapper.<br>
+     * Class names need to be with '/' instead of '.'.
+     *
+     * @param from The old name of the class
+     * @param to   The new name of the class
+     */
     public void addClassMapping(final String from, final String to) {
         this.addClassMapping(from, to, false);
     }
 
+    /**
+     * Add a class mapping to the remapper.<br>
+     * Class names need to be with '/' instead of '.'.
+     *
+     * @param from         The old name of the class
+     * @param to           The new name of the class
+     * @param skipIfExists If the mapping should be skipped if it already exists
+     */
     public void addClassMapping(final String from, final String to, final boolean skipIfExists) {
         if (skipIfExists && this.mappings.containsKey(from)) return;
         this.mappings.put(from, to);
@@ -40,10 +58,27 @@ public class MapRemapper extends Remapper {
         }
     }
 
+    /**
+     * Add a method mapping to the remapper.
+     *
+     * @param owner  The owner of the method
+     * @param name   The old name of the method
+     * @param desc   The descriptor of the method
+     * @param target The new name of the method
+     */
     public void addMethodMapping(final String owner, final String name, final String desc, final String target) {
         this.addMethodMapping(owner, name, desc, target, false);
     }
 
+    /**
+     * Add a method mapping to the remapper.
+     *
+     * @param owner        The owner of the method
+     * @param name         The old name of the method
+     * @param desc         The descriptor of the method
+     * @param target       The new name of the method
+     * @param skipIfExists If the mapping should be skipped if it already exists
+     */
     public void addMethodMapping(final String owner, final String name, final String desc, final String target, final boolean skipIfExists) {
         String key = owner + "." + name + desc;
         if (skipIfExists && this.mappings.containsKey(key)) return;
@@ -55,18 +90,50 @@ public class MapRemapper extends Remapper {
         }
     }
 
+    /**
+     * Add a field mapping to the remapper without a descriptor.
+     *
+     * @param owner  The owner of the field
+     * @param name   The old name of the field
+     * @param target The new name of the field
+     */
     public void addFieldMapping(final String owner, final String name, final String target) {
-        this.addFieldMapping(owner, name, "", target, false);
+        this.addFieldMapping(owner, name, target, false);
     }
 
+    /**
+     * Add a field mapping to the remapper without a descriptor.
+     *
+     * @param owner        The owner of the field
+     * @param name         The old name of the field
+     * @param target       The new name of the field
+     * @param skipIfExists If the mapping should be skipped if it already exists
+     */
     public void addFieldMapping(final String owner, final String name, final String target, final boolean skipIfExists) {
         this.addFieldMapping(owner, name, "", target, skipIfExists);
     }
 
+    /**
+     * Add a field mapping to the remapper.
+     *
+     * @param owner  The owner of the field
+     * @param name   The old name of the field
+     * @param desc   The descriptor of the field
+     * @param target The new name of the field
+     */
     public void addFieldMapping(final String owner, final String name, final String desc, final String target) {
         this.addFieldMapping(owner, name, desc, target, false);
     }
 
+    /**
+     * Add a field mapping to the remapper.
+     *
+     * @param owner        The owner of the field
+     * @param name         The old name of the field
+     * @param desc         The descriptor of the field
+     * @param target       The new name of the field
+     * @param skipIfExists If the mapping should be skipped if it already exists
+     */
     public void addFieldMapping(final String owner, final String name, final String desc, final String target, final boolean skipIfExists) {
         String key = owner + "." + name + ":" + desc;
         if (skipIfExists && this.mappings.containsKey(key)) return;
@@ -78,20 +145,34 @@ public class MapRemapper extends Remapper {
         }
     }
 
-    public List<String> getStartingMappings(final String... starts) {
+    /**
+     * Get a list of all mapping keys starting with one of the given prefixes.
+     *
+     * @param prefixes The prefixes
+     * @return The list of all keys starting with one of the given prefixes
+     */
+    public List<String> getStartingMappings(final String... prefixes) {
         List<String> mappings = new ArrayList<>();
         for (String mapping : this.mappings.keySet()) {
-            for (String start : starts) {
+            for (String start : prefixes) {
                 if (mapping.startsWith(start)) mappings.add(mapping);
             }
         }
         return mappings;
     }
 
+    /**
+     * @return If the remapper has no mappings
+     */
     public boolean isEmpty() {
         return this.mappings.isEmpty();
     }
 
+    /**
+     * Copy all mappings from another remapper to this one.
+     *
+     * @param remapper The remapper to copy mappings from
+     */
     public void copy(final MapRemapper remapper) {
         this.mappings.putAll(remapper.mappings);
     }
@@ -127,11 +208,23 @@ public class MapRemapper extends Remapper {
         return this.mappings.get(key);
     }
 
+    /**
+     * Directly get the mapping for a key.<br>
+     * This does not return null but the key itself if no mapping is found.
+     *
+     * @param key The key
+     * @return The mapping
+     */
     public String mapSafe(final String key) {
         return this.mappings.getOrDefault(key, key);
     }
 
 
+    /**
+     * Reverse the mappings of this remapper.
+     *
+     * @return The reversed remapper
+     */
     public MapRemapper reverse() {
         if (this.reverse != null) return this.reverse;
         MapRemapper reverseRemapper = new MapRemapper();

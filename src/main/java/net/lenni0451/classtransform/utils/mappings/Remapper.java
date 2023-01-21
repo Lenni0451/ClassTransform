@@ -10,39 +10,43 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+/**
+ * Util methods to remap classes, methods and fields.
+ */
 public class Remapper {
 
     /**
-     * Remap a {@link MethodNode} using a {@link MethodRemapper}<br>
-     * This is a wrapper for {@link #remapAndAdd(String, String, ClassNode, MethodNode)} using the target {@link ClassNode} as the new holder
+     * Remap a method node and add it to the target class.<br>
+     * The original class/method will not be modified.
      *
-     * @param source     The owner of the {@link MethodNode}
-     * @param target     The new owner of the remapped {@link MethodNode}
-     * @param methodNode The {@link MethodNode} to remap
+     * @param source     The owner of the method node
+     * @param target     The new owner of the remapped method node
+     * @param methodNode The method node to remap
      */
     public static void remapAndAdd(final ClassNode source, final ClassNode target, final MethodNode methodNode) {
         remapAndAdd(source.name, target.name, target, methodNode);
     }
 
     /**
-     * Remap a {@link FieldNode} using a {@link FieldRemapper}<br>
-     * This is a wrapper for {@link #remapAndAdd(String, String, ClassNode, FieldNode)} using the target {@link ClassNode} as the new holder
+     * Remap a field node and add it to the target class.<br>
+     * The original class/field will not be modified.
      *
-     * @param source    The owner of the {@link MethodNode}
-     * @param target    The new owner of the remapped {@link MethodNode}
-     * @param fieldNode The {@link MethodNode} to remap
+     * @param source    The owner of the field node
+     * @param target    The new owner of the remapped field node
+     * @param fieldNode The field node to remap
      */
     public static void remapAndAdd(final ClassNode source, final ClassNode target, final FieldNode fieldNode) {
         remapAndAdd(source.name, target.name, target, fieldNode);
     }
 
     /**
-     * Remap a {@link MethodNode} using a {@link MethodRemapper}
+     * Remap a method node and add it to the target class.<br>
+     * The original class/method will not be modified.
      *
      * @param sourceName The original name of the class
      * @param targetName The new name of the class
-     * @param holder     The {@link ClassNode} to which the new node gets added
-     * @param methodNode The {@link MethodNode} to remap
+     * @param holder     The class node to which the remapped method node gets added
+     * @param methodNode The method node to remap
      */
     public static void remapAndAdd(final String sourceName, final String targetName, final ClassNode holder, final MethodNode methodNode) {
         MapRemapper remapper = new MapRemapper(sourceName, targetName);
@@ -52,12 +56,13 @@ public class Remapper {
     }
 
     /**
-     * Remap a {@link FieldNode} using a {@link FieldRemapper}
+     * Remap a field node and add it to the target class.<br>
+     * The original class/field will not be modified.
      *
      * @param sourceName The original name of the class
      * @param targetName The new name of the class
-     * @param holder     The {@link ClassNode} to which the new node gets added
-     * @param fieldNode  The {@link FieldNode} to remap
+     * @param holder     The class node to which the remapped field node gets added
+     * @param fieldNode  The field node to remap
      */
     public static void remapAndAdd(final String sourceName, final String targetName, final ClassNode holder, final FieldNode fieldNode) {
         MapRemapper remapper = new MapRemapper(sourceName, targetName);
@@ -86,23 +91,25 @@ public class Remapper {
     }
 
     /**
-     * Remap a {@link ClassNode} using a {@link ClassRemapper}
+     * Remap a class node from the given name to the new name.<br>
+     * The original class will not be modified.
      *
      * @param sourceName The original name of the class
      * @param targetName The new name of the class
-     * @param node       The {@link ClassNode} to remap
-     * @return The remapped {@link ClassNode}
+     * @param node       The class node to remap
+     * @return The remapped class node
      */
     public static ClassNode remap(final String sourceName, final String targetName, final ClassNode node) {
         return remap(node, new MapRemapper(sourceName, targetName));
     }
 
     /**
-     * Remap a {@link ClassNode} using a {@link ClassRemapper}
+     * Remap a class node using a custom remapper.<br>
+     * The original class will not be modified.
      *
-     * @param node     The {@link ClassNode} to remap
-     * @param remapper The {@link MapRemapper} to use
-     * @return The remapped {@link ClassNode}
+     * @param node     The class node to remap
+     * @param remapper The remapper to use
+     * @return The remapped class node
      */
     public static ClassNode remap(final ClassNode node, final MapRemapper remapper) {
         ClassNode remappedNode = new ClassNode();
@@ -112,11 +119,13 @@ public class Remapper {
     }
 
     /**
-     * Merge one {@link ClassNode} into another overwriting all members<br>
-     * Use if you can't return a new {@link ClassNode} but still want to remap it
+     * Merge one class node into another overwriting all members.<br>
+     * Use if you can't return a new class node but still want to remap it.<br>
+     * This uses reflection to copy all non-static, mutable and public fields from the source to the target.<br>
+     * The original class will not be modified.
      *
-     * @param original The original {@link ClassNode}
-     * @param toMerge  The {@link ClassNode} to merge into the original
+     * @param original The original class node
+     * @param toMerge  The class node to merge into the original
      */
     public static void merge(final ClassNode original, final ClassNode toMerge) {
         for (Field field : ClassNode.class.getDeclaredFields()) {

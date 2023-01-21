@@ -7,6 +7,9 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A remapper that uses srg mappings for remapping.
+ */
 public class SrgMapper extends AMapper {
 
     private static final String CLASS_LINE = "^CL: (\\S+) (\\S+)$";

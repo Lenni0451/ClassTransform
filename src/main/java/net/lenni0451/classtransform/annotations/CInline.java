@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Inline the injection method into the target method<br>
- * This can be useful to inject into already loaded classes
+ * Inline an injection method into the target method.<br>
+ * This makes injecting into already loaded classes possible.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})

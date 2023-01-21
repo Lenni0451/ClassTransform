@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * The annotation handler for the {@link CRedirect} annotation.
+ */
 public class CRedirectAnnotationHandler extends RemovingAnnotationHandler<CRedirect> {
 
     private final Map<String, IRedirectTarget> redirectTargets = new HashMap<>();

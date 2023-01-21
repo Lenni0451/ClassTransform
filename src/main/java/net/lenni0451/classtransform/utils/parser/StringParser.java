@@ -8,6 +8,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+/**
+ * Parse a string to a insn list.
+ */
 public class StringParser {
 
     static final Map<String, Integer> OPCODES = new HashMap<>();
@@ -26,10 +29,23 @@ public class StringParser {
         }
     }
 
+    /**
+     * Parse a string to an insn list.<br>
+     * Every line represents an instruction.
+     *
+     * @param s The string to parse
+     * @return The insn list
+     */
     public static InsnList parse(final String s) {
         return parse(s.split("\n"));
     }
 
+    /**
+     * Parse a string to an insn list.
+     *
+     * @param s The string to parse
+     * @return The insn list
+     */
     public static InsnList parse(final String... s) {
         InsnList list = new InsnList();
         Map<String, LabelNode> labels = new HashMap<>();

@@ -4,6 +4,9 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
+/**
+ * Util class to assist with in memory resources.
+ */
 class URLEnumeration implements Enumeration<URL> {
 
     private final URL[] values;

@@ -5,6 +5,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+/**
+ * Util class to assist with in memory resources.
+ */
 class BytesURLStreamHandler extends URLStreamHandler {
 
     private final byte[] bytes;

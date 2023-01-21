@@ -14,14 +14,18 @@ import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
+/**
+ * Util to complete mappings which are missing some information about overridden methods.
+ */
 public class SuperMappingFiller {
 
     /**
-     * Fill all super mappings for the given transformer targets
+     * Fill all super mappings for the given transformer targets.<br>
+     * Missing mappings are added to the given remapper.
      *
-     * @param transformer   The {@link ClassNode} of the transformer
-     * @param remapper      The {@link MapRemapper} to use
-     * @param classProvider The {@link IClassProvider} to use
+     * @param transformer   The class node of the transformer
+     * @param remapper      The remapper to use
+     * @param classProvider The class provider to use
      */
     public static void fillTransformerSuperMembers(final ClassNode transformer, final MapRemapper remapper, final IClassProvider classProvider) {
         List<Object> annotation;
@@ -51,12 +55,13 @@ public class SuperMappingFiller {
     }
 
     /**
-     * Fill all super mappings for the given class<br>
-     * All input classes <b>must</b> be in the target format of the remapper
+     * Fill all super mappings for the given class.<br>
+     * All input classes <b>must</b> be in the target format of the remapper.<br>
+     * Missing mappings are added to the given remapper.
      *
-     * @param node         The {@link ClassNode} of the target class
-     * @param superClasses The {@link Set} of super classes to use
-     * @param remapper     The {@link MapRemapper} to use
+     * @param node         The class node
+     * @param superClasses The super classes of the given class
+     * @param remapper     The remapper to use
      */
     public static void fillSuperMembers(final ClassNode node, final Set<ClassNode> superClasses, final MapRemapper remapper) {
         MapRemapper reverseRemapper = remapper.reverse();
@@ -79,11 +84,12 @@ public class SuperMappingFiller {
     }
 
     /**
-     * Fill all super mappings for all classes found in the given remapper<br>
-     * If a class could not be found the mappings for it will be skipped
+     * Fill all super mappings for all classes found in the given remapper.<br>
+     * If a class could not be found the mappings for it will be skipped.<br>
+     * Missing mappings are added to the given remapper.
      *
-     * @param remapper      The {@link MapRemapper} to use
-     * @param classProvider The {@link IClassProvider} to use
+     * @param remapper      The remapper to use
+     * @param classProvider The class provider to use
      */
     public static void fillAllSuperMembers(final MapRemapper remapper, final IClassProvider classProvider) {
         for (Map.Entry<String, String> entry : new HashMap<>(remapper.getMappings()).entrySet()) {

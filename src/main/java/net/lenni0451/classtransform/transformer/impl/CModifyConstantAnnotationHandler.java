@@ -23,6 +23,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * The annotation handler for the {@link CModifyConstant} annotation.
+ */
 public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<CModifyConstant> implements IInjectionTarget {
 
     public CModifyConstantAnnotationHandler() {

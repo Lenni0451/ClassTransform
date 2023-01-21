@@ -11,35 +11,45 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Inject into a method at various targets<br>
- * You can cancel the original code flow and return own values if needed
+ * Inject into a method at various targets.<br>
+ * The original code flow can be cancelled and own values can be returned.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface CInject {
 
     /**
-     * The method name and descriptors to inject into<br>
+     * The method name and descriptor to inject into.<br>
+     * This supports multiple targets and wildcards.<br>
      * e.g. print(Ljava/lang/String;)V
+     *
+     * @return The method name and descriptor
      */
     @AnnotationRemap(RemapType.SHORT_MEMBER)
     String[] method();
 
     /**
-     * The inject targets to use
+     * The targets for the injection.
+     *
+     * @return The targets
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CTarget[] target();
 
     /**
-     * The slice to use
+     * The slice of instructions to search for the target.
+     *
+     * @return The slice
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CSlice slice() default @CSlice;
 
     /**
-     * Allow the method to be cancelled<br>
-     * Needs to be true to modify return values
+     * Allow the original method to be cancelled.<br>
+     * This is also required to change the return value.<br>
+     * If this is set to false an exception will be thrown when trying to cancel the original method.
+     *
+     * @return If the original method can be cancelled
      */
     boolean cancellable() default false;
 

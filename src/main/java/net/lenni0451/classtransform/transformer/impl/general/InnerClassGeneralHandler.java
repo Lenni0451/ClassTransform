@@ -17,6 +17,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
+/**
+ * Remap and make transformer inner classes accessible from the transformed classes.
+ */
 public class InnerClassGeneralHandler extends AnnotationHandler {
 
     @Override

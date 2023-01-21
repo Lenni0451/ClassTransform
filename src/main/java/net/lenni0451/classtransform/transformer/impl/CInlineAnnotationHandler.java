@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
+/**
+ * The annotation handler for the {@link CInline} annotation.
+ */
 public class CInlineAnnotationHandler extends AnnotationHandler {
 
     @Override

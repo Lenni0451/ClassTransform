@@ -1,12 +1,18 @@
 package net.lenni0451.classtransform.transformer;
 
+import java.lang.instrument.ClassFileTransformer;
+
+/**
+ * A bytecode transformer like {@link ClassFileTransformer}.
+ */
 public interface IBytecodeTransformer {
 
     /**
-     * Transform the raw bytecode all {@link Class}es
+     * Transform the raw bytecode of all loaded classes.<br>
+     * Return null if the class should not be transformed.
      *
-     * @param className The name of the {@link Class}
-     * @param bytecode  The raw bytecode of the {@link Class}
+     * @param className The name of the transformed class
+     * @param bytecode  The raw bytecode of the class
      * @return The transformed bytecode or null if not transformed
      */
     byte[] transform(final String className, final byte[] bytecode);

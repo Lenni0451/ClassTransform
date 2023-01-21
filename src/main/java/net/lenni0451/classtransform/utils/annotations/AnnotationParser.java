@@ -19,18 +19,45 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * Create a new instance of an annotation from its raw ASM bytecode values.
+ *
+ * @param <T> The type of the annotation
+ */
 public class AnnotationParser<T extends Annotation> {
 
+    /**
+     * Create a new instance for the given annotation class.
+     *
+     * @param type          The annotation class
+     * @param classProvider The class provider to get the bytecode from
+     * @param values        The raw values of the annotation
+     * @param <T>           The type of the annotation
+     * @return The new instance
+     */
     public static <T extends Annotation> T parse(final Class<T> type, final IClassProvider classProvider, final Map<String, Object> values) {
         return new AnnotationParser<>(type, classProvider).parse(values);
     }
 
+    /**
+     * Convert the raw ASM bytecode values list to a map.
+     *
+     * @param list The raw ASM bytecode values list
+     * @return The map
+     * @throws IndexOutOfBoundsException If the list is does not contain key value pairs
+     */
     public static Map<String, Object> listToMap(final List<Object> list) {
         Map<String, Object> map = new HashMap<>();
         if (list != null) for (int i = 0; i < list.size(); i += 2) map.put((String) list.get(i), list.get(i + 1));
         return map;
     }
 
+    /**
+     * Convert a map to a raw ASM bytecode values list.
+     *
+     * @param map The map
+     * @return The raw ASM bytecode values list
+     */
     public static List<Object> mapToList(final Map<String, Object> map) {
         List<Object> list = new ArrayList<>();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
@@ -40,6 +67,13 @@ public class AnnotationParser<T extends Annotation> {
         return list;
     }
 
+    /**
+     * Check if the given list of annotation nodes contains an annotation of the given type.
+     *
+     * @param nodes The list of annotation nodes
+     * @param desc  The descriptor of the annotation
+     * @return If the list contains the annotation
+     */
     public static boolean hasAnnotation(final List<AnnotationNode> nodes, final String desc) {
         if (nodes == null) return false;
         for (AnnotationNode annotation : nodes) {
@@ -61,6 +95,12 @@ public class AnnotationParser<T extends Annotation> {
         this.classProvider = classProvider;
     }
 
+    /**
+     * Parse the given key value pairs to a new instance of the annotation.
+     *
+     * @param values The key value pairs
+     * @return The new instance
+     */
     public T parse(final Map<String, Object> values) {
         this.initDefaults(values);
         this.defineBase();

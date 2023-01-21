@@ -16,6 +16,10 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * Copy members from the transformer class to the transformed class.<br>
+ * This also merges initializers.
+ */
 public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     @Override

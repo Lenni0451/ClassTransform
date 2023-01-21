@@ -17,6 +17,9 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 
+/**
+ * The annotation handler for the {@link COverride} annotation.
+ */
 public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<COverride> {
 
     public COverrideAnnotationHandler() {

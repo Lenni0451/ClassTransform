@@ -9,18 +9,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Override a method in a class<br>
- * The method with this annotation needs the same parameters and return type as the original method<br>
- * The access of the method has to be higher or equal to the original method<br>
- * If the original method is static, the method with this annotation has to be static as well
+ * Override a method in a class.<br>
+ * The transformer method must have the same parameters and return type as the overridden method.<br>
+ * The access of the transformer method has to be higher or equal to the overridden method (private < package private < protected < public).<br>
+ * If the overridden method is static, the transformer method has to be static as well.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface COverride {
 
     /**
-     * The name of the methods to override<br>
+     * The method name and descriptor to inject into.<br>
+     * This supports multiple targets and wildcards.<br>
      * e.g. print(Ljava/lang/String;)V
+     *
+     * @return The method name and descriptor
      */
     @AnnotationRemap(RemapType.SHORT_MEMBER)
     String[] value() default {};

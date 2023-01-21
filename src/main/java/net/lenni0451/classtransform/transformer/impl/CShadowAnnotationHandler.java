@@ -18,6 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The annotation handler for the {@link CShadow} annotation.
+ */
 public class CShadowAnnotationHandler extends AnnotationHandler {
 
     @Override

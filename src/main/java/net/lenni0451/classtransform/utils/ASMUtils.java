@@ -17,13 +17,16 @@ import java.util.regex.Pattern;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * General utils for using ASM.
+ */
 public class ASMUtils {
 
     /**
-     * Get a {@link ClassNode} from the raw bytecode of a class
+     * Get a class node from the raw bytecode of a class.
      *
      * @param bytecode The bytecode of the class
-     * @return The loaded {@link ClassNode}
+     * @return The parsed class node
      */
     public static ClassNode fromBytes(final byte[] bytecode) {
         ClassNode node = new ClassNode();
@@ -32,10 +35,10 @@ public class ASMUtils {
     }
 
     /**
-     * Get the bytecode from a {@link ClassNode}
+     * Get the bytecode from a class node
      *
-     * @param node          The {@link ClassNode}
-     * @param classProvider The {@link IClassProvider}
+     * @param node          The class node
+     * @param classProvider The class provider used for stack frame calculation
      * @return The bytecode of the class
      */
     public static byte[] toBytes(final ClassNode node, final IClassProvider classProvider) {
@@ -45,12 +48,12 @@ public class ASMUtils {
     }
 
     /**
-     * Get a {@link MethodNode} from a {@link ClassNode} using the name and descriptor
+     * Get a method node from a class node using the name and descriptor.
      *
-     * @param classNode The owner {@link ClassNode}
+     * @param classNode The class node to search in
      * @param name      The name of the method
      * @param desc      The descriptor of the method
-     * @return The {@link MethodNode}
+     * @return The method node or null if no method was found
      */
     public static MethodNode getMethod(final ClassNode classNode, final String name, final String desc) {
         for (MethodNode method : classNode.methods) {
@@ -60,12 +63,13 @@ public class ASMUtils {
     }
 
     /**
-     * Get a {@link FieldNode} from a {@link ClassNode} using the name
+     * Get a field node from a class node using the name.<br>
+     * The descriptor is passed as a parameter but is not used for the search.
      *
-     * @param classNode The owner {@link ClassNode}
+     * @param classNode The class node to search in
      * @param name      The name of the field
      * @param desc      The descriptor of the field
-     * @return The {@link FieldNode}
+     * @return The field node or null if no field was found
      */
     public static FieldNode getField(final ClassNode classNode, final String name, final String desc) {
         for (FieldNode field : classNode.fields) {
@@ -75,13 +79,14 @@ public class ASMUtils {
     }
 
     /**
-     * Get a {@link List} of {@link MethodNode}s from a {@link ClassNode} using the combined name and descriptor<br>
-     * Use <b>*</b> for wildcard<br>
+     * Get a list of method nodes from a class node using the combined name and descriptor.<br>
+     * Use <b>*</b> for a wildcard search.<br>
      * e.g. <b>print(Ljava/lang/String;)V</b>
      *
-     * @param classNode The owner {@link ClassNode}
+     * @param classNode The class node to search in
      * @param combi     The combined name and descriptor
-     * @return The {@link List} of {@link MethodNode}s
+     * @return The list of method nodes
+     * @throws IllegalArgumentException If the combined name and descriptor is empty
      */
     public static List<MethodNode> getMethodsFromCombi(final ClassNode classNode, final String combi) {
         if (combi.isEmpty()) throw new IllegalArgumentException("Combi cannot be empty");
@@ -104,13 +109,13 @@ public class ASMUtils {
     }
 
     /**
-     * Get a {@link List} of {@link FieldNode}s from a {@link ClassNode} using the combined name and descriptor<br>
-     * Use <b>*</b> for wildcard<br>
-     * e.g. <b>out:Ljava/io/PrintStream;</b>
+     * Get a list of method nodes from a class node using the combined name and descriptor.<br>
+     * Use <b>*</b> for a wildcard search.<br>
+     * e.g. <b>print(Ljava/lang/String;)V</b>
      *
-     * @param classNode The owner {@link ClassNode}
+     * @param classNode The class node to search in
      * @param combi     The combined name and descriptor
-     * @return The {@link List} of {@link FieldNode}s
+     * @return The list of method nodes
      */
     public static List<FieldNode> getFieldsFromCombi(final ClassNode classNode, final String combi) {
         if (combi.isEmpty()) throw new IllegalArgumentException("Combi cannot be empty");
@@ -130,12 +135,12 @@ public class ASMUtils {
     }
 
     /**
-     * Convert a field or method name matching name and descriptor to a regex pattern<br>
-     * Use <b>*</b> for wildcard<br>
+     * Convert a field or method search pattern to a regex pattern.<br>
+     * Use <b>*</b> for a wildcard search.<br>
      * e.g. <b>get*</b> -&gt; <b>^\Qget\E.*$</b>
      *
-     * @param combi The name of a field or method
-     * @return The regex pattern
+     * @param combi The search pattern
+     * @return The converted regex pattern
      */
     public static String combiToRegex(String combi) {
         if (combi.replace("*", "").isEmpty()) {
@@ -158,11 +163,12 @@ public class ASMUtils {
     }
 
     /**
-     * Check if the access is lower than another
+     * Check if the given access is lower than another.<br>
+     * private < package private < protected < public
      *
      * @param toCheck      The access to check
      * @param checkAgainst The access to check against
-     * @return True if the access is lower than the other
+     * @return If the access is lower than the other
      */
     public static boolean isAccessLower(final int toCheck, final int checkAgainst) {
         int rank1;
@@ -179,7 +185,8 @@ public class ASMUtils {
     }
 
     /**
-     * Set the wanted access to a given access mask
+     * Set the wanted access to a given access mask.<br>
+     * Other access flags will be removed.
      *
      * @param currentAccess The current access mask
      * @param newAccess     The wanted access
@@ -195,9 +202,9 @@ public class ASMUtils {
     }
 
     /**
-     * Get the needed return opcode for a given {@link Type}
+     * Get the needed return opcode for the given type.
      *
-     * @param returnType The return {@link Type} of a method
+     * @param returnType The return type of a method
      * @return The needed return opcode
      */
     public static int getReturnOpcode(final Type returnType) {
@@ -214,9 +221,9 @@ public class ASMUtils {
     }
 
     /**
-     * Get the needed load opcode for a given {@link Type}
+     * Get the needed load opcode for the given type.
      *
-     * @param type The {@link Type} to get the load opcode for
+     * @param type The type to get the load opcode for
      * @return The needed load opcode
      */
     public static int getLoadOpcode(final Type type) {
@@ -232,9 +239,9 @@ public class ASMUtils {
     }
 
     /**
-     * Get the needed store opcode for a given {@link Type}
+     * Get the needed store opcode for the given type.
      *
-     * @param type The {@link Type} to get the store opcode for
+     * @param type The type to get the store opcode for
      * @return The needed store opcode
      */
     public static int getStoreOpcode(final Type type) {
@@ -250,7 +257,8 @@ public class ASMUtils {
     }
 
     /**
-     * Get the last empty local variable index
+     * Get the last empty local variable index.<br>
+     * You can simply count the index up from there.
      *
      * @param methodNode The method to get the last empty local variable index for
      * @return The last empty local variable index
@@ -269,11 +277,11 @@ public class ASMUtils {
     }
 
     /**
-     * Get the code to cast an {@link Object} to any {@link Type}<br>
-     * Converts primitive wrapper to their primitive types (e.g. Integer to int)
+     * Get the byte code to cast an object to a given type.<br>
+     * Converts primitive wrapper to their primitive types (e.g. Integer to int).
      *
-     * @param wantedType The wanted {@link Type}
-     * @return The code to cast an {@link Object} to any {@link Type}
+     * @param wantedType The wanted type
+     * @return The byte code for the cast
      */
     public static InsnList getCast(final Type wantedType) {
         InsnList list = new InsnList();
@@ -308,10 +316,10 @@ public class ASMUtils {
     }
 
     /**
-     * Get the code to wrap a primitive to their wrapper type (e.g. int to Integer)
+     * Get the byte code to wrap a primitive to its wrapper type (e.g. int to Integer).
      *
      * @param primitive The primitive type to wrap
-     * @return The code to wrap a primitive to their wrapper type
+     * @return The byte code for the wrapper or null if the given type is not a primitive
      */
     public static AbstractInsnNode getPrimitiveToObject(final Type primitive) {
         if (primitive.equals(Type.BOOLEAN_TYPE)) {
@@ -336,10 +344,12 @@ public class ASMUtils {
     }
 
     /**
-     * Split an injection declaration into owner, name and desc
+     * Split an injection declaration into owner, name and descriptor.<br>
+     * e.g. {@code java/lang/String.length()I}<br>
+     * e.g. {@code java/lang/System.out:Ljava/io/PrintStream;}
      *
      * @param injectDeclaration The injection declaration
-     * @return The owner, name and desc
+     * @return The split member declaration
      */
     public static MemberDeclaration splitMemberDeclaration(final String injectDeclaration) {
         Matcher matcher = Pattern.compile("^L([^;]+);([^(:]+):?(\\(?[^\\n]+)$").matcher(injectDeclaration);
@@ -348,11 +358,11 @@ public class ASMUtils {
     }
 
     /**
-     * Get the first instruction of a constructor
+     * Get the first instruction of a constructor skipping the super init call.
      *
      * @param superClass The name of the super class
-     * @param methodNode The {@link MethodNode} of the constructor
-     * @return The first instruction of the constructor
+     * @param methodNode The constructor method node
+     * @return The first actual instruction of the constructor
      */
     public static AbstractInsnNode getFirstConstructorInstruction(final String superClass, final MethodNode methodNode) {
         AbstractInsnNode first = methodNode.instructions.getFirst();
@@ -364,10 +374,11 @@ public class ASMUtils {
     }
 
     /**
-     * Get a {@link Number} from an {@link AbstractInsnNode} if it represents a {@link Number}
+     * Get a number from an insn node if it represents one.<br>
+     * This also works for constants (e.g. {@link Opcodes#ICONST_0})
      *
-     * @param instruction The {@link AbstractInsnNode}
-     * @return The {@link Number} or null if it is not a {@link Number}
+     * @param instruction The insn node
+     * @return The number or null if it's not a number
      */
     public static Number getNumber(final AbstractInsnNode instruction) {
         if (instruction == null) return null;
@@ -382,11 +393,12 @@ public class ASMUtils {
     }
 
     /**
-     * Compare an array of {@link Type} with a target array of {@link Type}<br>
-     * This supports {@link Object} instead of direct types
+     * Compare an array of types with a target array of types.<br>
+     * This supports the usage of object instead of the actual type but does not check for other inheritance.<br>
+     * Object can not be used as a replacement for primitives.
      *
-     * @param types       The source array of {@link Type}
-     * @param targetTypes The target array of {@link Type}
+     * @param types       The source array of types
+     * @param targetTypes The target array of types
      * @return If the arrays match
      */
     public static boolean compareTypes(Type[] types, final Type[] targetTypes) {
@@ -394,13 +406,14 @@ public class ASMUtils {
     }
 
     /**
-     * Compare an array of {@link Type} with a target array of {@link Type}<br>
-     * This supports {@link Object} instead of direct types
+     * Compare an array of types with a target array of types.<br>
+     * This supports the usage of object instead of the actual type but does not check for other inheritance.<br>
+     * Object can not be used as a replacement for primitives.
      *
-     * @param types                 The source array of {@link Type}
-     * @param targetTypes           The target array of {@link Type}
-     * @param prepend               If the additional {@link Type} array should be prepended or appended
-     * @param additionalNeededTypes The additional {@link Type} to append to the source
+     * @param types                 The source array of types
+     * @param targetTypes           The target array of types
+     * @param prepend               If the additional types array should be prepended or appended
+     * @param additionalNeededTypes The additional types to append/prepend to the source
      * @return If the arrays match
      */
     public static boolean compareTypes(Type[] types, final Type[] targetTypes, final boolean prepend, final Type... additionalNeededTypes) {
@@ -427,11 +440,12 @@ public class ASMUtils {
     }
 
     /**
-     * Compare a single {@link Type} with a target {@link Type}<br>
-     * This supports {@link Object} instead of direct types
+     * Compare a single type with a target type<br>
+     * This supports the usage of object instead of the actual type but does not check for other inheritance.<br>
+     * Object can not be used as a replacement for primitives.
      *
-     * @param type       The source {@link Type}
-     * @param targetType The target {@link Type}
+     * @param type       The source type
+     * @param targetType The target type
      * @return If the types match
      */
     public static boolean compareType(final Type type, final Type targetType) {
@@ -440,10 +454,10 @@ public class ASMUtils {
     }
 
     /**
-     * Clone a {@link ClassNode}
+     * Clone a class node with all its methods and fields.
      *
-     * @param classNode The {@link ClassNode} to clone
-     * @return The cloned {@link ClassNode}
+     * @param classNode The class node to clone
+     * @return The cloned class node
      */
     public static ClassNode cloneClass(final ClassNode classNode) {
         ClassNode clonedClass = new ClassNode();
@@ -452,10 +466,10 @@ public class ASMUtils {
     }
 
     /**
-     * Clone a {@link MethodNode}
+     * Clone a method node with all its instructions.
      *
-     * @param methodNode The {@link MethodNode} to clone
-     * @return The cloned {@link MethodNode}
+     * @param methodNode The method node to clone
+     * @return The cloned method node
      */
     public static MethodNode cloneMethod(final MethodNode methodNode) {
         MethodNode clonedMethod = new MethodNode(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature, methodNode.exceptions == null ? null : methodNode.exceptions.toArray(new String[0]));
@@ -464,10 +478,10 @@ public class ASMUtils {
     }
 
     /**
-     * Clone a {@link InsnList}
+     * Clone an insn list with all its instructions.
      *
-     * @param insnList The {@link InsnList} to clone
-     * @return The cloned {@link InsnList}
+     * @param insnList The insn list to clone
+     * @return The cloned insn list
      */
     public static InsnList cloneInsnList(final InsnList insnList) {
         InsnList clonedInsnList = new InsnList();
@@ -480,10 +494,10 @@ public class ASMUtils {
     }
 
     /**
-     * Create an empty class with a default constructor
+     * Create an empty class with a default constructor.
      *
      * @param name The name of the class
-     * @return The {@link ClassNode}
+     * @return The generated class node
      */
     public static ClassNode createEmptyClass(final String name) {
         ClassNode node = new ClassNode();
@@ -499,10 +513,11 @@ public class ASMUtils {
     }
 
     /**
-     * Create a new {@link AbstractInsnNode} representing the given int
+     * Create a new insn node representing the given int.<br>
+     * This uses the most efficient opcode for the given int.
      *
      * @param i The int
-     * @return The {@link AbstractInsnNode}
+     * @return The insn node
      */
     public static AbstractInsnNode intPush(final int i) {
         if (i >= -1 && i <= 5) return new InsnNode(Opcodes.ICONST_0 + i);
@@ -512,7 +527,7 @@ public class ASMUtils {
     }
 
     /**
-     * Replace all slashes with dots in the given class/package name
+     * Replace all slashes with dots in the given class/package name.
      *
      * @param s The class/package name
      * @return The class/package name with dots
@@ -522,7 +537,7 @@ public class ASMUtils {
     }
 
     /**
-     * Replace all dots with slashes in the given class/package name
+     * Replace all dots with slashes in the given class/package name.
      *
      * @param s The class/package name
      * @return The class/package name with slashes

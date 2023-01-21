@@ -4,6 +4,10 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+/**
+ * The default logger implementation using {@link System#out} and {@link System#err}.<br>
+ * The date, time and level is prepended to every message.
+ */
 public class DefaultLogger implements ILogger {
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");

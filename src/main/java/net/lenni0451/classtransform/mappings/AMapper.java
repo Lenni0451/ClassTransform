@@ -29,6 +29,9 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 import static net.lenni0451.classtransform.utils.Types.type;
 
+/**
+ * The abstract remapper class responsible for remapping class transform annotations.
+ */
 public abstract class AMapper {
 
     private final MapperConfig config;
@@ -39,6 +42,11 @@ public abstract class AMapper {
         this.remapper = new MapRemapper();
     }
 
+    /**
+     * Load all mappings from the overridden {@link #init()} method.
+     *
+     * @throws RuntimeException If the {@link #init()} method throws an exception
+     */
     public final void load() {
         try {
             this.init();
@@ -47,10 +55,26 @@ public abstract class AMapper {
         }
     }
 
+    /**
+     * Remap the given class name separated by dots.<br>
+     * If no mapping is found the original name will be returned.
+     *
+     * @param className The class name
+     * @return The remapped class name
+     */
     public final String mapClassName(final String className) {
         return dot(this.remapper.mapType(slash(className)));
     }
 
+    /**
+     * Remap the given transformer for the given target class.
+     *
+     * @param classProvider The class provider
+     * @param logger        The logger
+     * @param target        The target class node
+     * @param transformer   The transformer class node
+     * @return The remapped transformer class node
+     */
     public final ClassNode mapClass(final IClassProvider classProvider, final ILogger logger, final ClassNode target, final ClassNode transformer) {
         if (this.config.fillSuperMappings) {
             try {
@@ -97,6 +121,11 @@ public abstract class AMapper {
         else return transformer;
     }
 
+    /**
+     * Get the remapper used by this mapper.
+     *
+     * @return The remapper
+     */
     public MapRemapper getRemapper() {
         return this.remapper;
     }

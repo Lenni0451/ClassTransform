@@ -13,6 +13,9 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Map;
 
+/**
+ * Rename synthetic methods in transformers to avoid conflicts with the injected class.
+ */
 public class SyntheticMethodGeneralHandler extends AnnotationHandler {
 
     static void fillSyntheticMappings(final ClassNode source, final ClassNode target, final MapRemapper remapper) {

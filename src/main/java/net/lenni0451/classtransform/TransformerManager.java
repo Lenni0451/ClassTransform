@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform;
 
+import net.lenni0451.classtransform.annotations.CInline;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
@@ -31,6 +32,10 @@ import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
+/**
+ * The TransformerManager handles all things needed for class transformation.<br>
+ * This class implements {@link ClassFileTransformer} so it can be used with an {@link Instrumentation} agent.
+ */
 public class TransformerManager implements ClassFileTransformer {
 
     private final IClassProvider classProvider;
@@ -52,15 +57,15 @@ public class TransformerManager implements ClassFileTransformer {
     private final Set<String> transformedClasses = new HashSet<>();
 
     /**
-     * @param classProvider The {@link ClassLoader} to use for transformer loading
+     * @param classProvider The class provider used to get the class bytecode
      */
     public TransformerManager(final IClassProvider classProvider) {
         this(classProvider, new VoidMapper());
     }
 
     /**
-     * @param classProvider The {@link ClassLoader} to use for transformer loading
-     * @param mapper        The {@link AMapper} instance
+     * @param classProvider The class provider used to get the class bytecode
+     * @param mapper        The mapper used to remap ClassTransform annotation targets and transformers if enabled
      */
     public TransformerManager(final IClassProvider classProvider, final AMapper mapper) {
         this.classProvider = classProvider;
@@ -99,16 +104,16 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Set the logger used by ClassTransform for errors and warnings
+     * Set the logger used for printing infos, warnings and errors.
      *
-     * @param logger The logger to use
+     * @param logger The logger implementation to use
      */
     public void setLogger(final ILogger logger) {
         this.logger = logger;
     }
 
     /**
-     * Set the fail strategy used when a transformer fails
+     * Set the fail strategy used when a transformer fails.
      *
      * @param failStrategy The fail strategy to use
      */
@@ -117,31 +122,32 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a transformer preprocessor to the transformer list<br>
-     * You can modify class transform annotations before they get parsed
+     * Add an annotation handler preprocessor to the preprocessor list.<br>
+     * You can modify class transform annotations before they get parsed.
      *
-     * @param annotationHandlerPreprocessor The {@link IAnnotationHandlerPreprocessor} instance
+     * @param annotationHandlerPreprocessor The annotation handler preprocessor to add
      */
     public void addTransformerPreprocessor(final IAnnotationHandlerPreprocessor annotationHandlerPreprocessor) {
         this.annotationHandlerPreprocessor.add(annotationHandlerPreprocessor);
     }
 
     /**
-     * Add a bytecode transformer to the transformer list<br>
-     * Useful when needing to modify bytecode directly without ASM parsing or all {@link Class}es at once
+     * Add a bytecode transformer to the transformer list.<br>
+     * Bytecode transformer are the ClassTransform implementation of {@link ClassFileTransformer} .
      *
-     * @param bytecodeTransformer The {@link IBytecodeTransformer} instance
+     * @param bytecodeTransformer The bytecode transformer to add
      */
     public void addBytecodeTransformer(final IBytecodeTransformer bytecodeTransformer) {
         this.bytecodeTransformer.add(bytecodeTransformer);
     }
 
     /**
-     * Add a raw class transformer to the transformer list<br>
-     * Useful when needing direct access to a {@link ClassNode}
+     * Add a raw class transformer to the transformer list.<br>
+     * Raw class transformer are similar to bytecode transformer but only for the specified class.<br>
+     * A {@link ClassNode} is passed to the transformer instead of the bytecode array.
      *
-     * @param className      The name of the transformer target
-     * @param rawTransformer The {@link IRawTransformer} instance
+     * @param className      The name of the class to transform
+     * @param rawTransformer The raw transformer to add
      */
     public void addRawTransformer(final String className, final IRawTransformer rawTransformer) {
         this.rawTransformer.computeIfAbsent(className, n -> new ArrayList<>()).add(rawTransformer);
@@ -150,12 +156,16 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a transformer class to the transformer list<br>
+     * Add a transformer class to the transformer list.<br>
      * Use the direct class name for a single transformer <i>(e.g. <b>package.Transformer</b>)</i><br>
      * Use the package ending with '*' for all transformer in the packet (not sub packages) <i>(e.g. <b>package.*</b>)</i><br>
      * Use the package ending with '**' for all transformer in the package and sub packages <i>(e.g. <b>package.**</b>)</i><br>
+     * If the class is specified directly an exception will be thrown if the class is missing the {@link CTransformer} annotation.
      *
      * @param transformer The name of transformer class to add
+     * @throws ClassNotFoundException If the transformer class could not be found
+     * @throws IllegalStateException  If the class is specified directly and is missing the {@link CTransformer} annotation
+     * @throws RuntimeException       If the class bytecode could not be parsed using ASM
      */
     public void addTransformer(final String transformer) {
         List<byte[]> classes = new ArrayList<>();
@@ -194,20 +204,23 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a {@link ClassNode} directly to the transformer list<br>
-     * The class must still be annotated with {@link CTransformer}
+     * Add a {@link ClassNode} directly to the transformer list.<br>
+     * The class must still be annotated with {@link CTransformer}.
      *
-     * @param classNode The {@link ClassNode} to add
+     * @param classNode The class node to add
+     * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation
      */
     public Set<String> addTransformer(final ClassNode classNode) {
         return this.addTransformer(classNode, true);
     }
 
     /**
-     * Add a {@link ClassNode} directly to the transformer list<br>
-     * The class must still be annotated with {@link CTransformer}
+     * Add a {@link ClassNode} directly to the transformer list.<br>
+     * The class must still be annotated with {@link CTransformer}.
      *
-     * @param classNode The {@link ClassNode} to add
+     * @param classNode         The class node to add
+     * @param requireAnnotation If an exception should be thrown if the class is missing the {@link CTransformer} annotation
+     * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation and {@code requireAnnotation} is {@code true}
      */
     public Set<String> addTransformer(final ClassNode classNode, final boolean requireAnnotation) {
         for (IAnnotationHandlerPreprocessor preprocessor : this.annotationHandlerPreprocessor) preprocessor.process(classNode);
@@ -246,8 +259,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a post transformer to handle the raw byte array after all other transformer have been applied<br>
-     * Useful for dumping transformed classes to disk
+     * Add a post transformer to handle the raw bytecode after all transformer have been applied.<br>
+     * Useful for dumping transformed classes to disk.
      *
      * @param postTransformer The {@link BiConsumer} instance
      */
@@ -256,16 +269,16 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a custom annotation handler into the handler chain
+     * Add a custom annotation handler into the handler chain.
      *
-     * @param transformer The {@link AnnotationHandler} instance
+     * @param transformer The annotation handler to add
      */
     public void addCustomAnnotationHandler(final AnnotationHandler transformer, final HandlerPosition handlerPosition) {
         handlerPosition.add(this.annotationHandler, transformer);
     }
 
     /**
-     * Add a new injection target for use with the {@link CTarget} annotation
+     * Add a new injection target for use with the {@link CTarget} annotation.
      *
      * @param name   The name of the injection target
      * @param target The injection target
@@ -275,7 +288,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Transform the bytecode of a given class
+     * Transform the bytecode of the given class.<br>
+     * The name must be in the class format (e.g. {@code java.lang.String}).
      *
      * @param name     The name of the class
      * @param bytecode The bytecode of the class
@@ -334,24 +348,26 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Hook an {@link Instrumentation} instance to allow for transformation using it<br>
-     * This can be used to transform classes already loaded by the JVM<br>
-     * You have to be careful with re-transforming classes since you can't modify the structure (e.g. adding a new method or modifying the signature of an existing one)<br>
-     * Hotswapping transformer is disabled by default as it causes a bit more overhead and memory usage
+     * Hook an {@link Instrumentation} instance to allow for transformation using it.<br>
+     * This allows to transform classes already loaded by the JVM.<br>
+     * You have to be careful with re-transforming classes since you can't modify the class structure (e.g. adding a new method or modifying the signature of an existing one). You can use the {@link CInline} annotation to prevent adding methods to a loaded class.<br>
+     * When using this method all loaded classes will be re-transformed if there is a transformer for them.<br>
+     * Hotswapping transformer is disabled by default as it causes a bit more overhead and memory usage.
      *
-     * @param instrumentation The instance of the {@link Instrumentation}
+     * @param instrumentation The instrumentation instance to hook
      */
     public void hookInstrumentation(final Instrumentation instrumentation) {
         this.hookInstrumentation(instrumentation, false);
     }
 
     /**
-     * Hook an {@link Instrumentation} instance to allow for transformation using it<br>
-     * This can be used to transform classes already loaded by the JVM<br>
-     * You have to be careful with re-transforming classes since you can't modify the structure (e.g. adding a new method or modifying the signature of an existing one)
+     * Hook an {@link Instrumentation} instance to allow for transformation using it.<br>
+     * This allows to transform classes already loaded by the JVM.<br>
+     * You have to be careful with re-transforming classes since you can't modify the class structure (e.g. adding a new method or modifying the signature of an existing one). You can use the {@link CInline} annotation to prevent adding methods to a loaded class.<br>
+     * When using this method all loaded classes will be re-transformed if there is a transformer for them.
      *
-     * @param instrumentation The instance of the {@link Instrumentation}
-     * @param hotswappable    Allow transformer to be hotswapped
+     * @param instrumentation The instrumentation instance to hook
+     * @param hotswappable    Whether to enable transformer hotswapping
      */
     public void hookInstrumentation(final Instrumentation instrumentation, final boolean hotswappable) {
         this.instrumentation = instrumentation;
@@ -396,8 +412,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Support method for {@link Instrumentation}<br>
-     * You can simply add the {@link TransformerManager} as a {@link ClassFileTransformer} using {@link Instrumentation#addTransformer(ClassFileTransformer)} or call {@link TransformerManager#hookInstrumentation(Instrumentation)}
+     * Support method for hooking an instrumentation instance.<br>
+     * You can simply add the TransformerManager as a transformer using {@link Instrumentation#addTransformer(ClassFileTransformer)} or call {@link TransformerManager#hookInstrumentation(Instrumentation)}.
      */
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {

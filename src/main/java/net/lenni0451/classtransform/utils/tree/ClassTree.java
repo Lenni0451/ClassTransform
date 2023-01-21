@@ -7,10 +7,20 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
+/**
+ * A class tree which dynamically loads tree parts on demand.
+ */
 public class ClassTree {
 
     private static final Map<String, ClassTree> TREE = new HashMap<>();
 
+    /**
+     * Get a tree part from a class by name.
+     *
+     * @param classProvider The class provider to get the bytecode from
+     * @param className     The name of the class
+     * @return The tree part
+     */
     public static ClassTree getTreePart(final IClassProvider classProvider, String className) {
         className = dot(className);
         if (TREE.containsKey(className)) return TREE.get(className);
@@ -39,7 +49,7 @@ public class ClassTree {
     private final Set<String> superClasses;
     private final int modifiers;
 
-    public ClassTree(final ClassNode node) {
+    private ClassTree(final ClassNode node) {
         this.node = node;
         this.name = dot(node.name);
         this.superClass = node.superName;
@@ -51,29 +61,52 @@ public class ClassTree {
         this.modifiers = node.access;
     }
 
+    /**
+     * @return The class node of this tree part
+     */
     public ClassNode getNode() {
         return this.node;
     }
 
+    /**
+     * @return The name of the class
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Get the class node of the super class of this class.
+     *
+     * @param classProvider The class provider to get the bytecode from
+     * @return The class node of the super class
+     */
     public ClassTree parseSuperClass(final IClassProvider classProvider) {
         if (this.superClass == null) return null;
         return ClassTree.getTreePart(classProvider, this.superClass);
     }
 
+    /**
+     * @return A set of all super classes and their super classes including interfaces
+     */
     public Set<String> getSuperClasses() {
         return Collections.unmodifiableSet(this.superClasses);
     }
 
+    /**
+     * Get the class tree parts of all super classes of this class.<br>
+     * This includes the super class and all interfaces.
+     *
+     * @param classProvider The class provider to get the bytecode from
+     * @return A set of all super classes and their super classes including interfaces
+     */
     public Set<ClassTree> getParsedSuperClasses(final IClassProvider classProvider) {
         Set<ClassTree> out = new HashSet<>();
         for (String superClass : this.superClasses) out.add(ClassTree.getTreePart(classProvider, superClass));
         return out;
     }
 
+    //TODO: Isn't this the same as getParsedSuperClasses?
     public Set<ClassTree> walkSuperClasses(final Set<ClassTree> walkedSuperClasses, final IClassProvider classProvider, final boolean includeSelf) {
         if (walkedSuperClasses.contains(this)) return walkedSuperClasses;
         if (includeSelf) walkedSuperClasses.add(this);
@@ -81,6 +114,9 @@ public class ClassTree {
         return walkedSuperClasses;
     }
 
+    /**
+     * @return The modifiers of the class
+     */
     public int getModifiers() {
         return this.modifiers;
     }

@@ -11,39 +11,49 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Wrap an entire method or a single instruction in a try-catch block<br>
- * The method with this annotation must have the same return type as the original method<br>
- * Only one parameter is allowed, and it must be of type {@link Throwable}<br>
- * The parameter also declares which exception should be caught
+ * Wrap an entire method or a single instruction in a try-catch block.<br>
+ * The transformer method must have the same return type as the target method.<br>
+ * The transformer method requires an object extending {@link Throwable} as the only parameter.<br>
+ * The parameter type is the type of the exception caught by the try-catch block.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface CWrapCatch {
 
     /**
-     * The name and description of the method to wrap<br>
+     * The method name and descriptor to inject into.<br>
+     * This supports multiple targets and wildcards.<br>
      * e.g. print(Ljava/lang/String;)V
+     *
+     * @return The method name and descriptor
      */
     @AnnotationRemap(RemapType.SHORT_MEMBER)
     String[] value();
 
     /**
-     * The method owner, name and descriptor of the target method<br>
-     * Only method calls are supported<br>
+     * The method owner, name and descriptor of the target instruction to wrap.<br>
+     * Only method calls are supported.<br>
+     * If this is not specified the entire method will be wrapped.<br>
      * e.g. Ljava/io/InputStream;close()V
+     *
+     * @return The method owner, name and descriptor
      */
     @AnnotationRemap(value = RemapType.MEMBER, fill = FillType.KEEP_EMPTY)
     String target() default "";
 
     /**
-     * The ordinal of the target<br>
-     * Only used if a target is specified
+     * The ordinal of the target instruction.<br>
+     * Ignored if the entire method should be wrapped.
+     *
+     * @return The ordinal
      */
     int ordinal() default -1;
 
     /**
-     * The slice to use<br>
-     * Only used if a target is specified
+     * The slice of instructions to search for the target.<br>
+     * Ignored if the entire method should be wrapped.
+     *
+     * @return The slice
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CSlice slice() default @CSlice;

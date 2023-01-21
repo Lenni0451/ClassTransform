@@ -7,12 +7,25 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Util class to generate method header strings.<br>
+ * This is used to print example method headers when a transformer requires a specific method signature.
+ */
 public class Codifier {
 
+    /**
+     * @return An empty codifier
+     */
     public static Codifier get() {
         return new Codifier();
     }
 
+    /**
+     * Create a codifier of the given method node.
+     *
+     * @param method The method node
+     * @return The codifier
+     */
     public static Codifier of(final MethodNode method) {
         return Codifier.get()
                 .access(method.access)
@@ -34,6 +47,12 @@ public class Codifier {
     private Codifier() {
     }
 
+    /**
+     * Set the access modifier of the method.
+     *
+     * @param access The access modifier
+     * @return This codifier
+     */
     public Codifier access(final int access) {
         final boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
         final boolean isPrivate = (access & Opcodes.ACC_PRIVATE) != 0;
@@ -48,17 +67,36 @@ public class Codifier {
         return this;
     }
 
+    /**
+     * Set the return type of the method.
+     *
+     * @param returnType The return type
+     * @return This codifier
+     */
     public Codifier returnType(final Type returnType) {
         this.returnType = returnType.getClassName();
         if (this.returnType.contains(".")) this.returnType = this.stripPackage(this.returnType);
         return this;
     }
 
+    /**
+     * Set the name of the method.
+     *
+     * @param name The name
+     * @return This codifier
+     */
     public Codifier name(final String name) {
         this.name = name;
         return this;
     }
 
+    /**
+     * Add a parameter to the method.<br>
+     * If {@code null} is passed as the parameter the current parameter list will be cleared.
+     *
+     * @param parameter The parameter
+     * @return This codifier
+     */
     public Codifier param(final Type parameter) {
         if (parameter == null) {
             this.parameters.clear();
@@ -72,11 +110,24 @@ public class Codifier {
         return this;
     }
 
+    /**
+     * Add multiple parameters to the method.
+     *
+     * @param parameters The parameters
+     * @return This codifier
+     */
     public Codifier params(final Type... parameters) {
         for (Type type : parameters) this.param(type);
         return this;
     }
 
+    /**
+     * Add an exception to the method.<br>
+     * If {@code null} is passed as the exception the current exception list will be cleared.
+     *
+     * @param exception The exception
+     * @return This codifier
+     */
     public Codifier exception(final Type exception) {
         if (exception == null) {
             this.exceptions.clear();
@@ -87,16 +138,31 @@ public class Codifier {
         return this;
     }
 
+    /**
+     * Add multiple exceptions to the method.
+     *
+     * @param exceptions The exceptions
+     * @return This codifier
+     */
     public Codifier exceptions(final Type... exceptions) {
         for (Type type : exceptions) this.exception(type);
         return this;
     }
 
+    /**
+     * Set the body of the method.
+     *
+     * @param body The body
+     * @return This codifier
+     */
     public Codifier body(final String body) {
         this.body = body;
         return this;
     }
 
+    /**
+     * @return The generated method header
+     */
     public String build() {
         StringBuilder out = new StringBuilder();
         if (!this.access.isEmpty()) out.append(this.access).append(" ");

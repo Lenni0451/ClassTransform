@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A target for field access instructions.<br>
+ * e.g. {@code java/lang/System.out:Ljava/io/PrintStream;}
+ */
 public class FieldTarget implements IInjectionTarget {
 
     private final int nonStaticAccess;

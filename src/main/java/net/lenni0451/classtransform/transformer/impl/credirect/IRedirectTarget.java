@@ -9,10 +9,30 @@ import java.util.List;
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 import static net.lenni0451.classtransform.utils.Types.type;
 
+/**
+ * The interface for a redirect target transformer.
+ */
 public interface IRedirectTarget {
 
+    /**
+     * Redirect the given target nodes.
+     *
+     * @param targetClass       The transformed class
+     * @param targetMethod      The transformed method
+     * @param transformer       The transformer class
+     * @param transformerMethod The transformer method
+     * @param targetNodes       The instructions to redirect
+     */
     void inject(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final List<AbstractInsnNode> targetNodes);
 
+    /**
+     * Get the load and store opcodes for the given method invocation.
+     *
+     * @param owner        The owner of the method
+     * @param desc         The descriptor of the method
+     * @param freeVarIndex The index of the free variable
+     * @return The load and store opcodes
+     */
     default InsnList[] getLoadStoreOpcodes(final String owner, final String desc, int freeVarIndex) {
         InsnList storeOpcodes = new InsnList();
         InsnList loadOpcodes = new InsnList();

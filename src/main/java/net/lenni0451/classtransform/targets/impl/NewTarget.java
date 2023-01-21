@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A target for {@link Opcodes#NEW} instructions.<br>
+ * e.g. {@code java/lang/String}
+ */
 public class NewTarget implements IInjectionTarget {
 
     @Override

@@ -1,12 +1,15 @@
 package net.lenni0451.classtransform.transformer;
 
+/**
+ * A handler for all transformed classes after they are transformed.
+ */
 public interface IPostTransformer {
 
     /**
-     * Transform the target class after all ClassTransformers have been applied
+     * Handle the name and bytecode of all transformed classes.
      *
-     * @param className The name of the {@link Class}
-     * @param bytecode  The raw bytecode of the {@link Class}
+     * @param className The name of the class
+     * @param bytecode  The transformed bytecode of the class
      */
     void transform(final String className, final byte[] bytecode);
 

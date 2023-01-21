@@ -13,6 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * An abstract annotation handler which handles all annotations of the given type.<br>
+ * The handled transformer methods are removed from the transformer class afterwards.<br>
+ * The target methods of the transformer are automatically parsed.
+ *
+ * @param <T> The annotation type
+ */
 public abstract class RemovingTargetAnnotationHandler<T extends Annotation> extends RemovingAnnotationHandler<T> {
 
     private final Function<T, String[]> targetCombis;
@@ -34,16 +41,16 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
     }
 
     /**
-     * Transform the target class using the given transformer class
+     * Handle a transformer method of the transformer with the given annotation.
      *
-     * @param annotation         The annotation of the transformer
+     * @param annotation         The annotation of the transformer method
      * @param transformerManager The transformer manager
      * @param classProvider      The class provider
      * @param injectionTargets   The available injection targets
-     * @param transformedClass   The target {@link ClassNode}
-     * @param transformer        The transformer {@link ClassNode}
-     * @param transformerMethod  The current {@link MethodNode} of the transformer
-     * @param target             The currently transformed target {@link MethodNode}
+     * @param transformedClass   The target class node
+     * @param transformer        The transformer class node
+     * @param transformerMethod  The method node of the transformer
+     * @param target             The target method node
      */
     public abstract void transform(final T annotation, final TransformerManager transformerManager, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode target);
 

@@ -7,14 +7,42 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.*;
 
+/**
+ * The interface which is used to define a target for an injection.
+ */
 public interface IInjectionTarget {
 
+    /**
+     * Get all matching target instructions.
+     *
+     * @param injectionTargets All existing injection targets
+     * @param method           The method to search in
+     * @param target           The {@link CTarget} annotation
+     * @param slice            The {@link CSlice} annotation
+     * @return The matching instructions
+     */
     List<AbstractInsnNode> getTargets(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CTarget target, final CSlice slice);
 
+    /**
+     * Get the shift for this target.<br>
+     * By default, it is defined in the {@link CTarget} annotation.
+     *
+     * @param target The {@link CTarget} annotation
+     * @return The shift
+     */
     default CTarget.Shift getShift(final CTarget target) {
         return target.shift();
     }
 
+    /**
+     * Get all instructions in the given slice.
+     *
+     * @param injectionTargets All existing injection targets
+     * @param method           The method to search in
+     * @param slice            The {@link CSlice} annotation
+     * @return The instructions in the slice
+     * @throws IllegalArgumentException If the slice is invalid
+     */
     default List<AbstractInsnNode> getSlice(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CSlice slice) {
         if (slice == null) return Arrays.asList(method.instructions.toArray());
 

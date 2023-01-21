@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * A remapper that uses tiny v2 mappings for remapping.<br>
+ * The from and to namespaces are also required.
+ */
 public class TinyV2Mapper extends AMapper {
 
     private final File mappingFile;

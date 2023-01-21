@@ -1,7 +1,9 @@
 package net.lenni0451.classtransform.targets.impl;
 
+import net.lenni0451.classtransform.InjectionCallback;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
+import net.lenni0451.classtransform.annotations.injection.CInject;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -11,6 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A target for {@link Opcodes#ATHROW instructions.<br>
+ * When using {@link CInject} the original exception is accessible using the {@link InjectionCallback}.
+ */
 public class ThrowTarget implements IInjectionTarget {
 
     @Override

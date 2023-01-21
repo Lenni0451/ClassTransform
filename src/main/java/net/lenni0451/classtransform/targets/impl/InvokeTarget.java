@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A target for method invocation instructions.<br>
+ * e.g. {@code java/lang/System.currentTimeMillis()J}
+ */
 public class InvokeTarget implements IInjectionTarget {
 
     @Override
