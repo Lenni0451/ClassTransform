@@ -100,18 +100,11 @@ public class ClassTree {
      * @param classProvider The class provider to get the bytecode from
      * @return A set of all super classes and their super classes including interfaces
      */
-    public Set<ClassTree> getParsedSuperClasses(final IClassProvider classProvider) {
+    public Set<ClassTree> getParsedSuperClasses(final IClassProvider classProvider, final boolean includeSelf) {
         Set<ClassTree> out = new HashSet<>();
+        if (includeSelf) out.add(this);
         for (String superClass : this.superClasses) out.add(ClassTree.getTreePart(classProvider, superClass));
         return out;
-    }
-
-    //TODO: Isn't this the same as getParsedSuperClasses?
-    public Set<ClassTree> walkSuperClasses(final Set<ClassTree> walkedSuperClasses, final IClassProvider classProvider, final boolean includeSelf) {
-        if (walkedSuperClasses.contains(this)) return walkedSuperClasses;
-        if (includeSelf) walkedSuperClasses.add(this);
-        for (ClassTree superClass : getParsedSuperClasses(classProvider)) superClass.walkSuperClasses(walkedSuperClasses, classProvider, true);
-        return walkedSuperClasses;
     }
 
     /**

@@ -9,7 +9,10 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
@@ -40,14 +43,14 @@ public class SuperMappingFiller {
                 List<Type> classesList = (List<Type>) value;
                 for (Type type : classesList) {
                     ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(type.getInternalName()));
-                    Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
                 for (String className : classesList) {
                     ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(slash(className)));
-                    Set<ClassNode> superClasses = treePart.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }
             }
@@ -97,7 +100,7 @@ public class SuperMappingFiller {
             String obfClass = entry.getValue();
             try {
                 ClassTree treeNode = ClassTree.getTreePart(classProvider, obfClass);
-                Set<ClassNode> superClasses = treeNode.walkSuperClasses(new HashSet<>(), classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                Set<ClassNode> superClasses = treeNode.getParsedSuperClasses(classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
                 SuperMappingFiller.fillSuperMembers(treeNode.getNode(), superClasses, remapper);
             } catch (Throwable ignored) {
             }
