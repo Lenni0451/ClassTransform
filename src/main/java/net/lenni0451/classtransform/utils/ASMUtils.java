@@ -268,12 +268,15 @@ public class ASMUtils {
         if (!Modifier.isStatic(methodNode.access)) currentIndex = 1;
         for (Type arg : Type.getArgumentTypes(methodNode.desc)) currentIndex += arg.getSize();
         for (AbstractInsnNode instruction : methodNode.instructions) {
-            if (instruction.getOpcode() >= Opcodes.ISTORE && instruction.getOpcode() <= Opcodes.ASTORE || instruction.getOpcode() >= Opcodes.ILOAD && instruction.getOpcode() <= Opcodes.ALOAD) {
+            if ((instruction.getOpcode() >= Opcodes.ISTORE && instruction.getOpcode() <= Opcodes.ASTORE) || (instruction.getOpcode() >= Opcodes.ILOAD && instruction.getOpcode() <= Opcodes.ALOAD)) {
                 VarInsnNode varInsnNode = (VarInsnNode) instruction;
                 if (varInsnNode.var > currentIndex) currentIndex = varInsnNode.var;
+            } else if (instruction.getOpcode() == Opcodes.IINC) {
+                IincInsnNode iincInsnNode = (IincInsnNode) instruction;
+                if (iincInsnNode.var > currentIndex) currentIndex = iincInsnNode.var;
             }
         }
-        return currentIndex + 2;
+        return currentIndex + 2; //Add 2 just to be sure not to overwrite anything
     }
 
     /**
