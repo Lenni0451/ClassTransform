@@ -163,9 +163,8 @@ public class TransformerManager implements ClassFileTransformer {
      * If the class is specified directly an exception will be thrown if the class is missing the {@link CTransformer} annotation.
      *
      * @param transformer The name of transformer class to add
-     * @throws ClassNotFoundException If the transformer class could not be found
-     * @throws IllegalStateException  If the class is specified directly and is missing the {@link CTransformer} annotation
-     * @throws RuntimeException       If the class bytecode could not be parsed using ASM
+     * @throws IllegalStateException If the class is specified directly and is missing the {@link CTransformer} annotation
+     * @throws RuntimeException      If the class bytecode could not be parsed using ASM
      */
     public void addTransformer(final String transformer) {
         List<byte[]> classes = new ArrayList<>();
@@ -208,6 +207,7 @@ public class TransformerManager implements ClassFileTransformer {
      * The class must still be annotated with {@link CTransformer}.
      *
      * @param classNode The class node to add
+     * @return A set of all transformed classes
      * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation
      */
     public Set<String> addTransformer(final ClassNode classNode) {
@@ -220,6 +220,7 @@ public class TransformerManager implements ClassFileTransformer {
      *
      * @param classNode         The class node to add
      * @param requireAnnotation If an exception should be thrown if the class is missing the {@link CTransformer} annotation
+     * @return A set of all transformed classes
      * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation and {@code requireAnnotation} is {@code true}
      */
     public Set<String> addTransformer(final ClassNode classNode, final boolean requireAnnotation) {
@@ -271,7 +272,8 @@ public class TransformerManager implements ClassFileTransformer {
     /**
      * Add a custom annotation handler into the handler chain.
      *
-     * @param transformer The annotation handler to add
+     * @param transformer     The annotation handler to add
+     * @param handlerPosition The position where to add the handler
      */
     public void addCustomAnnotationHandler(final AnnotationHandler transformer, final HandlerPosition handlerPosition) {
         handlerPosition.add(this.annotationHandler, transformer);

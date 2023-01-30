@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A target for {@link Opcodes#ATHROW instructions.<br>
+ * A target for {@link Opcodes#ATHROW} instructions.<br>
  * When using {@link CInject} the original exception is accessible using the {@link InjectionCallback}.
  */
 public class ThrowTarget implements IInjectionTarget {

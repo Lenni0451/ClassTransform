@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * Override a method in a class.<br>
  * The transformer method must have the same parameters and return type as the overridden method.<br>
- * The access of the transformer method has to be higher or equal to the overridden method (private < package private < protected < public).<br>
+ * The access of the transformer method has to be higher or equal to the overridden method (private {@literal <} package private {@literal <} protected {@literal <} public).<br>
  * If the overridden method is static, the transformer method has to be static as well.
  */
 @Retention(RetentionPolicy.CLASS)

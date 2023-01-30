@@ -164,7 +164,7 @@ public class ASMUtils {
 
     /**
      * Check if the given access is lower than another.<br>
-     * private < package private < protected < public
+     * private {@literal <} package private {@literal <} protected {@literal <} public
      *
      * @param toCheck      The access to check
      * @param checkAgainst The access to check against

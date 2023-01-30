@@ -98,6 +98,7 @@ public class ClassTree {
      * This includes the super class and all interfaces.
      *
      * @param classProvider The class provider to get the bytecode from
+     * @param includeSelf   Add the current class to the set
      * @return A set of all super classes and their super classes including interfaces
      */
     public Set<ClassTree> getParsedSuperClasses(final IClassProvider classProvider, final boolean includeSelf) {
