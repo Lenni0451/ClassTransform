@@ -44,7 +44,7 @@ If you just want the latest jar file you can download it from my [Jenkins](https
 The ``TransformerManager`` is the main class which handles the entire injection process.\
 When creating a new ``TransformerManager`` you have to provide a ``IClassProvider`` and optionally a ``AMapper``.\
 The ``IClassProvider`` is used to get the bytecode of classes if needed for e.g. frame computation.\
-The ``AMapper`` can provide mappings which get automatically applied to the transformers to allow injection in obfuscated code.\
+The ``AMapper`` can provide mappings which get automatically applied to the transformers to allow injection in obfuscated code.
 
 ### Transformer types
 There are different types of transformers available:
@@ -246,6 +246,7 @@ Those mappings can be loaded from a file or generated in code.
 | RawMapper              |
 | SrgMapper              |
 | TinyV2Mapper           |
+
 All AMapper implementations not only require the mappings file but also a MapperConfig.\
 Example:
 ````java
