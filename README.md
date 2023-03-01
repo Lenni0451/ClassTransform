@@ -246,6 +246,7 @@ Those mappings can be loaded from a file or generated in code.
 | RawMapper              |
 | SrgMapper              |
 | TinyV2Mapper           |
+
 All AMapper implementations not only require the mappings file but also a MapperConfig.\
 Example:
 ````java
