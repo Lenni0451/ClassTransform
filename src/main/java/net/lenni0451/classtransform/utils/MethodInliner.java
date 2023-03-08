@@ -55,12 +55,12 @@ public class MethodInliner {
         LabelNode returnLabel = new LabelNode();
         InsnList instructions = new InsnList();
         {
-            int thisOffset = Modifier.isStatic(inlinedMethod.access) ? 0 : 1;
-            for (int i = inlinedMethodArgs.length - 1; i >= 0; i--) { //Store method arguments in local variables
-                Type argType = inlinedMethodArgs[i];
-                instructions.add(new VarInsnNode(argType.getOpcode(Opcodes.ISTORE), freeVarSpace));
-                varMappings.put(i + thisOffset, freeVarSpace);
+            int offset = Modifier.isStatic(inlinedMethod.access) ? 0 : 1;
+            for (Type argType : inlinedMethodArgs) { //Store method arguments in local variables
+                instructions.insert(new VarInsnNode(argType.getOpcode(Opcodes.ISTORE), freeVarSpace));
+                varMappings.put(offset, freeVarSpace);
                 freeVarSpace += argType.getSize();
+                offset += argType.getSize();
             }
             if (!Modifier.isStatic(inlinedMethod.access)) {
                 instructions.add(new VarInsnNode(Opcodes.ASTORE, freeVarSpace));
