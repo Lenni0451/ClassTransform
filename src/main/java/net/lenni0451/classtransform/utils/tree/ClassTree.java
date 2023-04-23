@@ -36,7 +36,10 @@ public class ClassTree {
         if (this.tree.containsKey(className)) return this.tree.get(className);
 
         byte[] bytecode = classProvider.getClass(className);
-        if (this.transformerManager != null) bytecode = this.transformerManager.transform(className, bytecode, false);
+        if (this.transformerManager != null) {
+            byte[] transformed = this.transformerManager.transform(className, bytecode, false);
+            if (transformed != null) bytecode = transformed;
+        }
         ClassNode node = ASMUtils.fromBytes(bytecode);
         TreePart part = new TreePart(node);
         this.tree.put(className, part);

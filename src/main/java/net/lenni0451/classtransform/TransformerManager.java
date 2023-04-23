@@ -106,6 +106,27 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * @return The class tree.
+     */
+    public ClassTree getClassTree() {
+        return this.classTree;
+    }
+
+    /**
+     * @return The class provider.
+     */
+    public IClassProvider getClassProvider() {
+        return this.classProvider;
+    }
+
+    /**
+     * @return The mapper.
+     */
+    public AMapper getMapper() {
+        return this.mapper;
+    }
+
+    /**
      * Set the logger used for printing infos, warnings and errors.
      *
      * @param logger The logger implementation to use
@@ -317,7 +338,7 @@ public class TransformerManager implements ClassFileTransformer {
         ClassNode clazz = null;
 
         for (IBytecodeTransformer transformer : this.bytecodeTransformer) {
-            byte[] transformedBytecode = transformer.transform(name, bytecode);
+            byte[] transformedBytecode = transformer.transform(name, bytecode, calculateStackMapFrames);
             if (transformedBytecode != null) {
                 transformed = true;
                 bytecode = transformedBytecode;
@@ -327,7 +348,7 @@ public class TransformerManager implements ClassFileTransformer {
         List<IRawTransformer> rawTransformer = this.rawTransformer.get(name);
         if (rawTransformer != null) {
             clazz = ASMUtils.fromBytes(bytecode);
-            for (IRawTransformer transformer : rawTransformer) clazz = transformer.transformer(this, clazz);
+            for (IRawTransformer transformer : rawTransformer) clazz = transformer.transform(this, clazz);
         }
 
         List<ClassNode> transformer = this.transformer.get(name);

@@ -15,7 +15,6 @@ public interface IRawTransformer {
      * @param transformedClass   The target class node
      * @return The transformed class node or the same if nothing was changed
      */
-    //TODO: This should be named "transform" and not "transformer"
-    ClassNode transformer(final TransformerManager transformerManager, final ClassNode transformedClass);
+    ClassNode transform(final TransformerManager transformerManager, final ClassNode transformedClass);
 
 }
