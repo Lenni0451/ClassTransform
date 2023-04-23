@@ -18,7 +18,7 @@ class CUpgradeAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Downgrade class version")
     public void downgradeClassVersion() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CUpgradeAnnotationHandlerTest$SUpgradeTestTransformer");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Assertions.assertEquals(Opcodes.V1_8, this.staticCalculatorClass.version);
     }
 
@@ -26,7 +26,7 @@ class CUpgradeAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Upgrade class version")
     public void upgradeClassVersion() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CUpgradeAnnotationHandlerTest$SDowngradeTestTransformer");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Assertions.assertEquals(Opcodes.V17, this.staticCalculatorClass.version);
     }
 

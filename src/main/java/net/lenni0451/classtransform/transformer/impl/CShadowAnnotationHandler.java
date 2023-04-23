@@ -9,6 +9,7 @@ import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -24,21 +25,21 @@ import java.util.Map;
 public class CShadowAnnotationHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
         MapRemapper remapper = new MapRemapper();
-        this.checkFields(transformedClass, transformer, classProvider, remapper);
-        this.checkMethods(transformedClass, transformer, classProvider, remapper);
+        this.checkFields(transformedClass, transformer, classTree, classProvider, remapper);
+        this.checkMethods(transformedClass, transformer, classTree, classProvider, remapper);
 
         if (remapper.isEmpty()) return;
         ClassNode mappedNode = Remapper.remap(transformer, remapper);
         Remapper.merge(transformer, mappedNode);
     }
 
-    private void checkFields(final ClassNode target, final ClassNode transformer, final IClassProvider classProvider, final MapRemapper remapper) {
+    private void checkFields(final ClassNode target, final ClassNode transformer, final ClassTree classTree, final IClassProvider classProvider, final MapRemapper remapper) {
         Iterator<FieldNode> it = transformer.fields.iterator();
         while (it.hasNext()) {
             FieldNode field = it.next();
-            CShadow annotation = this.getAnnotation(CShadow.class, field, classProvider);
+            CShadow annotation = this.getAnnotation(CShadow.class, field, classTree, classProvider);
             if (annotation == null) continue;
             it.remove();
 
@@ -51,11 +52,11 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
         }
     }
 
-    private void checkMethods(final ClassNode target, final ClassNode transformer, final IClassProvider classProvider, final MapRemapper remapper) {
+    private void checkMethods(final ClassNode target, final ClassNode transformer, final ClassTree classTree, final IClassProvider classProvider, final MapRemapper remapper) {
         Iterator<MethodNode> it = transformer.methods.iterator();
         while (it.hasNext()) {
             MethodNode method = it.next();
-            CShadow annotation = this.getAnnotation(CShadow.class, method, classProvider);
+            CShadow annotation = this.getAnnotation(CShadow.class, method, classTree, classProvider);
             if (annotation == null) continue;
             it.remove();
 

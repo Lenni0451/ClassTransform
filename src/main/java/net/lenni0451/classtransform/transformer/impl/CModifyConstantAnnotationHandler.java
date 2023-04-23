@@ -11,6 +11,7 @@ import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -33,7 +34,7 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
     }
 
     @Override
-    public void transform(CModifyConstant annotation, TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CModifyConstant annotation, TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
         boolean hasNullValue = parsedAnnotation.wasSet("nullValue");
         boolean hasIntValue = parsedAnnotation.wasSet("intValue");

@@ -12,11 +12,13 @@ import static net.lenni0451.classtransform.utils.Types.IN_Object;
  */
 public class TreeClassWriter extends ClassWriter {
 
+    private final ClassTree classTree;
     private final IClassProvider classProvider;
 
-    public TreeClassWriter(final IClassProvider classProvider) {
+    public TreeClassWriter(final ClassTree classTree, final IClassProvider classProvider) {
         super(ClassWriter.COMPUTE_FRAMES);
 
+        this.classTree = classTree;
         this.classProvider = classProvider;
     }
 
@@ -24,9 +26,9 @@ public class TreeClassWriter extends ClassWriter {
     protected String getCommonSuperClass(String type1, String type2) {
         if (type1.equals(IN_Object) || type2.equals(IN_Object)) return IN_Object;
 
-        ClassTree class1 = ClassTree.getTreePart(this.classProvider, type1);
+        ClassTree.TreePart class1 = this.classTree.getTreePart(this.classProvider, type1);
         if (class1 == null) throw new TypeNotPresentException(type1, new NullPointerException());
-        ClassTree class2 = ClassTree.getTreePart(this.classProvider, type2);
+        ClassTree.TreePart class2 = this.classTree.getTreePart(this.classProvider, type2);
         if (class2 == null) throw new TypeNotPresentException(type2, new NullPointerException());
 
         if (class2.getSuperClasses().contains(class1.getName())) {

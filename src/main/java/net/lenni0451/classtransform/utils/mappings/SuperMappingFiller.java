@@ -28,9 +28,10 @@ public class SuperMappingFiller {
      *
      * @param transformer   The class node of the transformer
      * @param remapper      The remapper to use
+     * @param classTree     The class tree to use
      * @param classProvider The class provider to use
      */
-    public static void fillTransformerSuperMembers(final ClassNode transformer, final MapRemapper remapper, final IClassProvider classProvider) {
+    public static void fillTransformerSuperMembers(final ClassNode transformer, final MapRemapper remapper, final ClassTree classTree, final IClassProvider classProvider) {
         List<Object> annotation;
         if (transformer.invisibleAnnotations == null || (annotation = transformer.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
             throw new IllegalStateException("Transformer does not have CTransformer annotation");
@@ -42,15 +43,15 @@ public class SuperMappingFiller {
             if (key.equals("value")) {
                 List<Type> classesList = (List<Type>) value;
                 for (Type type : classesList) {
-                    ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(type.getInternalName()));
-                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                    ClassTree.TreePart treePart = classTree.getTreePart(classProvider, remapper.mapSafe(type.getInternalName()));
+                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
                 for (String className : classesList) {
-                    ClassTree treePart = ClassTree.getTreePart(classProvider, remapper.mapSafe(slash(className)));
-                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                    ClassTree.TreePart treePart = classTree.getTreePart(classProvider, remapper.mapSafe(slash(className)));
+                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
                     fillSuperMembers(treePart.getNode(), superClasses, remapper);
                 }
             }
@@ -92,15 +93,16 @@ public class SuperMappingFiller {
      * Missing mappings are added to the given remapper.
      *
      * @param remapper      The remapper to use
+     * @param classTree     The class tree to use
      * @param classProvider The class provider to use
      */
-    public static void fillAllSuperMembers(final MapRemapper remapper, final IClassProvider classProvider) {
+    public static void fillAllSuperMembers(final MapRemapper remapper, final ClassTree classTree, final IClassProvider classProvider) {
         for (Map.Entry<String, String> entry : new HashMap<>(remapper.getMappings()).entrySet()) {
             if (entry.getKey().contains(".")) continue;
             String obfClass = entry.getValue();
             try {
-                ClassTree treeNode = ClassTree.getTreePart(classProvider, obfClass);
-                Set<ClassNode> superClasses = treeNode.getParsedSuperClasses(classProvider, false).stream().map(ClassTree::getNode).collect(Collectors.toSet());
+                ClassTree.TreePart treeNode = classTree.getTreePart(classProvider, obfClass);
+                Set<ClassNode> superClasses = treeNode.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
                 SuperMappingFiller.fillSuperMembers(treeNode.getNode(), superClasses, remapper);
             } catch (Throwable ignored) {
             }

@@ -10,6 +10,7 @@ import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.mappings.SuperMappingFiller;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -69,16 +70,17 @@ public abstract class AMapper {
     /**
      * Remap the given transformer for the given target class.
      *
+     * @param classTree     The class tree
      * @param classProvider The class provider
      * @param logger        The logger
      * @param target        The target class node
      * @param transformer   The transformer class node
      * @return The remapped transformer class node
      */
-    public final ClassNode mapClass(final IClassProvider classProvider, final ILogger logger, final ClassNode target, final ClassNode transformer) {
+    public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ILogger logger, final ClassNode target, final ClassNode transformer) {
         if (this.config.fillSuperMappings) {
             try {
-                SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classProvider);
+                SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classTree, classProvider);
             } catch (Throwable t) {
                 if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
                     logger.warn("Unable to fill super mappings for class '%s'. Trying without", transformer.name, t);

@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.utils.annotations;
 
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -29,14 +30,15 @@ public class AnnotationParser<T extends Annotation> {
     /**
      * Create a new instance for the given annotation class.
      *
+     * @param <T>           The type of the annotation
      * @param type          The annotation class
+     * @param classTree     The class tree
      * @param classProvider The class provider to get the bytecode from
      * @param values        The raw values of the annotation
-     * @param <T>           The type of the annotation
      * @return The new instance
      */
-    public static <T extends Annotation> T parse(final Class<T> type, final IClassProvider classProvider, final Map<String, Object> values) {
-        return new AnnotationParser<>(type, classProvider).parse(values);
+    public static <T extends Annotation> T parse(final Class<T> type, final ClassTree classTree, final IClassProvider classProvider, final Map<String, Object> values) {
+        return new AnnotationParser<>(type, classTree, classProvider).parse(values);
     }
 
     /**
@@ -84,14 +86,16 @@ public class AnnotationParser<T extends Annotation> {
 
 
     private final Class<T> type;
+    private final ClassTree classTree;
     private final IClassProvider classProvider;
 
     private Map<String, Object> values;
     private List<String> initializedDefaultValues;
     private ClassNode node;
 
-    public AnnotationParser(final Class<T> type, final IClassProvider classProvider) {
+    public AnnotationParser(final Class<T> type, final ClassTree classTree, final IClassProvider classProvider) {
         this.type = type;
+        this.classTree = classTree;
         this.classProvider = classProvider;
     }
 
@@ -108,8 +112,8 @@ public class AnnotationParser<T extends Annotation> {
 
         try {
             return ClassDefiner.
-                    <T>defineAnonymousClass(ASMUtils.toBytes(this.node, this.classProvider))
-                    .newInstance(new Class[]{IClassProvider.class, Map.class}, new Object[]{this.classProvider, this.values});
+                    <T>defineAnonymousClass(ASMUtils.toBytes(this.node, this.classTree, this.classProvider))
+                    .newInstance(new Class[]{ClassTree.class, IClassProvider.class, Map.class}, new Object[]{this.classTree, this.classProvider, this.values});
         } catch (Throwable t) {
             throw new IllegalStateException("Failed to create instance of '" + this.type.getName() + "'", t);
         }
@@ -134,21 +138,26 @@ public class AnnotationParser<T extends Annotation> {
         this.node.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, ClassDefiner.generateClassName("AnnotationWrapper"), null, IN_Object, new String[]{internalName(this.type), internalName(IParsedAnnotation.class)});
 
         { //fields
+            this.node.visitField(Opcodes.ACC_PRIVATE, "classTree", typeDescriptor(ClassTree.class), null, null).visitEnd();
             this.node.visitField(Opcodes.ACC_PRIVATE, "classProvider", typeDescriptor(IClassProvider.class), null, null).visitEnd();
             this.node.visitField(Opcodes.ACC_PRIVATE, "values", typeDescriptor(Map.class), null, null).visitEnd();
         }
 
         { //<init>
-            MethodVisitor constructor = this.node.visitMethod(Opcodes.ACC_PUBLIC, MN_Init, methodDescriptor(void.class, IClassProvider.class, Map.class), null, null);
+            MethodVisitor constructor = this.node.visitMethod(Opcodes.ACC_PUBLIC, MN_Init, methodDescriptor(void.class, ClassTree.class, IClassProvider.class, Map.class), null, null);
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, IN_Object, MN_Init, MD_Void, false);
 
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitVarInsn(Opcodes.ALOAD, 1);
-            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "classProvider", typeDescriptor(IClassProvider.class));
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "classTree", typeDescriptor(ClassTree.class));
 
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitVarInsn(Opcodes.ALOAD, 2);
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "classProvider", typeDescriptor(IClassProvider.class));
+
+            constructor.visitVarInsn(Opcodes.ALOAD, 0);
+            constructor.visitVarInsn(Opcodes.ALOAD, 3);
             constructor.visitFieldInsn(Opcodes.PUTFIELD, this.node.name, "values", typeDescriptor(Map.class));
 
             constructor.visitInsn(Opcodes.RETURN);
@@ -302,6 +311,8 @@ public class AnnotationParser<T extends Annotation> {
 
         methodVisitor.visitLdcInsn(annotationType);
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "classTree", typeDescriptor(ClassTree.class));
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
         methodVisitor.visitFieldInsn(Opcodes.GETFIELD, this.node.name, "classProvider", typeDescriptor(IClassProvider.class));
         methodVisitor.visitTypeInsn(Opcodes.NEW, internalName(HashMap.class));
         methodVisitor.visitInsn(Opcodes.DUP);
@@ -337,7 +348,7 @@ public class AnnotationParser<T extends Annotation> {
                 methodVisitor.visitInsn(Opcodes.POP);
             }
         }
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(AnnotationParser.class), "parse", methodDescriptor(Annotation.class, Class.class, IClassProvider.class, Map.class), false);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, internalName(AnnotationParser.class), "parse", methodDescriptor(Annotation.class, Class.class, ClassTree.class, IClassProvider.class, Map.class), false);
         methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, internalName(annotationType));
     }
 

@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.InjectionInfo;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -28,72 +29,77 @@ public abstract class AnnotationHandler {
      * Handle all annotations in the transformer class.
      *
      * @param transformerManager The transformer manager
+     * @param classTree          The class tree
      * @param classProvider      The class provider
      * @param injectionTargets   The available injection targets
      * @param transformedClass   The target class node
      * @param transformer        The transformer class node
      */
-    public abstract void transform(final TransformerManager transformerManager, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer);
+    public abstract void transform(final TransformerManager transformerManager, final ClassTree classTree, final IClassProvider classProvider, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer);
 
     /**
      * Get a parsed annotation from a class node.
      *
+     * @param <T>             The annotation type
      * @param annotationClass The annotation class
      * @param classNode       The class node
+     * @param classTree       The class tree
      * @param classProvider   The class provider
-     * @param <T>             The annotation type
      * @return The parsed annotation or null if not found
      */
-    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final ClassNode classNode, final IClassProvider classProvider) {
-        T annotation = this.getAnnotation(annotationClass, classNode.visibleAnnotations, classProvider);
-        if (annotation == null) annotation = this.getAnnotation(annotationClass, classNode.invisibleAnnotations, classProvider);
+    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final ClassNode classNode, final ClassTree classTree, final IClassProvider classProvider) {
+        T annotation = this.getAnnotation(annotationClass, classNode.visibleAnnotations, classTree, classProvider);
+        if (annotation == null) annotation = this.getAnnotation(annotationClass, classNode.invisibleAnnotations, classTree, classProvider);
         return annotation;
     }
 
     /**
      * Get a parsed annotation from a field node.
      *
+     * @param <T>             The annotation type
      * @param annotationClass The annotation class
      * @param field           The field node
+     * @param classTree       The class tree
      * @param classProvider   The class provider
-     * @param <T>             The annotation type
      * @return The parsed annotation or null if not found
      */
-    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final FieldNode field, final IClassProvider classProvider) {
-        T annotation = this.getAnnotation(annotationClass, field.visibleAnnotations, classProvider);
-        if (annotation == null) annotation = this.getAnnotation(annotationClass, field.invisibleAnnotations, classProvider);
+    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final FieldNode field, final ClassTree classTree, final IClassProvider classProvider) {
+        T annotation = this.getAnnotation(annotationClass, field.visibleAnnotations, classTree, classProvider);
+        if (annotation == null) annotation = this.getAnnotation(annotationClass, field.invisibleAnnotations, classTree, classProvider);
         return annotation;
     }
 
     /**
      * Get a parsed annotation from a method node.
      *
+     * @param <T>             The annotation type
      * @param annotationClass The annotation class
      * @param method          The method node
+     * @param classTree       The class tree
      * @param classProvider   The class provider
-     * @param <T>             The annotation type
      * @return The parsed annotation or null if not found
      */
-    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final MethodNode method, final IClassProvider classProvider) {
-        T annotation = this.getAnnotation(annotationClass, method.visibleAnnotations, classProvider);
-        if (annotation == null) annotation = this.getAnnotation(annotationClass, method.invisibleAnnotations, classProvider);
+    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final MethodNode method, final ClassTree classTree, final IClassProvider classProvider) {
+        T annotation = this.getAnnotation(annotationClass, method.visibleAnnotations, classTree, classProvider);
+        if (annotation == null) annotation = this.getAnnotation(annotationClass, method.invisibleAnnotations, classTree, classProvider);
         return annotation;
     }
 
     /**
      * Get a parsed annotation from a list of annotation nodes.
      *
+     * @param <T>             The annotation type
      * @param annotationClass The annotation class
      * @param annotations     The annotation nodes
+     * @param classTree       The class tree
      * @param classProvider   The class provider
-     * @param <T>             The annotation type
      * @return The parsed annotation or null if not found
      */
-    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final List<AnnotationNode> annotations, final IClassProvider classProvider) {
+    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final List<AnnotationNode> annotations, final ClassTree classTree, final IClassProvider classProvider) {
         if (annotations != null) {
             for (AnnotationNode annotation : annotations) {
                 if (annotation.desc.equals(typeDescriptor(annotationClass))) {
-                    return AnnotationParser.parse(annotationClass, classProvider, AnnotationParser.listToMap(annotation.values));
+                    return AnnotationParser.parse(annotationClass, classTree, classProvider, AnnotationParser.listToMap(annotation.values));
                 }
             }
         }

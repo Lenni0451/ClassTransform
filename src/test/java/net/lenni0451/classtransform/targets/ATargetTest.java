@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.objectweb.asm.Opcodes;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 public abstract class ATargetTest {
 
+    protected final ClassTree classTree = new ClassTree();
     protected final IClassProvider classProvider = new BasicClassProvider();
     protected Map<String, IInjectionTarget> injectionTargets;
     protected MethodNode method;
@@ -32,7 +34,7 @@ public abstract class ATargetTest {
             throw new RuntimeException("Unable to get injection targets", t);
         }
         this.method = new MethodNode(0, "test", "()V", null, null);
-        this.emptySlice = AnnotationParser.parse(CSlice.class, this.classProvider, new HashMap<>());
+        this.emptySlice = AnnotationParser.parse(CSlice.class, this.classTree, this.classProvider, new HashMap<>());
 
         this.method.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, "Test", "static", "I"));
         this.method.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, "Test", "static", "I"));
@@ -64,7 +66,7 @@ public abstract class ATargetTest {
         map.put("target", target);
         map.put("shift", shift);
         map.put("ordinal", ordinal);
-        return AnnotationParser.parse(CTarget.class, this.classProvider, map);
+        return AnnotationParser.parse(CTarget.class, this.classTree, this.classProvider, map);
     }
 
 }

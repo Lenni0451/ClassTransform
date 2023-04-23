@@ -7,6 +7,7 @@ import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -23,7 +24,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
         this.mergeInitializers(transformedClass, transformer);
         this.mergeMethods(transformedClass, transformer);
         this.mergeFields(transformedClass, transformer);

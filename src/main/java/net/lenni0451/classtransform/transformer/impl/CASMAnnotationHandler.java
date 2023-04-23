@@ -10,6 +10,7 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.ClassDefiner;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
@@ -40,7 +41,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
     }
 
     @Override
-    public void transform(CASM annotation, TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CASM annotation, TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         if (!Modifier.isStatic(transformerMethod.access)) {
             throw new TransformerException(transformerMethod, transformer, "must be static")
                     .help(Codifier.of(transformerMethod).access(transformerMethod.access | Modifier.STATIC));
@@ -57,7 +58,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                         .help(Codifier.of(transformerMethod).param(null).param(type(ClassNode.class)));
             }
 
-            ClassDefiner<?> classDefiner = this.isolateMethod(classProvider, transformer, transformerMethod);
+            ClassDefiner<?> classDefiner = this.isolateMethod(transformer, transformerMethod);
             try {
                 Object instance = classDefiner.newInstance();
                 Method isolatedMethod = classDefiner.getClazz().getDeclaredMethod(transformerMethod.name, ClassNode.class);
@@ -72,7 +73,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                         .help(Codifier.of(transformerMethod).param(null).param(type(MethodNode.class)));
             }
 
-            ClassDefiner<?> classDefiner = this.isolateMethod(classProvider, transformer, transformerMethod);
+            ClassDefiner<?> classDefiner = this.isolateMethod(transformer, transformerMethod);
             for (String targetCombi : annotation.value()) {
                 List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
                 if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
@@ -95,7 +96,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
         return annotation.shift().equals(this.shift);
     }
 
-    private ClassDefiner<?> isolateMethod(final IClassProvider classProvider, final ClassNode transformer, final MethodNode transformerMethod) {
+    private ClassDefiner<?> isolateMethod(final ClassNode transformer, final MethodNode transformerMethod) {
         try {
             ClassNode classNode = new ClassNode();
             classNode.visit(transformer.version, Opcodes.ACC_PUBLIC, ClassDefiner.generateClassName("IsolatedASMTransformer"), null, "java/lang/Object", null);
@@ -150,7 +151,8 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                 }
             }
 
-            return ClassDefiner.defineAnonymousClass(ASMUtils.toBytes(classNode, classProvider));
+            //No need to calculate stack map frames because the compiler already did that for us
+            return ClassDefiner.defineAnonymousClass(ASMUtils.toStacklessBytes(classNode));
         } catch (Throwable t) {
             throw new IllegalStateException("Failed to isolate method '" + transformerMethod.name + "' of transformer '" + transformer.name + "'", t);
         }

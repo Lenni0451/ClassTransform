@@ -20,7 +20,7 @@ class CWrapCatchTransformerTest extends AnnotationHandlerTest {
     @DisplayName("Wrap static method")
     public void wrapStaticMethod() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CWrapCatchTransformerTest$WrapStaticTransformer");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
 
         double zeroDiv = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("divide", double.class, double.class).invoke(null, 10, 0));
@@ -34,7 +34,7 @@ class CWrapCatchTransformerTest extends AnnotationHandlerTest {
     @DisplayName("Wrap virtual method")
     public void wrapVirtualMethod() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CWrapCatchTransformerTest$WrapVirtualTransformer");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
 

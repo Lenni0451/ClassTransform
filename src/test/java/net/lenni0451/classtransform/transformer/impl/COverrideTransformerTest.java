@@ -21,7 +21,7 @@ class COverrideTransformerTest extends AnnotationHandlerTest {
     @DisplayName("Override static method")
     public void overrideStaticMethod() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.COverrideTransformerTest$StaticOverrideTest");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         double sPi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(null));
         assertEquals("SPI".hashCode(), sPi);
@@ -31,7 +31,7 @@ class COverrideTransformerTest extends AnnotationHandlerTest {
     @DisplayName("Override virtual method")
     public void overrideVirtualMethod() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.COverrideTransformerTest$VirtualOverrideTest");
-        this.transformer.transform(this.transformerManager, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
         double vPi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(instance));

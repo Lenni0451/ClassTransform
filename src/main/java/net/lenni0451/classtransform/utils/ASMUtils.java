@@ -1,8 +1,10 @@
 package net.lenni0451.classtransform.utils;
 
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import net.lenni0451.classtransform.utils.tree.TreeClassWriter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -38,11 +40,24 @@ public class ASMUtils {
      * Get the bytecode from a class node
      *
      * @param node          The class node
+     * @param classTree     The class tree used to get the super classes
      * @param classProvider The class provider used for stack frame calculation
      * @return The bytecode of the class
      */
-    public static byte[] toBytes(final ClassNode node, final IClassProvider classProvider) {
-        TreeClassWriter writer = new TreeClassWriter(classProvider);
+    public static byte[] toBytes(final ClassNode node, final ClassTree classTree, final IClassProvider classProvider) {
+        TreeClassWriter writer = new TreeClassWriter(classTree, classProvider);
+        node.accept(writer);
+        return writer.toByteArray();
+    }
+
+    /**
+     * Get the bytecode from a class node without calculating stack map frames
+     *
+     * @param node The class node
+     * @return The bytecode of the class
+     */
+    public static byte[] toStacklessBytes(final ClassNode node) {
+        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         node.accept(writer);
         return writer.toByteArray();
     }

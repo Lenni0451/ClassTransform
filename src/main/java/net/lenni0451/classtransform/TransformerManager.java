@@ -18,6 +18,7 @@ import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
 import net.lenni0451.classtransform.utils.log.DefaultLogger;
 import net.lenni0451.classtransform.utils.log.ILogger;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -38,6 +39,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
  */
 public class TransformerManager implements ClassFileTransformer {
 
+    private final ClassTree classTree = new ClassTree();
     private final IClassProvider classProvider;
     private final AMapper mapper;
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
@@ -298,6 +300,19 @@ public class TransformerManager implements ClassFileTransformer {
      * @return The modified bytecode of the class or null if not changed
      */
     public byte[] transform(final String name, byte[] bytecode) {
+        return this.transform(name, bytecode, true);
+    }
+
+    /**
+     * Transform the bytecode of the given class.<br>
+     * The name must be in the class format (e.g. {@code java.lang.String}).
+     *
+     * @param name                    The name of the class
+     * @param bytecode                The bytecode of the class
+     * @param calculateStackMapFrames If the stack map frames should be calculated
+     * @return The modified bytecode of the class or null if not changed
+     */
+    public byte[] transform(final String name, byte[] bytecode, final boolean calculateStackMapFrames) {
         boolean transformed = false;
         ClassNode clazz = null;
 
@@ -321,7 +336,7 @@ public class TransformerManager implements ClassFileTransformer {
             for (ClassNode classNode : transformer) {
                 try {
                     classNode = ASMUtils.cloneClass(classNode);
-                    classNode = this.mapper.mapClass(this.classProvider, this.logger, clazz, classNode);
+                    classNode = this.mapper.mapClass(classTree, this.classProvider, this.logger, clazz, classNode);
                 } catch (Throwable t) {
                     this.logger.error("Failed to remap and fill annotation details of transformer '%s'", classNode.name, t);
                     if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
@@ -330,7 +345,7 @@ public class TransformerManager implements ClassFileTransformer {
 
                 for (AnnotationHandler annotationHandler : this.annotationHandler) {
                     try {
-                        annotationHandler.transform(this, this.classProvider, this.injectionTargets, clazz, classNode);
+                        annotationHandler.transform(this, classTree, this.classProvider, this.injectionTargets, clazz, classNode);
                     } catch (Throwable t) {
                         this.logger.error("Transformer '%s' failed to transform class '%s'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
@@ -344,7 +359,9 @@ public class TransformerManager implements ClassFileTransformer {
             if (transformed) return bytecode;
             return null;
         }
-        byte[] transformedBytecode = ASMUtils.toBytes(clazz, this.classProvider);
+        byte[] transformedBytecode;
+        if (calculateStackMapFrames) transformedBytecode = ASMUtils.toBytes(clazz, this.classTree, this.classProvider);
+        else transformedBytecode = ASMUtils.toStacklessBytes(clazz);
         for (IPostTransformer postTransformer : this.postTransformer) postTransformer.transform(name, transformedBytecode);
         return transformedBytecode;
     }
@@ -374,7 +391,7 @@ public class TransformerManager implements ClassFileTransformer {
     public void hookInstrumentation(final Instrumentation instrumentation, final boolean hotswappable) {
         this.instrumentation = instrumentation;
         if (hotswappable) {
-            this.hotswapClassLoader = new HotswapClassLoader(this.classProvider, this.logger);
+            this.hotswapClassLoader = new HotswapClassLoader(this.logger);
             for (String transformerClass : this.registeredTransformer) this.hotswapClassLoader.defineHotswapClass(transformerClass);
         }
         instrumentation.addTransformer(this, instrumentation.isRetransformClassesSupported());

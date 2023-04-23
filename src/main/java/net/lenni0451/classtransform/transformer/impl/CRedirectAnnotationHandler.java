@@ -13,6 +13,7 @@ import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
 import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -42,7 +43,7 @@ public class CRedirectAnnotationHandler extends RemovingAnnotationHandler<CRedir
     }
 
     @Override
-    public void transform(CRedirect annotation, TransformerManager transformerManager, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CRedirect annotation, TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         IRedirectTarget iRedirectTarget = this.redirectTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         if (iInjectionTarget == null || iRedirectTarget == null) {

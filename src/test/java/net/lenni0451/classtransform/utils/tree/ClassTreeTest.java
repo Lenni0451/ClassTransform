@@ -13,7 +13,7 @@ class ClassTreeTest {
     @Test
     @DisplayName("Check super classes")
     public void checkSuperClasses() {
-        ClassTree tree = ClassTree.getTreePart(new BasicClassProvider(), "java.lang.reflect.Method");
+        ClassTree.TreePart tree = new ClassTree().getTreePart(new BasicClassProvider(), "java.lang.reflect.Method");
         Set<String> superClasses = tree.getSuperClasses();
         assertEquals(6, superClasses.size());
         assertTrue(superClasses.contains("java.lang.Object"));
