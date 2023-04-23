@@ -101,9 +101,9 @@ public class SuperMappingFiller {
             if (entry.getKey().contains(".")) continue;
             String obfClass = entry.getValue();
             try {
-                ClassTree.TreePart treeNode = classTree.getTreePart(classProvider, obfClass);
-                Set<ClassNode> superClasses = treeNode.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
-                SuperMappingFiller.fillSuperMembers(treeNode.getNode(), superClasses, remapper);
+                ClassTree.TreePart treePart = classTree.getTreePart(classProvider, obfClass);
+                Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
+                SuperMappingFiller.fillSuperMembers(treePart.getNode(), superClasses, remapper);
             } catch (Throwable ignored) {
             }
         }

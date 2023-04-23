@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.tree;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -12,7 +13,16 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
  */
 public class ClassTree {
 
-    private final Map<String, TreePart> TREE = new HashMap<>();
+    private final Map<String, TreePart> tree = new HashMap<>();
+    private final TransformerManager transformerManager;
+
+    public ClassTree() {
+        this(null);
+    }
+
+    public ClassTree(final TransformerManager transformerManager) {
+        this.transformerManager = transformerManager;
+    }
 
     /**
      * Get a tree part from a class by name.
@@ -23,23 +33,24 @@ public class ClassTree {
      */
     public TreePart getTreePart(final IClassProvider classProvider, String className) {
         className = dot(className);
-        if (TREE.containsKey(className)) return TREE.get(className);
+        if (this.tree.containsKey(className)) return this.tree.get(className);
 
         byte[] bytecode = classProvider.getClass(className);
+        if (this.transformerManager != null) bytecode = this.transformerManager.transform(className, bytecode, false);
         ClassNode node = ASMUtils.fromBytes(bytecode);
-        TreePart tree = new TreePart(node);
-        TREE.put(className, tree);
+        TreePart part = new TreePart(node);
+        this.tree.put(className, part);
 
         int oldSize;
         do {
-            oldSize = tree.superClasses.size();
-            for (String superClass : tree.superClasses.toArray(new String[0])) {
+            oldSize = part.superClasses.size();
+            for (String superClass : part.superClasses.toArray(new String[0])) {
                 TreePart superTree = getTreePart(classProvider, superClass);
-                if (superTree != null) tree.superClasses.addAll(superTree.superClasses);
+                if (superTree != null) part.superClasses.addAll(superTree.superClasses);
             }
-        } while (oldSize != tree.superClasses.size());
+        } while (oldSize != part.superClasses.size());
 
-        return tree;
+        return part;
     }
 
 
@@ -64,6 +75,8 @@ public class ClassTree {
         }
 
         /**
+         * <b>The bytecode of the class may not valid since it is missing stack map frames. Use at your own risk.</b>
+         *
          * @return The class node of this tree part
          */
         public ClassNode getNode() {

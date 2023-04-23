@@ -39,7 +39,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
  */
 public class TransformerManager implements ClassFileTransformer {
 
-    private final ClassTree classTree = new ClassTree();
+    private final ClassTree classTree = new ClassTree(this);
     private final IClassProvider classProvider;
     private final AMapper mapper;
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
