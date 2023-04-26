@@ -136,12 +136,26 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * @return The logger used for printing messages
+     */
+    public ILogger getLogger() {
+        return this.logger;
+    }
+
+    /**
      * Set the fail strategy used when a transformer fails.
      *
      * @param failStrategy The fail strategy to use
      */
     public void setFailStrategy(final FailStrategy failStrategy) {
         this.failStrategy = failStrategy;
+    }
+
+    /**
+     * @return The current fail strategy
+     */
+    public FailStrategy getFailStrategy() {
+        return this.failStrategy;
     }
 
     /**
