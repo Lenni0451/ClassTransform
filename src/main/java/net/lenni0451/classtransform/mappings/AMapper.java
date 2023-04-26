@@ -6,7 +6,6 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
-import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.mappings.SuperMappingFiller;
@@ -17,6 +16,8 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import static net.lenni0451.classtransform.TransformerManager.LOGGER_NAME;
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 import static net.lenni0451.classtransform.utils.Types.type;
@@ -34,6 +36,8 @@ import static net.lenni0451.classtransform.utils.Types.type;
  * The abstract remapper class responsible for remapping class transform annotations.
  */
 public abstract class AMapper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LOGGER_NAME);
 
     private final MapperConfig config;
     protected final MapRemapper remapper;
@@ -72,18 +76,17 @@ public abstract class AMapper {
      *
      * @param classTree     The class tree
      * @param classProvider The class provider
-     * @param logger        The logger
      * @param target        The target class node
      * @param transformer   The transformer class node
      * @return The remapped transformer class node
      */
-    public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ILogger logger, final ClassNode target, final ClassNode transformer) {
+    public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
         if (this.config.fillSuperMappings) {
             try {
                 SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classTree, classProvider);
             } catch (Throwable t) {
                 if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
-                    logger.warn("Unable to fill super mappings for class '%s'. Trying without", transformer.name, t);
+                    LOGGER.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
                 } else if (FailStrategy.CANCEL.equals(this.config.superMappingsFailStrategy)) {
                     throw new RuntimeException("Unable to fill super mappings for class '" + transformer.name + "'", t);
                 } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {

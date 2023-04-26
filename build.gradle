@@ -99,7 +99,9 @@ dependencies {
     api "org.ow2.asm:asm-commons:9.4"
     api "org.ow2.asm:asm-tree:9.4"
     api "org.ow2.asm:asm-analysis:9.4"
+    api "org.slf4j:slf4j-api:2.0.7"
 
+    testImplementation "org.slf4j:slf4j-simple:2.0.7"
     testImplementation platform("org.junit:junit-bom:5.9.0")
     testImplementation "org.junit.jupiter:junit-jupiter"
 }
