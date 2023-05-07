@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.annotations;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
@@ -26,6 +27,19 @@ import static net.lenni0451.classtransform.utils.Types.*;
  * @param <T> The type of the annotation
  */
 public class AnnotationParser<T extends Annotation> {
+
+    /**
+     * Create a new instance for the given annotation class.
+     *
+     * @param <T>                The type of the annotation
+     * @param type               The annotation class
+     * @param transformerManager The transformer manager to get the class tree and class provider from
+     * @param values             The raw values of the annotation
+     * @return The new instance
+     */
+    public static <T extends Annotation> T parse(final Class<T> type, final TransformerManager transformerManager, final Map<String, Object> values) {
+        return new AnnotationParser<>(type, transformerManager.getClassTree(), transformerManager.getClassProvider()).parse(values);
+    }
 
     /**
      * Create a new instance for the given annotation class.

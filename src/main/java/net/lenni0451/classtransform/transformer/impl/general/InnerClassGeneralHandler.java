@@ -6,8 +6,6 @@ import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
-import net.lenni0451.classtransform.utils.tree.ClassTree;
-import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -24,7 +22,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 public class InnerClassGeneralHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode injectedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode injectedClass, ClassNode transformer) {
         final ClassNode fInjectedClass = ASMUtils.cloneClass(injectedClass);
         final ClassNode fTransformer = ASMUtils.cloneClass(transformer);
         boolean hasInnerClasses = false;

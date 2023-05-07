@@ -5,8 +5,6 @@ import net.lenni0451.classtransform.annotations.CInline;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.MethodInliner;
-import net.lenni0451.classtransform.utils.tree.ClassTree;
-import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -22,7 +20,7 @@ import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 public class CInlineAnnotationHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
         List<MethodNode> methodsToInline = transformedClass.methods
                 .stream()
                 .filter(methodNode -> methodNode.invisibleAnnotations != null)

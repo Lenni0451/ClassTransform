@@ -10,8 +10,6 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.ClassDefiner;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
-import net.lenni0451.classtransform.utils.tree.ClassTree;
-import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -41,7 +39,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
     }
 
     @Override
-    public void transform(CASM annotation, TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CASM annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         if (!Modifier.isStatic(transformerMethod.access)) {
             throw new TransformerException(transformerMethod, transformer, "must be static")
                     .help(Codifier.of(transformerMethod).access(transformerMethod.access | Modifier.STATIC));

@@ -25,14 +25,14 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect invalid target")
     public void redirectInvalidTarget() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SInvalidTestTransformer");
-        assertThrows(InvalidTargetException.class, () -> this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer));
+        assertThrows(InvalidTargetException.class, () -> this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer));
     }
 
     @Test
     @DisplayName("Redirect static invoke")
     public void redirectStaticInvoke() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SInvokeTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null));
         assertEquals(rint, 1234);
@@ -42,7 +42,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect virtual invoke")
     public void redirectVirtualInvoke() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$VInvokeTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
         int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(instance));
@@ -53,7 +53,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect static GETFIELD")
     public void redirectStaticGETFIELD() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SGetfieldTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         double pi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(null));
         assertEquals(pi, 1.23);
@@ -63,7 +63,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect virtual GETFIELD")
     public void redirectVirtualGETFIELD() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$VGetfieldTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
         double pi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(instance));
@@ -74,7 +74,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect static PUTFIELD")
     public void redirectStaticPUTFIELD() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SPutfieldTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         double pi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(null));
         assertEquals(pi, Math.PI);
@@ -87,7 +87,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect virtual PUTFIELD")
     public void redirectVirtualPUTFIELD() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$VPutfieldTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
         double pi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(instance));
@@ -101,7 +101,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect static NEW")
     public void redirectStaticNEW() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SNewTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null));
         assertEquals(rint, -1517918040);
@@ -111,7 +111,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect virtual NEW")
     public void redirectVirtualNEW() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$VNewTestTransformer");
-        this.transformer.transform(this.transformerManager, classTree, this.classProvider, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.injectionTargets, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
         int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(instance));

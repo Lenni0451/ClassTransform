@@ -8,8 +8,6 @@ import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHa
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
-import net.lenni0451.classtransform.utils.tree.ClassTree;
-import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -28,7 +26,7 @@ public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<
     }
 
     @Override
-    public void transform(COverride annotation, TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+    public void transform(COverride annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             boolean isStatic = Modifier.isStatic(target.access);
             throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")

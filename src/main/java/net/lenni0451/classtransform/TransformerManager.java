@@ -380,7 +380,7 @@ public class TransformerManager implements ClassFileTransformer {
 
                 for (AnnotationHandler annotationHandler : this.annotationHandler) {
                     try {
-                        annotationHandler.transform(this, classTree, this.classProvider, this.injectionTargets, clazz, classNode);
+                        annotationHandler.transform(this, this.injectionTargets, clazz, classNode);
                     } catch (Throwable t) {
                         LOGGER.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;

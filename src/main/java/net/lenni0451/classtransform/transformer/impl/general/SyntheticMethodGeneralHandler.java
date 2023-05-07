@@ -6,8 +6,6 @@ import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
-import net.lenni0451.classtransform.utils.tree.ClassTree;
-import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -43,7 +41,7 @@ public class SyntheticMethodGeneralHandler extends AnnotationHandler {
 
 
     @Override
-    public void transform(TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
         MapRemapper remapper = new MapRemapper();
         fillSyntheticMappings(transformer, transformedClass, remapper);
         ClassNode remapped = Remapper.remap(transformer, remapper);

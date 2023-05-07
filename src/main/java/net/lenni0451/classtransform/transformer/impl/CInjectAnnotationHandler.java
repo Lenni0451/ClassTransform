@@ -14,8 +14,6 @@ import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.Types;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
-import net.lenni0451.classtransform.utils.tree.ClassTree;
-import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -41,7 +39,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
     }
 
     @Override
-    public void transform(CInject annotation, TransformerManager transformerManager, ClassTree classTree, IClassProvider classProvider, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+    public void transform(CInject annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         boolean hasArgs;
         boolean hasCallback;
         List<CLocalVariable> localVariables = new ArrayList<>();
@@ -62,7 +60,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
                         if (paramAnnotations != null) {
                             for (AnnotationNode paramAnnotation : paramAnnotations) {
                                 if (paramAnnotation.desc.equals(typeDescriptor(CLocalVariable.class))) {
-                                    CLocalVariable localVariable = AnnotationParser.parse(CLocalVariable.class, classTree, classProvider, AnnotationParser.listToMap(paramAnnotation.values));
+                                    CLocalVariable localVariable = AnnotationParser.parse(CLocalVariable.class, transformerManager, AnnotationParser.listToMap(paramAnnotation.values));
                                     localVariables.add(localVariable);
                                 }
                             }
