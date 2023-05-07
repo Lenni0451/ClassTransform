@@ -108,24 +108,38 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * @return The class tree.
+     * @return The class tree
      */
     public ClassTree getClassTree() {
         return this.classTree;
     }
 
     /**
-     * @return The class provider.
+     * @return The class provider
      */
     public IClassProvider getClassProvider() {
         return this.classProvider;
     }
 
     /**
-     * @return The mapper.
+     * @return The mapper
      */
     public AMapper getMapper() {
         return this.mapper;
+    }
+
+    /**
+     * @return The names of all registered transformers
+     */
+    public Set<String> getRegisteredTransformer() {
+        return Collections.unmodifiableSet(this.registeredTransformer);
+    }
+
+    /**
+     * @return The names of all transformed classes
+     */
+    public Set<String> getTransformedClasses() {
+        return Collections.unmodifiableSet(this.transformedClasses);
     }
 
     /**
