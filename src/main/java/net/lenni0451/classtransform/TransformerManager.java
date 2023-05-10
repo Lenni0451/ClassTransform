@@ -47,6 +47,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final AMapper mapper;
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
+    private final TransformerDebugger debugger = new TransformerDebugger(this);
     private FailStrategy failStrategy = FailStrategy.EXIT;
     private Instrumentation instrumentation;
     private HotswapClassLoader hotswapClassLoader;
@@ -140,6 +141,13 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public Set<String> getTransformedClasses() {
         return Collections.unmodifiableSet(this.transformedClasses);
+    }
+
+    /**
+     * @return The debugger instance
+     */
+    public TransformerDebugger getDebugger() {
+        return this.debugger;
     }
 
     /**
