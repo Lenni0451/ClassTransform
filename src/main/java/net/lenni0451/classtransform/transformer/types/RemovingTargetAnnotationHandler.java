@@ -2,14 +2,12 @@ package net.lenni0451.classtransform.transformer.types;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -29,12 +27,12 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
     }
 
     @Override
-    public final void transform(T annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public final void transform(T annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         for (String targetCombi : this.targetCombis.apply(annotation)) {
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
             if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
             for (MethodNode target : targets) {
-                this.transform(annotation, transformerManager, injectionTargets, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod), target);
+                this.transform(annotation, transformerManager, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod), target);
             }
         }
     }
@@ -44,12 +42,11 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
      *
      * @param annotation         The annotation of the transformer method
      * @param transformerManager The transformer manager
-     * @param injectionTargets   The available injection targets
      * @param transformedClass   The target class node
      * @param transformer        The transformer class node
      * @param transformerMethod  The method node of the transformer
      * @param target             The target method node
      */
-    public abstract void transform(final T annotation, final TransformerManager transformerManager, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode target);
+    public abstract void transform(final T annotation, final TransformerManager transformerManager, final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode target);
 
 }

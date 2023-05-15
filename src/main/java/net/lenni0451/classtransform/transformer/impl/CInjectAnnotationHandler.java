@@ -39,7 +39,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
     }
 
     @Override
-    public void transform(CInject annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+    public void transform(CInject annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         boolean hasArgs;
         boolean hasCallback;
         List<CLocalVariable> localVariables = new ArrayList<>();
@@ -95,6 +95,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
 
         this.copyBackLocalVars(transformerMethod, localVariables);
         this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CInject");
+        Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         for (CTarget injectTarget : annotation.target()) {
             IInjectionTarget injectionTarget = injectionTargets.get(injectTarget.value().toUpperCase(Locale.ROOT));
             if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, injectTarget.target(), injectionTargets.keySet());

@@ -2,7 +2,6 @@ package net.lenni0451.classtransform.transformer.impl.general;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.injection.CASM;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
@@ -22,7 +21,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer) {
         this.mergeInitializers(transformedClass, transformer);
         this.mergeMethods(transformedClass, transformer);
         this.mergeFields(transformedClass, transformer);

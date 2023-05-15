@@ -4,7 +4,6 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -22,7 +21,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
@@ -39,7 +37,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
     }
 
     @Override
-    public void transform(CASM annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CASM annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         if (!Modifier.isStatic(transformerMethod.access)) {
             throw new TransformerException(transformerMethod, transformer, "must be static")
                     .help(Codifier.of(transformerMethod).access(transformerMethod.access | Modifier.STATIC));

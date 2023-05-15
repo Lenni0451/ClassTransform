@@ -23,7 +23,7 @@ class MemberCopyGeneralHandlerTest extends AnnotationHandlerTest {
     public void copyStaticField() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyGeneralHandlerTest$StaticMemberCopyTest");
         this.removeShadows(transformer);
-        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         double sPi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(null));
         assertEquals(Math.E, sPi);
@@ -34,7 +34,7 @@ class MemberCopyGeneralHandlerTest extends AnnotationHandlerTest {
     public void copyVirtualField() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.MemberCopyGeneralHandlerTest$VirtualMemberCopyTest");
         this.removeShadows(transformer);
-        this.transformer.transform(this.transformerManager, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.virtualCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.virtualCalculatorClass);
         Object instance = assertDoesNotThrow(() -> clazz.getDeclaredConstructor().newInstance());
         double vPi = assertDoesNotThrow(() -> (double) clazz.getDeclaredMethod("getPi").invoke(instance));
@@ -43,8 +43,8 @@ class MemberCopyGeneralHandlerTest extends AnnotationHandlerTest {
 
     private void removeShadows(final ClassNode transformer) {
         CShadowAnnotationHandler shadowTransformer = new CShadowAnnotationHandler();
-        shadowTransformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
-        shadowTransformer.transform(this.transformerManager, this.injectionTargets, this.virtualCalculatorClass, transformer);
+        shadowTransformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        shadowTransformer.transform(this.transformerManager, this.virtualCalculatorClass, transformer);
     }
 
 

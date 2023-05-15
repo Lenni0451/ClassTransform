@@ -24,7 +24,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Method isolation")
     public void methodIsolation() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$IsolationTestTransformer");
-        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
         assertEquals(0, this.staticCalculatorClass.fields.size());
     }
 
@@ -32,7 +32,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Modify method node")
     public void modifyMethodNode() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$ModifyMethodNodeTestTransformer");
-        this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer);
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
         MethodNode method = ASMUtils.getMethod(this.staticCalculatorClass, "add", "(II)I");
         assertNotNull(method);
         assertEquals(2, method.instructions.size());
@@ -48,7 +48,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Throw if using invalid operations")
     public void throwIfUsingInvalidOperations(final String transformerName) {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$" + transformerName);
-        assertThrows(IllegalStateException.class, () -> this.transformer.transform(this.transformerManager, this.injectionTargets, this.staticCalculatorClass, transformer));
+        assertThrows(IllegalStateException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
     }
 
 

@@ -3,7 +3,6 @@ package net.lenni0451.classtransform.transformer;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.VCalculator;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -15,9 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AnnotationHandlerTest {
 
@@ -25,19 +22,11 @@ public abstract class AnnotationHandlerTest {
     protected ClassTree classTree = new ClassTree();
     protected IClassProvider classProvider = new BasicClassProvider();
     protected TransformerManager transformerManager = new TransformerManager(this.classProvider);
-    protected Map<String, IInjectionTarget> injectionTargets;
     protected ClassNode staticCalculatorClass;
     protected ClassNode virtualCalculatorClass;
 
     @BeforeEach
     public void setUp() {
-        try {
-            Field f = TransformerManager.class.getDeclaredField("injectionTargets");
-            f.setAccessible(true);
-            this.injectionTargets = (Map<String, IInjectionTarget>) f.get(this.transformerManager);
-        } catch (Throwable t) {
-            throw new RuntimeException("Unable to get injection targets", t);
-        }
         this.staticCalculatorClass = ASMUtils.fromBytes(this.classProvider.getClass(SCalculator.class.getName()));
         this.virtualCalculatorClass = ASMUtils.fromBytes(this.classProvider.getClass(VCalculator.class.getName()));
     }

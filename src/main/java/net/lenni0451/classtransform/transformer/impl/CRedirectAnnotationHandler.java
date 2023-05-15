@@ -41,7 +41,8 @@ public class CRedirectAnnotationHandler extends RemovingAnnotationHandler<CRedir
     }
 
     @Override
-    public void transform(CRedirect annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CRedirect annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+        Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         IRedirectTarget iRedirectTarget = this.redirectTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         if (iInjectionTarget == null || iRedirectTarget == null) {

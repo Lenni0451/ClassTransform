@@ -29,7 +29,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
     }
 
     @Override
-    public void transform(CWrapCatch annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+    public void transform(CWrapCatch annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             boolean isStatic = Modifier.isStatic(target.access);
             throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
@@ -67,6 +67,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
 
             target.tryCatchBlocks.add(new TryCatchBlockNode(start, end_handler, end_handler, exceptionType.getInternalName()));
         } else {
+            Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
             List<AbstractInsnNode> targetInstructions = injectionTargets.get("INVOKE").getTargets(injectionTargets, target, new MethodCTarget(annotation.target(), annotation.ordinal()), annotation.slice());
             boolean copied = false;
             for (AbstractInsnNode instruction : targetInstructions) {

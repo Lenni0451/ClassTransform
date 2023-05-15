@@ -2,7 +2,6 @@ package net.lenni0451.classtransform.transformer;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.InjectionInfo;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -14,7 +13,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
@@ -27,11 +25,10 @@ public abstract class AnnotationHandler {
      * Handle all annotations in the transformer class.
      *
      * @param transformerManager The transformer manager
-     * @param injectionTargets   The available injection targets
      * @param transformedClass   The target class node
      * @param transformer        The transformer class node
      */
-    public abstract void transform(final TransformerManager transformerManager, final Map<String, IInjectionTarget> injectionTargets, final ClassNode transformedClass, final ClassNode transformer);
+    public abstract void transform(final TransformerManager transformerManager, final ClassNode transformedClass, final ClassNode transformer);
 
     /**
      * Get a parsed annotation from a class node.

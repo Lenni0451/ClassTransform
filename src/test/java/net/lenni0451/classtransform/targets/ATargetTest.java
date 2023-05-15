@@ -12,7 +12,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,13 +25,7 @@ public abstract class ATargetTest {
 
     @BeforeEach
     public void setUp() {
-        try {
-            Field f = TransformerManager.class.getDeclaredField("injectionTargets");
-            f.setAccessible(true);
-            this.injectionTargets = (Map<String, IInjectionTarget>) f.get(new TransformerManager(this.classProvider));
-        } catch (Throwable t) {
-            throw new RuntimeException("Unable to get injection targets", t);
-        }
+        this.injectionTargets = new TransformerManager(this.classProvider).getInjectionTargets();
         this.method = new MethodNode(0, "test", "()V", null, null);
         this.emptySlice = AnnotationParser.parse(CSlice.class, this.classTree, this.classProvider, new HashMap<>());
 

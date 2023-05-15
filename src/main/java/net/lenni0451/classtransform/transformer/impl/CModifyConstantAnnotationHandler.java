@@ -32,7 +32,7 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
     }
 
     @Override
-    public void transform(CModifyConstant annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(CModifyConstant annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
         boolean hasNullValue = parsedAnnotation.wasSet("nullValue");
         boolean hasIntValue = parsedAnnotation.wasSet("intValue");
@@ -87,7 +87,7 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
 
                 this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyConstant");
                 List<AbstractInsnNode> toReplace = new ArrayList<>();
-                for (AbstractInsnNode instruction : this.getSlice(injectionTargets, target, annotation.slice())) {
+                for (AbstractInsnNode instruction : this.getSlice(transformerManager.getInjectionTargets(), target, annotation.slice())) {
                     if (hasNullValue) {
                         if (instruction.getOpcode() == Opcodes.ACONST_NULL && annotation.nullValue()) {
                             toReplace.add(instruction);

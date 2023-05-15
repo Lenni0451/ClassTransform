@@ -3,7 +3,6 @@ package net.lenni0451.classtransform.transformer.impl;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.injection.COverride;
 import net.lenni0451.classtransform.exceptions.TransformerException;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -12,7 +11,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Modifier;
-import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 
@@ -26,7 +24,7 @@ public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<
     }
 
     @Override
-    public void transform(COverride annotation, TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+    public void transform(COverride annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             boolean isStatic = Modifier.isStatic(target.access);
             throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")

@@ -4,7 +4,6 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.exceptions.FieldNotFoundException;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
@@ -15,7 +14,6 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The annotation handler for the {@link CShadow} annotation.
@@ -23,7 +21,7 @@ import java.util.Map;
 public class CShadowAnnotationHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer) {
         MapRemapper remapper = new MapRemapper();
         this.checkFields(transformerManager, transformedClass, transformer, remapper);
         this.checkMethods(transformerManager, transformedClass, transformer, remapper);

@@ -2,12 +2,9 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CUpgrade;
-import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
 import org.objectweb.asm.tree.ClassNode;
-
-import java.util.Map;
 
 /**
  * The annotation handler for the {@link CUpgrade} annotation.
@@ -15,7 +12,7 @@ import java.util.Map;
 public class CUpgradeAnnotationHandler extends AnnotationHandler {
 
     @Override
-    public void transform(TransformerManager transformerManager, Map<String, IInjectionTarget> injectionTargets, ClassNode transformedClass, ClassNode transformer) {
+    public void transform(TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer) {
         CUpgrade annotation = this.getAnnotation(CUpgrade.class, transformer, transformerManager);
         if (annotation == null) return;
 

@@ -144,6 +144,13 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * @return The injection targets
+     */
+    public Map<String, IInjectionTarget> getInjectionTargets() {
+        return Collections.unmodifiableMap(this.injectionTargets);
+    }
+
+    /**
      * @return The debugger instance
      */
     public TransformerDebugger getDebugger() {
@@ -388,7 +395,7 @@ public class TransformerManager implements ClassFileTransformer {
 
                 for (AnnotationHandler annotationHandler : this.annotationHandler) {
                     try {
-                        annotationHandler.transform(this, this.injectionTargets, clazz, classNode);
+                        annotationHandler.transform(this, clazz, classNode);
                     } catch (Throwable t) {
                         LOGGER.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
