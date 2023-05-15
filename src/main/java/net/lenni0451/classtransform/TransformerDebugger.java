@@ -26,7 +26,7 @@ public class TransformerDebugger {
      * @param classLoader The used class loader
      */
     public void loadTransformedClasses(final ClassLoader classLoader) {
-        for (String transformedClass : this.transformerManager.getTransformedClasses()) {
+        for (String transformedClass : this.transformerManager.getTransformedClasses().toArray(new String[0])) {
             try {
                 Class<?> clazz = classLoader.loadClass(transformedClass);
                 LOGGER.info("Loaded transformed class {}", clazz.getName());
