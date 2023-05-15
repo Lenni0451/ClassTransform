@@ -1,13 +1,10 @@
 package net.lenni0451.classtransform.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.lenni0451.classtransform.utils.log.Logger;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.util.HashMap;
 import java.util.Map;
-
-import static net.lenni0451.classtransform.TransformerManager.LOGGER_NAME;
 
 /**
  * Internal class loader required for transformer hotswapping.<br>
@@ -15,8 +12,6 @@ import static net.lenni0451.classtransform.TransformerManager.LOGGER_NAME;
  * This causes the JVM to pass the changed transformer bytecode into the instrumentation {@link ClassFileTransformer} which the reapplies the transformer to the unmodified class bytecode.
  */
 public class HotswapClassLoader extends ClassLoader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LOGGER_NAME);
 
     private final Map<String, byte[]> hotswapClasses;
 
@@ -49,7 +44,7 @@ public class HotswapClassLoader extends ClassLoader {
             Class<?> clazz = this.defineClass(name, classBytes, 0, classBytes.length);
             clazz.getDeclaredConstructor().newInstance(); //Initialize the class
         } catch (Throwable t) {
-            LOGGER.warn("Failed to define hotswap class '{}'. Hotswapping will not work for this transformer", name, t);
+            Logger.warn("Failed to define hotswap class '{}'. Hotswapping will not work for this transformer", name, t);
         }
     }
 

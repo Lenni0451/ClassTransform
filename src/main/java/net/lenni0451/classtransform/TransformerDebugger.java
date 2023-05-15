@@ -1,11 +1,8 @@
 package net.lenni0451.classtransform;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.lenni0451.classtransform.utils.log.Logger;
 
 public class TransformerDebugger {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformerManager.LOGGER_NAME);
 
     private final TransformerManager transformerManager;
 
@@ -29,9 +26,9 @@ public class TransformerDebugger {
         for (String transformedClass : this.transformerManager.getTransformedClasses().toArray(new String[0])) {
             try {
                 Class<?> clazz = classLoader.loadClass(transformedClass);
-                LOGGER.info("Loaded transformed class {}", clazz.getName());
+                Logger.info("Loaded transformed class {}", clazz.getName());
             } catch (Throwable t) {
-                LOGGER.error("Failed to load transformed class {}", transformedClass);
+                Logger.error("Failed to load transformed class {}", transformedClass);
             }
         }
     }

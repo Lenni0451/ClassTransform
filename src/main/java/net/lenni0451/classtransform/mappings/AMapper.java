@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.log.Logger;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import net.lenni0451.classtransform.utils.mappings.SuperMappingFiller;
@@ -16,8 +17,6 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static net.lenni0451.classtransform.TransformerManager.LOGGER_NAME;
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 import static net.lenni0451.classtransform.utils.Types.type;
@@ -36,8 +34,6 @@ import static net.lenni0451.classtransform.utils.Types.type;
  * The abstract remapper class responsible for remapping class transform annotations.
  */
 public abstract class AMapper {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LOGGER_NAME);
 
     private final MapperConfig config;
     protected final MapRemapper remapper;
@@ -86,7 +82,7 @@ public abstract class AMapper {
                 SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classTree, classProvider);
             } catch (Throwable t) {
                 if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
-                    LOGGER.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
+                    Logger.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
                 } else if (FailStrategy.CANCEL.equals(this.config.superMappingsFailStrategy)) {
                     throw new RuntimeException("Unable to fill super mappings for class '" + transformer.name + "'", t);
                 } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
