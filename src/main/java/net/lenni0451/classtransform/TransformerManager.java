@@ -4,6 +4,8 @@ import net.lenni0451.classtransform.annotations.CInline;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
+import net.lenni0451.classtransform.debugger.TransformerTimings;
+import net.lenni0451.classtransform.debugger.timings.TimedGroup;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
@@ -359,57 +361,76 @@ public class TransformerManager implements ClassFileTransformer {
      * @return The modified bytecode of the class or null if not changed
      */
     public byte[] transform(final String name, byte[] bytecode, final boolean calculateStackMapFrames) {
-        boolean transformed = false;
-        ClassNode clazz = null;
+        TransformerTimings timings = new TransformerTimings();
+        try {
+            boolean transformed = false;
+            ClassNode clazz = null;
 
-        for (IBytecodeTransformer transformer : this.bytecodeTransformer) {
-            byte[] transformedBytecode = transformer.transform(name, bytecode, calculateStackMapFrames);
-            if (transformedBytecode != null) {
-                transformed = true;
-                bytecode = transformedBytecode;
-            }
-        }
-
-        List<IRawTransformer> rawTransformer = this.rawTransformer.get(name);
-        if (rawTransformer != null) {
-            clazz = ASMUtils.fromBytes(bytecode);
-            for (IRawTransformer transformer : rawTransformer) clazz = transformer.transform(this, clazz);
-        }
-
-        List<ClassNode> transformer = this.transformer.get(name);
-        if (transformer != null) {
-            if (clazz == null) clazz = ASMUtils.fromBytes(bytecode);
-            for (ClassNode classNode : transformer) {
-                try {
-                    classNode = ASMUtils.cloneClass(classNode);
-                    classNode = this.mapper.mapClass(classTree, this.classProvider, clazz, classNode);
-                } catch (Throwable t) {
-                    Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
-                    if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
-                    else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+            for (IBytecodeTransformer transformer : this.bytecodeTransformer) {
+                timings.start(TimedGroup.BYTECODE_TRANSFORMER, transformer.getClass().getName());
+                byte[] transformedBytecode = transformer.transform(name, bytecode, calculateStackMapFrames);
+                timings.end();
+                if (transformedBytecode != null) {
+                    transformed = true;
+                    bytecode = transformedBytecode;
                 }
+            }
 
-                for (AnnotationHandler annotationHandler : this.annotationHandler) {
+            List<IRawTransformer> rawTransformer = this.rawTransformer.get(name);
+            if (rawTransformer != null) {
+                clazz = ASMUtils.fromBytes(bytecode);
+                for (IRawTransformer transformer : rawTransformer) {
+                    timings.start(TimedGroup.RAW_TRANSFORMER, transformer.getClass().getName());
+                    clazz = transformer.transform(this, clazz);
+                    timings.end();
+                }
+            }
+
+            List<ClassNode> transformer = this.transformer.get(name);
+            if (transformer != null) {
+                if (clazz == null) clazz = ASMUtils.fromBytes(bytecode);
+                for (ClassNode classNode : transformer) {
+                    timings.start(TimedGroup.REMAPPER, classNode.name);
                     try {
-                        annotationHandler.transform(this, clazz, classNode);
+                        classNode = ASMUtils.cloneClass(classNode);
+                        classNode = this.mapper.mapClass(classTree, this.classProvider, clazz, classNode);
                     } catch (Throwable t) {
-                        Logger.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
+                        Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                         else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
                     }
+                    timings.end();
+
+                    for (AnnotationHandler annotationHandler : this.annotationHandler) {
+                        timings.start(TimedGroup.ANNOTATION_HANDLER, annotationHandler.getClass().getName());
+                        try {
+                            annotationHandler.transform(this, clazz, classNode);
+                        } catch (Throwable t) {
+                            Logger.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
+                            if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
+                            else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+                        }
+                        timings.end();
+                    }
                 }
             }
-        }
 
-        if (clazz == null) {
-            if (transformed) return bytecode;
-            return null;
+            if (clazz == null) {
+                if (transformed) return bytecode;
+                return null;
+            }
+            byte[] transformedBytecode;
+            if (calculateStackMapFrames) transformedBytecode = ASMUtils.toBytes(clazz, this.classTree, this.classProvider);
+            else transformedBytecode = ASMUtils.toStacklessBytes(clazz);
+            for (IPostTransformer postTransformer : this.postTransformer) {
+                timings.start(TimedGroup.POST_TRANSFORMER, postTransformer.getClass().getName());
+                postTransformer.transform(name, transformedBytecode);
+                timings.end();
+            }
+            return transformedBytecode;
+        } finally {
+            this.getDebugger().addTimings(name, timings.getTimings());
         }
-        byte[] transformedBytecode;
-        if (calculateStackMapFrames) transformedBytecode = ASMUtils.toBytes(clazz, this.classTree, this.classProvider);
-        else transformedBytecode = ASMUtils.toStacklessBytes(clazz);
-        for (IPostTransformer postTransformer : this.postTransformer) postTransformer.transform(name, transformedBytecode);
-        return transformedBytecode;
     }
 
     /**

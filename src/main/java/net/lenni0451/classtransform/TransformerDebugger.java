@@ -1,13 +1,20 @@
 package net.lenni0451.classtransform;
 
+import net.lenni0451.classtransform.debugger.timings.TimedTransformer;
 import net.lenni0451.classtransform.utils.log.Logger;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class TransformerDebugger {
 
     private final TransformerManager transformerManager;
+    private final Map<String, Map<TimedTransformer, Integer>> timings;
 
     TransformerDebugger(final TransformerManager transformerManager) {
         this.transformerManager = transformerManager;
+        this.timings = new LinkedHashMap<>();
     }
 
     /**
@@ -31,6 +38,18 @@ public class TransformerDebugger {
                 Logger.error("Failed to load transformed class {}", transformedClass);
             }
         }
+    }
+
+    /**
+     * @return The timings for all transformed classes
+     */
+    public Map<String, Map<TimedTransformer, Integer>> getTimings() {
+        return Collections.unmodifiableMap(this.timings);
+    }
+
+
+    void addTimings(final String className, final Map<TimedTransformer, Integer> timings) {
+        if (!timings.isEmpty()) this.timings.put(className, timings);
     }
 
 }
