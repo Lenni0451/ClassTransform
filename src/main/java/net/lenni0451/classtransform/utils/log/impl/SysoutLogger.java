@@ -44,7 +44,7 @@ public class SysoutLogger implements ILogger {
         int i = 0;
         while (matcher.find()) {
             if (i >= args.length) break;
-            matcher.appendReplacement(builder, args[i].toString());
+            matcher.appendReplacement(builder, args[i].toString().replace("$", "\\$"));
             i++;
         }
         matcher.appendTail(builder);
