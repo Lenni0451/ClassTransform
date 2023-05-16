@@ -1,32 +1,38 @@
 package net.lenni0451.classtransform.utils.log.impl;
 
 import net.lenni0451.classtransform.utils.log.ILogger;
+import net.lenni0451.classtransform.utils.log.Logger.MessageArgs;
 
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.lenni0451.classtransform.utils.log.Logger.resolve;
+
 public class SysoutLogger implements ILogger {
 
-    private static final Pattern ARG_PATTERN = Pattern.compile("\\{\\}");
+    private static final Pattern ARG_PATTERN = Pattern.compile("\\{}");
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Override
-    public void info(String message, Object[] args, Throwable exception) {
-        System.out.println(this.format("INFO ", message, args));
-        if (exception != null) exception.printStackTrace(System.out);
+    public void info(String message, Object... args) {
+        MessageArgs messageArgs = resolve(args);
+        System.out.println(this.format("INFO ", message, messageArgs.getArgs()));
+        if (messageArgs.hasException()) messageArgs.getException().printStackTrace(System.out);
     }
 
     @Override
-    public void warn(String message, Object[] args, Throwable exception) {
-        System.err.println(this.format("WARN ", message, args));
-        if (exception != null) exception.printStackTrace(System.err);
+    public void warn(String message, Object... args) {
+        MessageArgs messageArgs = resolve(args);
+        System.err.println(this.format("WARN ", message, messageArgs.getArgs()));
+        if (messageArgs.hasException()) messageArgs.getException().printStackTrace(System.err);
     }
 
     @Override
-    public void error(String message, Object[] args, Throwable exception) {
-        System.err.println(this.format("ERROR", message, args));
-        if (exception != null) exception.printStackTrace(System.err);
+    public void error(String message, Object... args) {
+        MessageArgs messageArgs = resolve(args);
+        System.err.println(this.format("ERROR", message, messageArgs.getArgs()));
+        if (messageArgs.hasException()) messageArgs.getException().printStackTrace(System.err);
     }
 
     protected String format(final String level, final String message, final Object[] args) {

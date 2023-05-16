@@ -10,22 +10,19 @@ public class Logger {
     public static ILogger LOGGER = new SysoutLogger();
 
     public static void info(final String message, final Object... args) {
-        MessageArgs messageArgs = resolve(args);
-        LOGGER.info(message, messageArgs.args, messageArgs.exception);
+        LOGGER.info(message, args);
     }
 
     public static void warn(final String message, final Object... args) {
-        MessageArgs messageArgs = resolve(args);
-        LOGGER.warn(message, messageArgs.args, messageArgs.exception);
+        LOGGER.warn(message, args);
     }
 
     public static void error(final String message, final Object... args) {
-        MessageArgs messageArgs = resolve(args);
-        LOGGER.error(message, messageArgs.args, messageArgs.exception);
+        LOGGER.error(message, args);
     }
 
 
-    private static MessageArgs resolve(final Object[] args) {
+    public static MessageArgs resolve(final Object[] args) {
         final MessageArgs messageArgs = new MessageArgs();
         if (args.length > 0 && args[args.length - 1] instanceof Throwable) {
             messageArgs.exception = (Throwable) args[args.length - 1];
@@ -37,9 +34,21 @@ public class Logger {
     }
 
 
-    private static class MessageArgs {
+    public static class MessageArgs {
         private Object[] args;
         private Throwable exception;
+
+        public Object[] getArgs() {
+            return this.args;
+        }
+
+        public Throwable getException() {
+            return this.exception;
+        }
+
+        public boolean hasException() {
+            return this.exception != null;
+        }
     }
 
 }
