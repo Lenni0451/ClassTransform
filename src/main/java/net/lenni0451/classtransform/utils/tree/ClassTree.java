@@ -33,27 +33,29 @@ public class ClassTree {
      */
     public TreePart getTreePart(final IClassProvider classProvider, String className) {
         className = dot(className);
-        if (this.tree.containsKey(className)) return this.tree.get(className);
+        synchronized (this.tree) {
+            if (this.tree.containsKey(className)) return this.tree.get(className);
 
-        byte[] bytecode = classProvider.getClass(className);
-        if (this.transformerManager != null) {
-            byte[] transformed = this.transformerManager.transform(className, bytecode, false);
-            if (transformed != null) bytecode = transformed;
-        }
-        ClassNode node = ASMUtils.fromBytes(bytecode);
-        TreePart part = new TreePart(node);
-        this.tree.put(className, part);
-
-        int oldSize;
-        do {
-            oldSize = part.superClasses.size();
-            for (String superClass : part.superClasses.toArray(new String[0])) {
-                TreePart superTree = getTreePart(classProvider, superClass);
-                if (superTree != null) part.superClasses.addAll(superTree.superClasses);
+            byte[] bytecode = classProvider.getClass(className);
+            if (this.transformerManager != null) {
+                byte[] transformed = this.transformerManager.transform(className, bytecode, false);
+                if (transformed != null) bytecode = transformed;
             }
-        } while (oldSize != part.superClasses.size());
+            ClassNode node = ASMUtils.fromBytes(bytecode);
+            TreePart part = new TreePart(node);
+            this.tree.put(className, part);
 
-        return part;
+            int oldSize;
+            do {
+                oldSize = part.superClasses.size();
+                for (String superClass : part.superClasses.toArray(new String[0])) {
+                    TreePart superTree = getTreePart(classProvider, superClass);
+                    if (superTree != null) part.superClasses.addAll(superTree.superClasses);
+                }
+            } while (oldSize != part.superClasses.size());
+
+            return part;
+        }
     }
 
 

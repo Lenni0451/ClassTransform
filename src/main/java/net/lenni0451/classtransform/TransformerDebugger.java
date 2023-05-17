@@ -4,8 +4,8 @@ import net.lenni0451.classtransform.debugger.timings.TimedTransformer;
 import net.lenni0451.classtransform.utils.log.Logger;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TransformerDebugger {
 
@@ -14,7 +14,7 @@ public class TransformerDebugger {
 
     TransformerDebugger(final TransformerManager transformerManager) {
         this.transformerManager = transformerManager;
-        this.timings = new LinkedHashMap<>();
+        this.timings = new ConcurrentHashMap<>();
     }
 
     /**
