@@ -7,11 +7,11 @@ import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.VCalculator;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.junit.jupiter.api.BeforeEach;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public abstract class AnnotationHandlerTest {
 
     protected ClassNode getTransformerClass(final String name) {
         ClassNode transformer = ASMUtils.fromBytes(this.classProvider.getClass(name));
-        List<Object> annotation = transformer.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null);
+        List<Object> annotation = AnnotationUtils.findInvisibleAnnotation(transformer, CTransformer.class).map(a -> a.values).orElse(null);
         if (annotation != null) {
             CTransformer cTransformer = AnnotationParser.parse(CTransformer.class, this.classTree, this.classProvider, AnnotationParser.listToMap(annotation));
             Class<?> targetClass = cTransformer.value()[0];

@@ -18,11 +18,13 @@ import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGene
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.log.Logger;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.lang.instrument.*;
@@ -275,11 +277,12 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public Set<String> addTransformer(final ClassNode classNode, final boolean requireAnnotation) {
         for (IAnnotationHandlerPreprocessor preprocessor : this.annotationHandlerPreprocessor) preprocessor.process(classNode);
-        List<Object> annotation;
-        if (classNode.invisibleAnnotations == null || (annotation = classNode.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
+        Optional<AnnotationNode> opt = AnnotationUtils.findInvisibleAnnotation(classNode, CTransformer.class);
+        if (!opt.isPresent()) {
             if (requireAnnotation) throw new IllegalStateException("Transformer does not have CTransformer annotation");
             else return Collections.emptySet();
         }
+        List<Object> annotation = opt.map(a -> a.values).get();
         Set<String> transformedClasses = new HashSet<>();
         for (int i = 0; i < annotation.size(); i += 2) {
             String key = (String) annotation.get(i);

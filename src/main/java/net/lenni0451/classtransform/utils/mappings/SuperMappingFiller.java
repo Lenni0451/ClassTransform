@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.utils.mappings;
 
 import net.lenni0451.classtransform.annotations.CTransformer;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import org.objectweb.asm.Type;
@@ -32,10 +33,7 @@ public class SuperMappingFiller {
      * @param classProvider The class provider to use
      */
     public static void fillTransformerSuperMembers(final ClassNode transformer, final MapRemapper remapper, final ClassTree classTree, final IClassProvider classProvider) {
-        List<Object> annotation;
-        if (transformer.invisibleAnnotations == null || (annotation = transformer.invisibleAnnotations.stream().filter(a -> a.desc.equals(Type.getDescriptor(CTransformer.class))).map(a -> a.values).findFirst().orElse(null)) == null) {
-            throw new IllegalStateException("Transformer does not have CTransformer annotation");
-        }
+        List<Object> annotation = AnnotationUtils.findInvisibleAnnotation(transformer, CTransformer.class).map(a -> a.values).orElseThrow(() -> new IllegalStateException("Transformer does not have CTransformer annotation"));
         for (int i = 0; i < annotation.size(); i += 2) {
             String key = (String) annotation.get(i);
             Object value = annotation.get(i + 1);
