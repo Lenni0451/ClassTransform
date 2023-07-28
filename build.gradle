@@ -100,7 +100,7 @@ dependencies {
     api "org.ow2.asm:asm-tree:9.5"
     api "org.ow2.asm:asm-analysis:9.5"
 
-    testImplementation platform("org.junit:junit-bom:5.9.3")
+    testImplementation platform("org.junit:junit-bom:5.10.0")
     testImplementation "org.junit.jupiter:junit-jupiter"
 }
 
