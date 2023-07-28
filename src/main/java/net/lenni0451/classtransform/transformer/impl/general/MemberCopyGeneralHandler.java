@@ -20,12 +20,21 @@ import static net.lenni0451.classtransform.utils.Types.*;
  */
 public class MemberCopyGeneralHandler extends AnnotationHandler {
 
+    private final boolean pre;
+
+    public MemberCopyGeneralHandler(final boolean pre) {
+        this.pre = pre;
+    }
+
     @Override
     public void transform(TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer) {
-        this.mergeInitializers(transformedClass, transformer);
-        this.mergeMethods(transformedClass, transformer);
-        this.mergeFields(transformedClass, transformer);
-        this.mergeInterfaces(transformedClass, transformer);
+        if (this.pre) {
+            this.mergeInterfaces(transformedClass, transformer);
+            this.mergeFields(transformedClass, transformer);
+            this.mergeInitializers(transformedClass, transformer);
+        } else {
+            this.mergeMethods(transformedClass, transformer);
+        }
     }
 
     private void mergeInitializers(ClassNode transformedClass, ClassNode transformer) {

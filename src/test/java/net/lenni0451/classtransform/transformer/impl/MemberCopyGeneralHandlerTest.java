@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MemberCopyGeneralHandlerTest extends AnnotationHandlerTest {
 
-    private final MemberCopyGeneralHandler transformer = new MemberCopyGeneralHandler();
+    private final MemberCopyGeneralHandler transformer = new MemberCopyGeneralHandler(true);
 
     @Test
     @DisplayName("Copy static field")

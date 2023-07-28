@@ -81,17 +81,18 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.TOP));
         this.annotationHandler.add(new InnerClassGeneralHandler()); //Make inner classes public to allow access from the transformed class
         this.annotationHandler.add(new SyntheticMethodGeneralHandler()); //Rename synthetic members to be unique
-        //HandlerPosition#PRE
         this.annotationHandler.add(new CShadowAnnotationHandler());
+        this.annotationHandler.add(new MemberCopyGeneralHandler(true)); //Copy all interfaces, fields and initializers to the transformed class
+        //HandlerPosition#PRE
         this.annotationHandler.add(new COverrideAnnotationHandler());
         this.annotationHandler.add(new CWrapCatchAnnotationHandler());
         this.annotationHandler.add(new CInjectAnnotationHandler());
         this.annotationHandler.add(new CRedirectAnnotationHandler());
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
         //HandlerPosition#POST
-        this.annotationHandler.add(new CInlineAnnotationHandler());
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
-        this.annotationHandler.add(new MemberCopyGeneralHandler()); //Copy all leftover members to the transformed class
+        this.annotationHandler.add(new MemberCopyGeneralHandler(false)); //Copy all leftover methods to the transformed class
+        this.annotationHandler.add(new CInlineAnnotationHandler());
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.BOTTOM));
 
         //Injection targets
