@@ -45,6 +45,7 @@ public class InjectionClassLoader extends URLClassLoader {
         this.protectedPackages.add("sun.");
         this.protectedPackages.add("com.sun.");
         this.protectedPackages.add("jdk.");
+        this.protectedPackages.add("net.lenni0451.classtransform.");
     }
 
     @Override
