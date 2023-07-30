@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
+
 /**
  * A target for {@link Opcodes#NEW} instructions.<br>
  * e.g. {@code java/lang/String}
@@ -25,11 +27,16 @@ public class NewTarget implements IInjectionTarget {
         for (AbstractInsnNode instruction : this.getSlice(injectionTargets, method, slice)) {
             if (instruction.getOpcode() != Opcodes.INVOKESPECIAL) continue;
             MethodInsnNode methodInsnNode = (MethodInsnNode) instruction;
-            if (!methodInsnNode.owner.equals(target.target())) continue;
+            if (!this.isTarget(methodInsnNode.owner, target.target().trim())) continue;
             if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
             i++;
         }
         return targets;
+    }
+
+    private boolean isTarget(final String owner, String target) {
+        if (target.startsWith("L") && target.endsWith(";")) target = target.substring(1, target.length() - 1);
+        return owner.equals(slash(target));
     }
 
 }
