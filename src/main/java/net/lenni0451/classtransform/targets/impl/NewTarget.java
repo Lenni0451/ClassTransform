@@ -27,7 +27,7 @@ public class NewTarget implements IInjectionTarget {
         for (AbstractInsnNode instruction : this.getSlice(injectionTargets, method, slice)) {
             if (instruction.getOpcode() != Opcodes.INVOKESPECIAL) continue;
             MethodInsnNode methodInsnNode = (MethodInsnNode) instruction;
-            if (!this.isTarget(methodInsnNode.owner, target.target().trim())) continue;
+            if (!this.isTarget(methodInsnNode.owner, target.target())) continue;
             if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
             i++;
         }
