@@ -79,6 +79,7 @@ public class InjectionClassLoader extends URLClassLoader {
 
         try {
             URLConnection connection = this.getClassConnection(name);
+            URL url = connection == null ? null : connection.getURL();
             byte[] classBytes = this.getClassBytes(name);
             CodeSigner[] codeSigner = null;
 
@@ -88,6 +89,7 @@ public class InjectionClassLoader extends URLClassLoader {
             if (connection instanceof JarURLConnection) {
                 JarURLConnection jarConnection = (JarURLConnection) connection;
                 JarFile jarFile = jarConnection.getJarFile();
+                url = jarConnection.getJarFileURL();
 
                 if (jarFile != null && jarFile.getManifest() != null) {
                     Manifest manifest = jarFile.getManifest();
@@ -118,7 +120,7 @@ public class InjectionClassLoader extends URLClassLoader {
             if (transformedClassBytes != null) classBytes = transformedClassBytes;
 
             CodeSource codeSource = null;
-            if (connection != null) codeSource = new CodeSource(connection.getURL(), codeSigner);
+            if (connection != null) codeSource = new CodeSource(url, codeSigner);
             return this.defineClass(name, classBytes, 0, classBytes.length, codeSource);
         } catch (IndexOutOfBoundsException | ClassNotFoundException | SecurityException | ClassFormatError e) {
             throw e;
