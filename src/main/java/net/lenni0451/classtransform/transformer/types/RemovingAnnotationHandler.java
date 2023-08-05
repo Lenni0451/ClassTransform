@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 /**
  * An abstract annotation handler which handles all annotations of the given type.<br>
- * The handled transformer methods are removed from the transformer class afterwards.
+ * The handled transformer methods are removed from the transformer class afterward.
  *
  * @param <T> The annotation type
  */

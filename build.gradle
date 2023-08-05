@@ -104,6 +104,7 @@ dependencies {
     api "org.ow2.asm:asm-tree:9.5"
     api "org.ow2.asm:asm-analysis:9.5"
 
+    testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
     testImplementation platform("org.junit:junit-bom:5.10.0")
     testImplementation "org.junit.jupiter:junit-jupiter"
 }

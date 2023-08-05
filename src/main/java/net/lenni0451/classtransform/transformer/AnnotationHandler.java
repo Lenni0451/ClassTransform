@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public abstract class AnnotationHandler {
      * @param transformerManager The transformer manager
      * @return The parsed annotation or null if not found
      */
-    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final List<AnnotationNode> annotations, final TransformerManager transformerManager) {
+    protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, @Nullable final List<AnnotationNode> annotations, final TransformerManager transformerManager) {
         if (annotations != null) {
             for (AnnotationNode annotation : annotations) {
                 if (annotation.desc.equals(typeDescriptor(annotationClass))) {

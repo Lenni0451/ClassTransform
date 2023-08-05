@@ -1,6 +1,6 @@
 # ClassTransform
 A lightweight, mixin like injection lib using ASM.\
-The usage is like Mixins. You can almost copy-paste mixins code and it works.\
+The usage is like Mixins. You can almost copy-paste mixins code, and it works.\
 Or you can use [MixinsTranslator](#copy-pasting-mixins) and copy-paste them almost 1:1.
 
 <!-- TOC -->

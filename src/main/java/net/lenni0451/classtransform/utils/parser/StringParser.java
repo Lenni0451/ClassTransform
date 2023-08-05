@@ -122,19 +122,19 @@ public class StringParser {
             case Opcodes.TABLESWITCH:
                 int min = reader.readInt();
                 int max = reader.readInt();
-                LabelNode dflt = labels.get(reader.readString());
+                LabelNode def = labels.get(reader.readString());
                 List<LabelNode> switchLabels = new ArrayList<>();
                 while (reader.canRead()) switchLabels.add(labels.get(reader.readString()));
-                return new TableSwitchInsnNode(min, max, dflt, switchLabels.toArray(new LabelNode[0]));
+                return new TableSwitchInsnNode(min, max, def, switchLabels.toArray(new LabelNode[0]));
 
             case Opcodes.LOOKUPSWITCH:
-                dflt = labels.get(reader.readString());
+                def = labels.get(reader.readString());
                 List<Integer> switchKeys = new ArrayList<>();
                 switchLabels = new ArrayList<>();
                 while (reader.canReadInt(false)) switchKeys.add(reader.readInt());
                 while (reader.canRead()) switchLabels.add(labels.get(reader.readString()));
                 if (switchKeys.size() != switchLabels.size()) throw new IllegalStateException("Switch keys and labels must be the same size");
-                return new LookupSwitchInsnNode(dflt, switchKeys.stream().mapToInt(i -> i).toArray(), switchLabels.toArray(new LabelNode[0]));
+                return new LookupSwitchInsnNode(def, switchKeys.stream().mapToInt(i -> i).toArray(), switchLabels.toArray(new LabelNode[0]));
 
             case Opcodes.GETSTATIC:
             case Opcodes.PUTSTATIC:

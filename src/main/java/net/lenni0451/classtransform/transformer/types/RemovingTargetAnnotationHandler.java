@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 /**
  * An abstract annotation handler which handles all annotations of the given type.<br>
- * The handled transformer methods are removed from the transformer class afterwards.<br>
+ * The handled transformer methods are removed from the transformer class afterward.<br>
  * The target methods of the transformer are automatically parsed.
  *
  * @param <T> The annotation type

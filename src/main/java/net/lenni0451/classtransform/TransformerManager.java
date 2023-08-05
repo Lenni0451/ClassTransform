@@ -29,7 +29,10 @@ import org.objectweb.asm.tree.ClassNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.lang.instrument.*;
+import java.lang.instrument.ClassDefinition;
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -286,7 +289,7 @@ public class TransformerManager implements ClassFileTransformer {
             if (requireAnnotation) throw new IllegalStateException("Transformer does not have CTransformer annotation");
             else return Collections.emptySet();
         }
-        List<Object> annotation = opt.map(a -> a.values).get();
+        List<Object> annotation = opt.map(a -> a.values).orElseGet(Collections::emptyList);
         Set<String> transformedClasses = new HashSet<>();
         for (int i = 0; i < annotation.size(); i += 2) {
             String key = (String) annotation.get(i);
@@ -510,7 +513,7 @@ public class TransformerManager implements ClassFileTransformer {
      */
     @Override
     @Nullable
-    public byte[] transform(@Nullable ClassLoader loader, @Nullable String className, @Nullable Class<?> classBeingRedefined, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+    public byte[] transform(@Nullable ClassLoader loader, @Nullable String className, @Nullable Class<?> classBeingRedefined, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
         if (className == null) return null;
         try {
             className = dot(className);

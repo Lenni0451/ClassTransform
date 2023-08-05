@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.analysis.BasicInterpreter;
 import org.objectweb.asm.tree.analysis.BasicValue;
 import org.objectweb.asm.tree.analysis.Frame;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -128,14 +129,14 @@ public class MethodInliner {
         method.exceptions = mergeExceptions(method.exceptions, inlinedMethod.exceptions);
     }
 
-    private static List<TryCatchBlockNode> mergeTryCatchBlockNodes(final List<TryCatchBlockNode> tryCatchBlockNodes, final List<TryCatchBlockNode> inlinedTryCatchBlockNodes) {
+    private static List<TryCatchBlockNode> mergeTryCatchBlockNodes(@Nullable final List<TryCatchBlockNode> tryCatchBlockNodes, @Nullable final List<TryCatchBlockNode> inlinedTryCatchBlockNodes) {
         List<TryCatchBlockNode> mergedTryCatchBlockNodes = new ArrayList<>();
         if (tryCatchBlockNodes != null) mergedTryCatchBlockNodes.addAll(tryCatchBlockNodes);
         if (inlinedTryCatchBlockNodes != null) mergedTryCatchBlockNodes.addAll(inlinedTryCatchBlockNodes);
         return mergedTryCatchBlockNodes;
     }
 
-    private static List<LocalVariableNode> mergeLocalVariableTable(final List<LocalVariableNode> localVariables, final List<LocalVariableNode> inlinedLocalVariables, final int freeVarSpace, final Map<Integer, Integer> varMappings) {
+    private static List<LocalVariableNode> mergeLocalVariableTable(@Nullable final List<LocalVariableNode> localVariables, @Nullable final List<LocalVariableNode> inlinedLocalVariables, final int freeVarSpace, final Map<Integer, Integer> varMappings) {
         List<LocalVariableNode> mergedLocalVariables = new ArrayList<>();
         if (localVariables != null) mergedLocalVariables.addAll(localVariables);
         if (inlinedLocalVariables != null) {
@@ -148,7 +149,7 @@ public class MethodInliner {
         return mergedLocalVariables;
     }
 
-    private static List<String> mergeExceptions(final List<String> exceptions, final List<String> inlinedExceptions) {
+    private static List<String> mergeExceptions(@Nullable final List<String> exceptions, @Nullable final List<String> inlinedExceptions) {
         Set<String> mergedExceptions = new HashSet<>();
         if (exceptions != null) mergedExceptions.addAll(exceptions);
         if (inlinedExceptions != null) mergedExceptions.addAll(inlinedExceptions);

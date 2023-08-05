@@ -43,8 +43,8 @@ public class Codifier {
     private String access = "";
     private String returnType = "";
     private String name = "";
-    private List<String> parameters = new ArrayList<>();
-    private List<String> exceptions = new ArrayList<>();
+    private final List<String> parameters = new ArrayList<>();
+    private final List<String> exceptions = new ArrayList<>();
     private String body = "";
 
     private Codifier() {

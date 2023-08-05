@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import static java.util.Objects.requireNonNull;
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 import static net.lenni0451.classtransform.utils.Types.type;
@@ -203,7 +204,7 @@ public abstract class AMapper {
 
             case MEMBER:
                 MemberDeclaration member = ASMUtils.splitMemberDeclaration(s);
-                String owner = this.remapper.mapType(member.getOwner());
+                String owner = this.remapper.mapType(requireNonNull(member, "Invalid member declaration '" + s + "'").getOwner());
                 String name;
                 String desc;
                 if (member.isFieldMapping()) {

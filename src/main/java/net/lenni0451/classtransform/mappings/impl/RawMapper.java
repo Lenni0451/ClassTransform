@@ -20,7 +20,7 @@ public class RawMapper extends AMapper {
     }
 
     @Override
-    protected void init() throws Throwable {
+    protected void init() {
         super.remapper.copy(this.remapper);
     }
 
