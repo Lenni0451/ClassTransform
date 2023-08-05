@@ -3,6 +3,8 @@ package net.lenni0451.classtransform.utils;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
+import java.util.Objects;
+
 /**
  * A wrapper for owner, name and descriptor of a method or field.
  */
@@ -37,6 +39,24 @@ public class MemberDeclaration {
      */
     public String getDesc() {
         return this.desc;
+    }
+
+    @Override
+    public String toString() {
+        return "L" + this.owner + ";" + this.name + (this.desc.startsWith("(") ? this.desc : (":" + this.desc));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MemberDeclaration that = (MemberDeclaration) o;
+        return Objects.equals(owner, that.owner) && Objects.equals(name, that.name) && Objects.equals(desc, that.desc);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(owner, name, desc);
     }
 
 

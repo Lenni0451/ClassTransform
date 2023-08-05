@@ -24,6 +24,9 @@ import static net.lenni0451.classtransform.utils.Types.*;
  */
 public class ASMUtils {
 
+    private static final String METHOD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
+    private static final String FIELD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+):(.+)$";
+
     /**
      * Get a class node from the raw bytecode of a class.
      *
@@ -362,16 +365,25 @@ public class ASMUtils {
     }
 
     /**
-     * Split an injection declaration into owner, name and descriptor.<br>
-     * e.g. {@code java/lang/String.length()I}<br>
-     * e.g. {@code java/lang/System.out:Ljava/io/PrintStream;}
+     * Split a member declaration into owner, name and descriptor.<br>
+     * All parts are required.<br>
+     * Examples:<br>
+     * - {@code java/lang/String.length()I}<br>
+     * - {@code java/lang/System.out:Ljava/io/PrintStream;}<br>
+     * - {@code Ljava/lang/String;length()I}<br>
+     * - {@code Ljava/lang/System;out:Ljava/io/PrintStream;}
      *
-     * @param injectDeclaration The injection declaration
+     * @param memberDeclaration The member declaration
      * @return The split member declaration
      */
-    public static MemberDeclaration splitMemberDeclaration(final String injectDeclaration) {
-        Matcher matcher = Pattern.compile("^L([^;]+);([^(:]+):?(\\(?[^\\n]+)$").matcher(injectDeclaration);
-        if (matcher.find()) return new MemberDeclaration(matcher.group(1), matcher.group(2), matcher.group(3));
+    public static MemberDeclaration splitMemberDeclaration(final String memberDeclaration) {
+        if (memberDeclaration.matches(METHOD_DECLARATION_PATTERN)) {
+            Matcher matcher = Pattern.compile(METHOD_DECLARATION_PATTERN).matcher(memberDeclaration);
+            if (matcher.find()) return new MemberDeclaration(matcher.group(1) == null ? matcher.group(2) : matcher.group(1), matcher.group(3), matcher.group(4));
+        } else if (memberDeclaration.matches(FIELD_DECLARATION_PATTERN)) {
+            Matcher matcher = Pattern.compile(FIELD_DECLARATION_PATTERN).matcher(memberDeclaration);
+            if (matcher.find()) return new MemberDeclaration(matcher.group(1) == null ? matcher.group(2) : matcher.group(1), matcher.group(3), matcher.group(4));
+        }
         return null;
     }
 
