@@ -4,13 +4,15 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
- * Parse a string to a insn list.
+ * Parse a string to an insn list.
  */
+@ParametersAreNonnullByDefault
 public class StringParser {
 
     static final Map<String, Integer> OPCODES = new HashMap<>();

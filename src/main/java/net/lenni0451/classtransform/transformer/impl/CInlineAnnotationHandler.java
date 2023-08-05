@@ -8,12 +8,14 @@ import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * The annotation handler for the {@link CInline} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CInlineAnnotationHandler extends AnnotationHandler {
 
     @Override

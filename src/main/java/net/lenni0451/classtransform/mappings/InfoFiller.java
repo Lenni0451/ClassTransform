@@ -11,6 +11,8 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.Map;
  * This class remaps short members in transformer annotation.<br>
  * This also is responsible for resolving wildcards in short members.
  */
+@ParametersAreNonnullByDefault
 class InfoFiller {
 
     static void fillInfo(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, final Method method, final Map<String, Object> values, final ClassNode target, final ClassNode transformer) {
@@ -54,7 +57,7 @@ class InfoFiller {
         else throw new IllegalArgumentException("Unknown holder type '" + holder.getClass().getName() + "' from transformer '" + transformer.name + "'");
     }
 
-    private static List<String> getMethodNames(final MapRemapper remapper, final Object holder, String current, final ClassNode target, final ClassNode transformer) {
+    private static List<String> getMethodNames(final MapRemapper remapper, final Object holder, @Nullable String current, final ClassNode target, final ClassNode transformer) {
         List<String> names = new ArrayList<>();
         if (current == null) { //Copy the name and descriptor of the transformer method
             MethodNode methodNode = (MethodNode) holder;
@@ -97,7 +100,7 @@ class InfoFiller {
         return names;
     }
 
-    private static List<String> getFieldNames(final MapRemapper remapper, final Object holder, String current, final ClassNode target, final ClassNode transformer) {
+    private static List<String> getFieldNames(final MapRemapper remapper, final Object holder, @Nullable String current, final ClassNode target, final ClassNode transformer) {
         List<String> names = new ArrayList<>();
         if (current == null) { //Copy the name of the transformer field
             FieldNode fieldNode = (FieldNode) holder;

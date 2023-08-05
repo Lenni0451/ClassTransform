@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 /**
  * Util to complete mappings which are missing some information about overridden methods.
  */
+@ParametersAreNonnullByDefault
 public class SuperMappingFiller {
 
     /**

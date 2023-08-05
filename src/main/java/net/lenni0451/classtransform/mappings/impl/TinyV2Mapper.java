@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.List;
  * A remapper that uses tiny v2 mappings for remapping.<br>
  * The from and to namespaces are also required.
  */
+@ParametersAreNonnullByDefault
 public class TinyV2Mapper extends AMapper {
 
     private final File mappingFile;

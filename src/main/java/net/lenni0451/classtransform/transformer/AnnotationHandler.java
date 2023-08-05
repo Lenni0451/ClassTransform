@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 /**
  * The abstract base for all annotation handlers.
  */
+@ParametersAreNonnullByDefault
 public abstract class AnnotationHandler {
 
     /**

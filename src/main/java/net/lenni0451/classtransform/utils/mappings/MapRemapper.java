@@ -2,11 +2,15 @@ package net.lenni0451.classtransform.utils.mappings;
 
 import org.objectweb.asm.commons.Remapper;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 /**
  * An asm remapper implementation using a map to store the mappings.
  */
+@ParametersAreNonnullByDefault
 public class MapRemapper extends Remapper {
 
     private final Map<String, String> mappings;
@@ -179,24 +183,28 @@ public class MapRemapper extends Remapper {
 
 
     @Override
+    @Nonnull
     public String mapMethodName(final String owner, final String name, final String descriptor) {
         String remappedName = map(owner + '.' + name + descriptor);
         return remappedName == null ? name : remappedName;
     }
 
     @Override
+    @Nonnull
     public String mapInvokeDynamicMethodName(final String name, final String descriptor) {
         String remappedName = map('.' + name + descriptor);
         return remappedName == null ? name : remappedName;
     }
 
     @Override
+    @Nonnull
     public String mapAnnotationAttributeName(final String descriptor, final String name) {
         String remappedName = map(descriptor + '.' + name);
         return remappedName == null ? name : remappedName;
     }
 
     @Override
+    @Nonnull
     public String mapFieldName(final String owner, final String name, final String descriptor) {
         String remappedName = map(owner + '.' + name + ':' + descriptor);
         if (remappedName == null) remappedName = map(owner + '.' + name + ":");
@@ -204,6 +212,7 @@ public class MapRemapper extends Remapper {
     }
 
     @Override
+    @Nullable
     public String map(final String key) {
         return this.mappings.get(key);
     }
@@ -215,6 +224,7 @@ public class MapRemapper extends Remapper {
      * @param key The key
      * @return The mapping
      */
+    @Nonnull
     public String mapSafe(final String key) {
         return this.mappings.getOrDefault(key, key);
     }
@@ -225,6 +235,7 @@ public class MapRemapper extends Remapper {
      *
      * @return The reversed remapper
      */
+    @Nonnull
     public MapRemapper reverse() {
         if (this.reverse != null) return this.reverse;
         MapRemapper reverseRemapper = new MapRemapper();

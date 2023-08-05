@@ -4,6 +4,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import java.util.List;
  * Util class to generate method header strings.<br>
  * This is used to print example method headers when a transformer requires a specific method signature.
  */
+@ParametersAreNonnullByDefault
 public class Codifier {
 
     /**
@@ -97,14 +100,14 @@ public class Codifier {
      * @param parameter The parameter
      * @return This codifier
      */
-    public Codifier param(final Type parameter) {
+    public Codifier param(@Nullable final Type parameter) {
         if (parameter == null) {
             this.parameters.clear();
             return this;
         }
 
         String className = this.stripPackage(parameter.getClassName());
-        if (this.isJavaKeyword(className)) className += " " + className.substring(0, 1);
+        if (this.isJavaKeyword(className)) className += " " + className.charAt(0);
         else className += " " + className.substring(0, 1).toLowerCase() + className.substring(1);
         this.parameters.add(className);
         return this;
@@ -128,7 +131,7 @@ public class Codifier {
      * @param exception The exception
      * @return This codifier
      */
-    public Codifier exception(final Type exception) {
+    public Codifier exception(@Nullable final Type exception) {
         if (exception == null) {
             this.exceptions.clear();
             return this;

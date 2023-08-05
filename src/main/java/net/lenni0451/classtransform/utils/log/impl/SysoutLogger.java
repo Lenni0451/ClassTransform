@@ -3,12 +3,14 @@ package net.lenni0451.classtransform.utils.log.impl;
 import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.log.Logger.MessageArgs;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static net.lenni0451.classtransform.utils.log.Logger.resolve;
 
+@ParametersAreNonnullByDefault
 public class SysoutLogger implements ILogger {
 
     private static final Pattern ARG_PATTERN = Pattern.compile("\\{}");

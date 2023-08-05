@@ -10,6 +10,7 @@ import net.lenni0451.classtransform.utils.mappings.Remapper;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
@@ -17,6 +18,7 @@ import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 /**
  * The annotation handler for the {@link COverride} annotation.
  */
+@ParametersAreNonnullByDefault
 public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<COverride> {
 
     public COverrideAnnotationHandler() {

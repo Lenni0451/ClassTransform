@@ -6,9 +6,12 @@ import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * The annotation handler for the {@link CUpgrade} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CUpgradeAnnotationHandler extends AnnotationHandler {
 
     @Override

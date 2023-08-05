@@ -7,12 +7,14 @@ import org.objectweb.asm.commons.FieldRemapper;
 import org.objectweb.asm.commons.MethodRemapper;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 /**
  * Util methods to remap classes, methods and fields.
  */
+@ParametersAreNonnullByDefault
 public class Remapper {
 
     /**

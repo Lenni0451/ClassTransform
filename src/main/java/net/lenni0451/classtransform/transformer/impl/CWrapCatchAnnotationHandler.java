@@ -12,6 +12,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -22,6 +23,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 /**
  * The annotation handler for the {@link CWrapCatch} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler<CWrapCatch> {
 
     public CWrapCatchAnnotationHandler() {

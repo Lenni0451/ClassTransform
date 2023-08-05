@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.utils.tree;
 
 import org.objectweb.asm.ClassWriter;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
@@ -10,6 +11,7 @@ import static net.lenni0451.classtransform.utils.Types.IN_Object;
 /**
  * A class writer implementation using the {@link ClassTree} for stack frame calculation.
  */
+@ParametersAreNonnullByDefault
 public class TreeClassWriter extends ClassWriter {
 
     private final ClassTree classTree;

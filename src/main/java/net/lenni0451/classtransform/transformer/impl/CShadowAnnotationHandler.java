@@ -12,12 +12,14 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * The annotation handler for the {@link CShadow} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CShadowAnnotationHandler extends AnnotationHandler {
 
     @Override

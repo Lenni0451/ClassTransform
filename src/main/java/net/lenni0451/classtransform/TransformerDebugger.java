@@ -3,10 +3,12 @@ package net.lenni0451.classtransform;
 import net.lenni0451.classtransform.debugger.timings.TimedTransformer;
 import net.lenni0451.classtransform.utils.log.Logger;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ParametersAreNonnullByDefault
 public class TransformerDebugger {
 
     private final TransformerManager transformerManager;

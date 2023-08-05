@@ -1,10 +1,12 @@
 package net.lenni0451.classtransform.transformer;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.instrument.ClassFileTransformer;
 
 /**
  * A bytecode transformer like {@link ClassFileTransformer}.
  */
+@ParametersAreNonnullByDefault
 public interface IBytecodeTransformer {
 
     /**

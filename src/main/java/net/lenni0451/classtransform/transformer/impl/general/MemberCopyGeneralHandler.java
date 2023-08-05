@@ -10,6 +10,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
@@ -18,6 +19,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
  * Copy members from the transformer class to the transformed class.<br>
  * This also merges initializers.
  */
+@ParametersAreNonnullByDefault
 public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     private final boolean pre;

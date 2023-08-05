@@ -3,6 +3,9 @@ package net.lenni0451.classtransform.utils.loader;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +25,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 /**
  * Inject into classes by using a custom class loader.
  */
+@ParametersAreNonnullByDefault
 public class InjectionClassLoader extends URLClassLoader {
 
     private final TransformerManager transformerManager;
@@ -168,12 +172,14 @@ public class InjectionClassLoader extends URLClassLoader {
 
 
     @Override
+    @Nullable
     public URL getResource(final String name) {
         if (this.runtimeResources.containsKey(name)) return this.findResource(name);
         return super.getResource(name);
     }
 
     @Override
+    @Nullable
     public URL findResource(final String name) {
         if (this.runtimeResources.containsKey(name)) {
             try {
@@ -186,6 +192,7 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     @Override
+    @Nonnull
     public Enumeration<URL> findResources(final String name) throws IOException {
         URL resource = this.getResource(name);
         if (resource != null) return new URLEnumeration(resource);

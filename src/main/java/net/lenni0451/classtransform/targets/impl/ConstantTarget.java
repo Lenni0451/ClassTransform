@@ -10,6 +10,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.Function;
 
@@ -28,10 +30,11 @@ import java.util.function.Function;
  * e.g. {@code "int 1"} or {@code "String Hello World"}<br>
  * The constant type is case-insensitive.
  */
+@ParametersAreNonnullByDefault
 public class ConstantTarget implements IInjectionTarget {
 
     @Override
-    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, CSlice slice) {
+    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         List<AbstractInsnNode> targets = new ArrayList<>();
         List<AbstractInsnNode> instructions = this.getSlice(injectionTargets, method, slice);
 

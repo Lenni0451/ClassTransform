@@ -3,9 +3,12 @@ package net.lenni0451.classtransform.transformer;
 import net.lenni0451.classtransform.TransformerManager;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * A transformer which has access to the parsed class node of the transformed class.
  */
+@ParametersAreNonnullByDefault
 public interface IRawTransformer {
 
     /**

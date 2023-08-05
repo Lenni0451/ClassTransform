@@ -11,11 +11,14 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.InnerClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
 /**
  * Remap and make transformer inner classes accessible from the transformed classes.
  */
+@ParametersAreNonnullByDefault
 public class InnerClassGeneralHandler extends AnnotationHandler {
 
     @Override

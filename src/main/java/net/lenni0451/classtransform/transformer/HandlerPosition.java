@@ -3,11 +3,13 @@ package net.lenni0451.classtransform.transformer;
 import net.lenni0451.classtransform.transformer.impl.CInlineAnnotationHandler;
 import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGeneralHandler;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 /**
  * The position to add an annotation handler to in the handler chain.
  */
+@ParametersAreNonnullByDefault
 public enum HandlerPosition {
 
     /**

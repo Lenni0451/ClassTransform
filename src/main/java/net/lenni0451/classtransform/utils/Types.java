@@ -2,6 +2,8 @@ package net.lenni0451.classtransform.utils;
 
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
@@ -9,6 +11,7 @@ import java.lang.reflect.Method;
  * A wrapper for the {@link Type} class.<br>
  * This contains some constants and convenience methods.
  */
+@ParametersAreNonnullByDefault
 public class Types {
 
     //internal names
@@ -182,7 +185,7 @@ public class Types {
         return out.toString();
     }
 
-    private static String asString(final Object ob) {
+    private static String asString(@Nullable final Object ob) {
         if (ob == null) return "null";
         return ob.toString();
     }

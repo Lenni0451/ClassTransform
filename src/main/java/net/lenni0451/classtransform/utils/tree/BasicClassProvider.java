@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.tree;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Map;
@@ -11,6 +12,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
  * A basic class provider with only the {@link #getClass(String)} implemented.<br>
  * You need to register all transformer classes with direct paths as the {@link #getAllClasses()} method is required for wildcard matching.
  */
+@ParametersAreNonnullByDefault
 public class BasicClassProvider implements IClassProvider {
 
     private final ClassLoader classLoader;

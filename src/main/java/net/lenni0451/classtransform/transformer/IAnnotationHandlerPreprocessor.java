@@ -2,10 +2,13 @@ package net.lenni0451.classtransform.transformer;
 
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * A preprocessor for annotation handlers.<br>
  * This is used to modify the transformer class before it is parsed.
  */
+@ParametersAreNonnullByDefault
 public interface IAnnotationHandlerPreprocessor {
 
     /**

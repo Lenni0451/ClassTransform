@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.function.Function;
@@ -17,6 +18,7 @@ import java.util.function.Function;
  *
  * @param <T> The annotation type
  */
+@ParametersAreNonnullByDefault
 public abstract class RemovingTargetAnnotationHandler<T extends Annotation> extends RemovingAnnotationHandler<T> {
 
     private final Function<T, String[]> targetCombis;

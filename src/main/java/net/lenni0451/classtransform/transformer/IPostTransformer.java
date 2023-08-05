@@ -1,8 +1,11 @@
 package net.lenni0451.classtransform.transformer;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * A handler for all transformed classes after they are transformed.
  */
+@ParametersAreNonnullByDefault
 public interface IPostTransformer {
 
     /**

@@ -1,11 +1,13 @@
 package net.lenni0451.classtransform.utils.tree;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * A provider for class bytecode.
  */
+@ParametersAreNonnullByDefault
 public interface IClassProvider {
 
     /**

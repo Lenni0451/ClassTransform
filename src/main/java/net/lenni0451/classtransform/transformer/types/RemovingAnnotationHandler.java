@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.util.Iterator;
 
@@ -15,6 +16,7 @@ import java.util.Iterator;
  *
  * @param <T> The annotation type
  */
+@ParametersAreNonnullByDefault
 public abstract class RemovingAnnotationHandler<T extends Annotation> extends AnnotationHandler {
 
     private final Class<? extends Annotation> annotationClass;

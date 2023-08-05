@@ -3,11 +3,13 @@ package net.lenni0451.classtransform.exceptions;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 
 /**
  * An exception which is thrown when the target of an injection could not be found.
  */
+@ParametersAreNonnullByDefault
 public class InvalidTargetException extends RuntimeException {
 
     private final String memberType;

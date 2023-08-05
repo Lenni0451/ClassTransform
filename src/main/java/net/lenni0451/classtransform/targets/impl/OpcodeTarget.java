@@ -7,6 +7,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,10 +20,11 @@ import java.util.Map;
  * Invalid opcodes will be ignored.<br>
  * e.g. {@code INVOKESTATIC} or {@code 184}
  */
+@ParametersAreNonnullByDefault
 public class OpcodeTarget implements IInjectionTarget {
 
     @Override
-    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, CSlice slice) {
+    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         List<AbstractInsnNode> targets = new ArrayList<>();
         int opcode = this.getOpcode(target.target());
         if (opcode == -1) return null;

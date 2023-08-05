@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.utils;
 
 import net.lenni0451.classtransform.utils.log.Logger;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.instrument.ClassFileTransformer;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.Map;
  * Fake classes with the same name as the transformer classes are loaded from this class loader.<br>
  * This causes the JVM to pass the changed transformer bytecode into the instrumentation {@link ClassFileTransformer} which the reapplies the transformer to the unmodified class bytecode.
  */
+@ParametersAreNonnullByDefault
 public class HotswapClassLoader extends ClassLoader {
 
     private final Map<String, byte[]> hotswapClasses;

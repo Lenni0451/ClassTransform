@@ -16,6 +16,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,6 +28,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 /**
  * The annotation handler for the {@link CASM} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
 
     private final CASM.Shift shift;

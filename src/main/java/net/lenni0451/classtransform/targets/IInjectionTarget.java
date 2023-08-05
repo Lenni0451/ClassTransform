@@ -5,11 +5,14 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 /**
  * The interface which is used to define a target for an injection.
  */
+@ParametersAreNonnullByDefault
 public interface IInjectionTarget {
 
     /**
@@ -21,7 +24,7 @@ public interface IInjectionTarget {
      * @param slice            The {@link CSlice} annotation
      * @return The matching instructions
      */
-    List<AbstractInsnNode> getTargets(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CTarget target, final CSlice slice);
+    List<AbstractInsnNode> getTargets(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CTarget target, @Nullable final CSlice slice);
 
     /**
      * Get the shift for this target.<br>
@@ -43,7 +46,7 @@ public interface IInjectionTarget {
      * @return The instructions in the slice
      * @throws IllegalArgumentException If the slice is invalid
      */
-    default List<AbstractInsnNode> getSlice(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CSlice slice) {
+    default List<AbstractInsnNode> getSlice(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, @Nullable final CSlice slice) {
         if (slice == null) return Arrays.asList(method.instructions.toArray());
 
         int from;

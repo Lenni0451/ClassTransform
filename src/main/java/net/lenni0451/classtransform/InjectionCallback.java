@@ -2,6 +2,8 @@ package net.lenni0451.classtransform;
 
 import net.lenni0451.classtransform.annotations.injection.CInject;
 
+import javax.annotation.Nullable;
+
 /**
  * The callback used to cancel {@link CInject} transformer.
  */
@@ -17,7 +19,7 @@ public class InjectionCallback {
         this.cancellable = cancellable;
     }
 
-    public InjectionCallback(final boolean cancellable, final Object returnValue) {
+    public InjectionCallback(final boolean cancellable, @Nullable final Object returnValue) {
         this.cancellable = cancellable;
         this.returnValue = returnValue;
         this.returnValueSet = true;
@@ -51,6 +53,7 @@ public class InjectionCallback {
     /**
      * @return The current return value of the original method
      */
+    @Nullable
     public Object getReturnValue() {
         if (!this.returnValueSet) throw new IllegalStateException("Return value not set");
         return returnValue;
@@ -61,6 +64,7 @@ public class InjectionCallback {
      * @return The current return value of the original method
      * @throws ClassCastException If the return value is not of the wanted type
      */
+    @Nullable
     public <T> T castReturnValue() {
         return (T) this.getReturnValue();
     }
@@ -71,7 +75,7 @@ public class InjectionCallback {
      *
      * @param returnValue The new return value
      */
-    public void setReturnValue(final Object returnValue) {
+    public void setReturnValue(@Nullable final Object returnValue) {
         this.returnValue = returnValue;
         this.setCancelled(true);
         this.returnValueSet = true;

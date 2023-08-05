@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.mappings.impl;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,6 +11,7 @@ import java.util.regex.Pattern;
 /**
  * A remapper that uses srg mappings for remapping.
  */
+@ParametersAreNonnullByDefault
 public class SrgMapper extends AMapper {
 
     private static final String CLASS_LINE = "^CL: (\\S+) (\\S+)$";

@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.analysis.BasicInterpreter;
 import org.objectweb.asm.tree.analysis.BasicValue;
 import org.objectweb.asm.tree.analysis.Frame;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -16,6 +17,7 @@ import java.util.*;
  * Util to inline methods into other methods.<br>
  * This is used for the {@link CInline} annotation.
  */
+@ParametersAreNonnullByDefault
 public class MethodInliner {
 
     /**

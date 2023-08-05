@@ -9,6 +9,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +24,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 /**
  * General utils for using ASM.
  */
+@ParametersAreNonnullByDefault
 public class ASMUtils {
 
     private static final String METHOD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
@@ -73,6 +76,7 @@ public class ASMUtils {
      * @param desc      The descriptor of the method
      * @return The method node or null if no method was found
      */
+    @Nullable
     public static MethodNode getMethod(final ClassNode classNode, final String name, final String desc) {
         for (MethodNode method : classNode.methods) {
             if (method.name.equals(name) && method.desc.equals(desc)) return method;
@@ -89,6 +93,7 @@ public class ASMUtils {
      * @param desc      The descriptor of the field
      * @return The field node or null if no field was found
      */
+    @Nullable
     public static FieldNode getField(final ClassNode classNode, final String name, final String desc) {
         for (FieldNode field : classNode.fields) {
             if (field.name.equals(name)) return field;
@@ -342,6 +347,7 @@ public class ASMUtils {
      * @param primitive The primitive type to wrap
      * @return The byte code for the wrapper or null if the given type is not a primitive
      */
+    @Nullable
     public static AbstractInsnNode getPrimitiveToObject(final Type primitive) {
         if (primitive.equals(Type.BOOLEAN_TYPE)) {
             return new MethodInsnNode(Opcodes.INVOKESTATIC, IN_Boolean, "valueOf", methodDescriptor(Boolean.class, boolean.class), false);
@@ -376,6 +382,7 @@ public class ASMUtils {
      * @param memberDeclaration The member declaration
      * @return The split member declaration
      */
+    @Nullable
     public static MemberDeclaration splitMemberDeclaration(final String memberDeclaration) {
         if (memberDeclaration.matches(METHOD_DECLARATION_PATTERN)) {
             Matcher matcher = Pattern.compile(METHOD_DECLARATION_PATTERN).matcher(memberDeclaration);
@@ -394,6 +401,7 @@ public class ASMUtils {
      * @param methodNode The constructor method node
      * @return The first actual instruction of the constructor
      */
+    @Nullable
     public static AbstractInsnNode getFirstConstructorInstruction(final String superClass, final MethodNode methodNode) {
         AbstractInsnNode first = methodNode.instructions.getFirst();
         while (first != null) {
@@ -410,7 +418,8 @@ public class ASMUtils {
      * @param instruction The insn node
      * @return The number or null if it's not a number
      */
-    public static Number getNumber(final AbstractInsnNode instruction) {
+    @Nullable
+    public static Number getNumber(@Nullable final AbstractInsnNode instruction) {
         if (instruction == null) return null;
         if (instruction.getOpcode() >= Opcodes.ICONST_M1 && instruction.getOpcode() <= Opcodes.ICONST_5) return instruction.getOpcode() - Opcodes.ICONST_0;
         else if (instruction.getOpcode() >= Opcodes.LCONST_0 && instruction.getOpcode() <= Opcodes.LCONST_1) return (long) (instruction.getOpcode() - Opcodes.LCONST_0);

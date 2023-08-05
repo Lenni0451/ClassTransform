@@ -2,6 +2,8 @@ package net.lenni0451.classtransform.mappings;
 
 import net.lenni0451.classtransform.utils.FailStrategy;
 
+import javax.annotation.Nonnull;
+
 /**
  * A config to modify the behavior of an {@link AMapper}.
  */
@@ -38,7 +40,7 @@ public class MapperConfig {
      * @param superMappingsFailStrategy The fail strategy to use if super mappings could not be filled (default: {@link FailStrategy#CONTINUE})
      * @return This config
      */
-    public MapperConfig fillSuperMappings(final boolean fillSuperMappings, final FailStrategy superMappingsFailStrategy) {
+    public MapperConfig fillSuperMappings(final boolean fillSuperMappings, @Nonnull final FailStrategy superMappingsFailStrategy) {
         this.fillSuperMappings = fillSuperMappings;
         this.superMappingsFailStrategy = superMappingsFailStrategy;
         return this;

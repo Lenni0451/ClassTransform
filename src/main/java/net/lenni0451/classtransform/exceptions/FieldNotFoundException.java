@@ -2,9 +2,12 @@ package net.lenni0451.classtransform.exceptions;
 
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * An exception which is thrown when a field could not be found during the transformation.
  */
+@ParametersAreNonnullByDefault
 public class FieldNotFoundException extends RuntimeException {
 
     private final String targetClassName;

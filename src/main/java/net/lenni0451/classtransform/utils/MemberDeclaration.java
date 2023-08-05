@@ -3,11 +3,13 @@ package net.lenni0451.classtransform.utils;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
 /**
  * A wrapper for owner, name and descriptor of a method or field.
  */
+@ParametersAreNonnullByDefault
 public class MemberDeclaration {
 
     private final String owner;

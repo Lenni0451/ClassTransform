@@ -4,6 +4,8 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
@@ -11,6 +13,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 /**
  * A class tree which dynamically loads tree parts on demand.
  */
+@ParametersAreNonnullByDefault
 public class ClassTree {
 
     private final Map<String, TreePart> tree = new HashMap<>();
@@ -20,7 +23,7 @@ public class ClassTree {
         this(null);
     }
 
-    public ClassTree(final TransformerManager transformerManager) {
+    public ClassTree(@Nullable final TransformerManager transformerManager) {
         this.transformerManager = transformerManager;
     }
 
@@ -59,6 +62,7 @@ public class ClassTree {
     }
 
 
+    @ParametersAreNonnullByDefault
     public class TreePart {
 
         private final ClassNode node;
@@ -101,6 +105,7 @@ public class ClassTree {
          * @param classProvider The class provider to get the bytecode from
          * @return The class node of the super class
          */
+        @Nullable
         public TreePart parseSuperClass(final IClassProvider classProvider) {
             if (this.superClass == null) return null;
             return ClassTree.this.getTreePart(classProvider, this.superClass);

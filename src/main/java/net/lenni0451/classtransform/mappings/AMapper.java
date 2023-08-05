@@ -18,6 +18,8 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
@@ -33,6 +35,7 @@ import static net.lenni0451.classtransform.utils.Types.type;
 /**
  * The abstract remapper class responsible for remapping class transform annotations.
  */
+@ParametersAreNonnullByDefault
 public abstract class AMapper {
 
     private final MapperConfig config;
@@ -220,7 +223,7 @@ public abstract class AMapper {
         }
     }
 
-    private void checkAnnotations(final Object holder, final List<AnnotationNode> annotations, final List<AnnotationHolder> out) {
+    private void checkAnnotations(final Object holder, @Nullable final List<AnnotationNode> annotations, final List<AnnotationHolder> out) {
         if (annotations == null) return;
         for (AnnotationNode annotation : annotations) out.add(new AnnotationHolder(holder, annotation));
     }

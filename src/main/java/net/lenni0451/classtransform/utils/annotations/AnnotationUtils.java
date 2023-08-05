@@ -4,11 +4,14 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Optional;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
+@ParametersAreNonnullByDefault
 public class AnnotationUtils {
 
     /**
@@ -40,7 +43,7 @@ public class AnnotationUtils {
      * @param annotationClass The annotation class to search for
      * @return The annotation if found
      */
-    public static Optional<AnnotationNode> findAnnotation(final List<AnnotationNode> annotations, final Class<?> annotationClass) {
+    public static Optional<AnnotationNode> findAnnotation(@Nullable final List<AnnotationNode> annotations, final Class<?> annotationClass) {
         if (annotations == null) return Optional.empty();
         for (AnnotationNode annotation : annotations) {
             if (annotation.desc.equals(typeDescriptor(annotationClass))) return Optional.of(annotation);
@@ -77,7 +80,7 @@ public class AnnotationUtils {
      * @param annotationClass The annotation class to search for
      * @return If the list of annotations has the annotation
      */
-    public static boolean hasAnnotation(final List<AnnotationNode> annotations, final Class<?> annotationClass) {
+    public static boolean hasAnnotation(@Nullable final List<AnnotationNode> annotations, final Class<?> annotationClass) {
         return findAnnotation(annotations, annotationClass).isPresent();
     }
 

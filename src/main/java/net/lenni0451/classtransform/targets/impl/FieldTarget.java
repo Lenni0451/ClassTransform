@@ -9,6 +9,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.Map;
  * A target for field access instructions.<br>
  * e.g. {@code java/lang/System.out:Ljava/io/PrintStream;}
  */
+@ParametersAreNonnullByDefault
 public class FieldTarget implements IInjectionTarget {
 
     private final int nonStaticAccess;
@@ -32,7 +35,7 @@ public class FieldTarget implements IInjectionTarget {
     }
 
     @Override
-    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, CSlice slice) {
+    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         List<AbstractInsnNode> targets = new ArrayList<>();
         MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(target.target());
         if (memberDeclaration == null) return null;

@@ -9,6 +9,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +19,11 @@ import java.util.Map;
  * A target for method invocation instructions.<br>
  * e.g. {@code java/lang/System.currentTimeMillis()J}
  */
+@ParametersAreNonnullByDefault
 public class InvokeTarget implements IInjectionTarget {
 
     @Override
-    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, CSlice slice) {
+    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         List<AbstractInsnNode> targets = new ArrayList<>();
         MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(target.target());
         if (memberDeclaration == null) return null;

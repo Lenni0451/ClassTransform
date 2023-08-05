@@ -9,9 +9,12 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * Rename synthetic methods in transformers to avoid conflicts with the injected class.
  */
+@ParametersAreNonnullByDefault
 public class SyntheticMethodGeneralHandler extends AnnotationHandler {
 
     static void fillSyntheticMappings(final ClassNode source, final ClassNode target, final MapRemapper remapper) {

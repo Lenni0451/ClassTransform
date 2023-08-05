@@ -17,6 +17,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Map;
 /**
  * The annotation handler for the {@link CRedirect} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CRedirectAnnotationHandler extends RemovingAnnotationHandler<CRedirect> {
 
     private final Map<String, IRedirectTarget> redirectTargets = new HashMap<>();

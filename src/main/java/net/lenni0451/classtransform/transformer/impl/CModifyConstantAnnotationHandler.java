@@ -15,6 +15,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 /**
  * The annotation handler for the {@link CModifyConstant} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<CModifyConstant> implements IInjectionTarget {
 
     public CModifyConstantAnnotationHandler() {
@@ -153,7 +156,7 @@ public class CModifyConstantAnnotationHandler extends RemovingAnnotationHandler<
     }
 
     @Override
-    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, CSlice slice) {
+    public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         return null;
     }
 

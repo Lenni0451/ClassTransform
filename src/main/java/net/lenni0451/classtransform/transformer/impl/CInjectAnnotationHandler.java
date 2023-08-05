@@ -18,6 +18,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -26,6 +27,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 /**
  * The annotation handler for the {@link CInject} annotation.
  */
+@ParametersAreNonnullByDefault
 public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CInject> {
 
     private final List<String> captureTargets = new ArrayList<>();

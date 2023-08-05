@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.debugger;
 import net.lenni0451.classtransform.debugger.timings.TimedGroup;
 import net.lenni0451.classtransform.debugger.timings.TimedTransformer;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Map;
 /**
  * A timer to measure the time it takes to transform a class.
  */
+@ParametersAreNonnullByDefault
 public class TransformerTimings {
 
     private final Map<TimedTransformer, Integer> timings = new LinkedHashMap<>();

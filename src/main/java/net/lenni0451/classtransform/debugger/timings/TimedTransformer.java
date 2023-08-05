@@ -1,8 +1,11 @@
 package net.lenni0451.classtransform.debugger.timings;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * The group and name of a timed transformer.
  */
+@ParametersAreNonnullByDefault
 public class TimedTransformer {
 
     private final TimedGroup group;

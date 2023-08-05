@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.utils.annotations;
 
 import sun.misc.Unsafe;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 
@@ -13,6 +14,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
  *
  * @param <T> The type of the class
  */
+@ParametersAreNonnullByDefault
 public class ClassDefiner<T> {
 
     private static Unsafe UNSAFE;

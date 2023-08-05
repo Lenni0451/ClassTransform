@@ -27,6 +27,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.instrument.*;
 import java.security.ProtectionDomain;
 import java.util.*;
@@ -40,6 +42,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
  * The TransformerManager handles all things needed for class transformation.<br>
  * This class implements {@link ClassFileTransformer} so it can be used with an {@link Instrumentation} agent.
  */
+@ParametersAreNonnullByDefault
 public class TransformerManager implements ClassFileTransformer {
 
     private final ClassTree classTree = new ClassTree(this);
@@ -470,7 +473,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.retransformClasses(null);
     }
 
-    private void retransformClasses(final Set<String> classesToRetransform) {
+    private void retransformClasses(@Nullable final Set<String> classesToRetransform) {
         if (this.instrumentation != null && this.instrumentation.isRetransformClassesSupported()) {
             List<Class<?>> classes = new ArrayList<>();
             Set<String> classSet;
@@ -506,7 +509,8 @@ public class TransformerManager implements ClassFileTransformer {
      * You can simply add the TransformerManager as a transformer using {@link Instrumentation#addTransformer(ClassFileTransformer)} or call {@link TransformerManager#hookInstrumentation(Instrumentation)}.
      */
     @Override
-    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+    @Nullable
+    public byte[] transform(@Nullable ClassLoader loader, @Nullable String className, @Nullable Class<?> classBeingRedefined, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         if (className == null) return null;
         try {
             className = dot(className);

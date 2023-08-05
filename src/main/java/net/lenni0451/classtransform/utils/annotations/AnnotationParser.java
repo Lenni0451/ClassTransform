@@ -11,6 +11,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -26,6 +28,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
  *
  * @param <T> The type of the annotation
  */
+@ParametersAreNonnullByDefault
 public class AnnotationParser<T extends Annotation> {
 
     /**
@@ -62,7 +65,7 @@ public class AnnotationParser<T extends Annotation> {
      * @return The map
      * @throws IndexOutOfBoundsException If the list is does not contain key value pairs
      */
-    public static Map<String, Object> listToMap(final List<Object> list) {
+    public static Map<String, Object> listToMap(@Nullable final List<Object> list) {
         Map<String, Object> map = new HashMap<>();
         if (list != null) for (int i = 0; i < list.size(); i += 2) map.put((String) list.get(i), list.get(i + 1));
         return map;
@@ -74,11 +77,13 @@ public class AnnotationParser<T extends Annotation> {
      * @param map The map
      * @return The raw ASM bytecode values list
      */
-    public static List<Object> mapToList(final Map<String, Object> map) {
+    public static List<Object> mapToList(@Nullable final Map<String, Object> map) {
         List<Object> list = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            list.add(entry.getKey());
-            list.add(entry.getValue());
+        if (map != null) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                list.add(entry.getKey());
+                list.add(entry.getValue());
+            }
         }
         return list;
     }
@@ -90,7 +95,7 @@ public class AnnotationParser<T extends Annotation> {
      * @param desc  The descriptor of the annotation
      * @return If the list contains the annotation
      */
-    public static boolean hasAnnotation(final List<AnnotationNode> nodes, final String desc) {
+    public static boolean hasAnnotation(@Nullable final List<AnnotationNode> nodes, final String desc) {
         if (nodes == null) return false;
         for (AnnotationNode annotation : nodes) {
             if (annotation.desc.equals(desc)) return true;

@@ -4,9 +4,12 @@ import net.lenni0451.classtransform.utils.Codifier;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * An exception which is thrown when there is a general error during the transformation.
  */
+@ParametersAreNonnullByDefault
 public class TransformerException extends RuntimeException {
 
     private final String memberType;

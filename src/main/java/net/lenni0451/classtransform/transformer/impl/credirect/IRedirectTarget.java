@@ -4,6 +4,8 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
@@ -12,6 +14,7 @@ import static net.lenni0451.classtransform.utils.Types.type;
 /**
  * The interface for a redirect target transformer.
  */
+@ParametersAreNonnullByDefault
 public interface IRedirectTarget {
 
     /**
@@ -33,7 +36,7 @@ public interface IRedirectTarget {
      * @param freeVarIndex The index of the free variable
      * @return The load and store opcodes
      */
-    default InsnList[] getLoadStoreOpcodes(final String owner, final String desc, int freeVarIndex) {
+    default InsnList[] getLoadStoreOpcodes(@Nullable final String owner, final String desc, int freeVarIndex) {
         InsnList storeOpcodes = new InsnList();
         InsnList loadOpcodes = new InsnList();
 

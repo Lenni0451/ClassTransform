@@ -2,8 +2,10 @@ package net.lenni0451.classtransform.utils.log;
 
 import net.lenni0451.classtransform.utils.log.impl.SysoutLogger;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
 
+@ParametersAreNonnullByDefault
 public class Logger {
 
     public static final String NAME = "ClassTransform";
