@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.tree;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -17,6 +18,7 @@ public interface IClassProvider {
      * @param name The name of the class
      * @return The bytecode of the class
      */
+    @Nonnull
     byte[] getClass(final String name);
 
     /**
@@ -25,6 +27,7 @@ public interface IClassProvider {
      *
      * @return A map of all class names to their bytecode supplier
      */
+    @Nonnull
     Map<String, Supplier<byte[]>> getAllClasses();
 
 }

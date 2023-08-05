@@ -3,6 +3,9 @@ package net.lenni0451.classtransform.mixinstranslator.impl;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@ParametersAreNonnullByDefault
 public interface IAnnotationTranslator {
 
     void translate(final AnnotationNode annotation);

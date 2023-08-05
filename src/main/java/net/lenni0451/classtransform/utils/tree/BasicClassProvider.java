@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.tree;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ public class BasicClassProvider implements IClassProvider {
     }
 
     @Override
+    @Nonnull
     public byte[] getClass(String name) {
         try {
             InputStream is = this.classLoader.getResourceAsStream(slash(name) + ".class");
@@ -42,6 +44,7 @@ public class BasicClassProvider implements IClassProvider {
     }
 
     @Override
+    @Nonnull
     public Map<String, Supplier<byte[]>> getAllClasses() {
         throw new UnsupportedOperationException("Not implemented");
     }

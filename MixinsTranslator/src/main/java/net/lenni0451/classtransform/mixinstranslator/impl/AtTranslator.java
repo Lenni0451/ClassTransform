@@ -5,10 +5,12 @@ import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
+@ParametersAreNonnullByDefault
 class AtTranslator implements IAnnotationTranslator {
 
     @Override

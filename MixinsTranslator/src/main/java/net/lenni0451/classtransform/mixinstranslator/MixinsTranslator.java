@@ -9,6 +9,8 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 /**
@@ -18,6 +20,7 @@ import java.util.List;
  * Some fields which are not supported still got copied over to simplify the copy-paste action<br>
  * You can recognize them by the @Deprecated annotation
  */
+@ParametersAreNonnullByDefault
 public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
 
     @Override
@@ -36,7 +39,7 @@ public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
         }
     }
 
-    private void translate(final List<AnnotationNode> annotations) {
+    private void translate(@Nullable final List<AnnotationNode> annotations) {
         if (annotations == null) return;
         for (AnnotationNode annotation : annotations) {
             IAnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
