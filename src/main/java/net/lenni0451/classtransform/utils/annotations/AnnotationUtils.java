@@ -26,6 +26,17 @@ public class AnnotationUtils {
     }
 
     /**
+     * Find an invisible annotation in a {@link ClassNode}.
+     *
+     * @param classNode            The class node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findInvisibleAnnotation(final ClassNode classNode, final String annotationDescriptor) {
+        return findAnnotation(classNode.invisibleAnnotations, annotationDescriptor);
+    }
+
+    /**
      * Find an invisible annotation in a {@link MethodNode}.
      *
      * @param methodNode      The method node to search in
@@ -37,6 +48,17 @@ public class AnnotationUtils {
     }
 
     /**
+     * Find an invisible annotation in a {@link MethodNode}.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findInvisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
+        return findAnnotation(methodNode.invisibleAnnotations, annotationDescriptor);
+    }
+
+    /**
      * Find an annotation in a list of annotations.
      *
      * @param annotations     The list of annotations to search in
@@ -44,9 +66,20 @@ public class AnnotationUtils {
      * @return The annotation if found
      */
     public static Optional<AnnotationNode> findAnnotation(@Nullable final List<AnnotationNode> annotations, final Class<?> annotationClass) {
+        return findAnnotation(annotations, typeDescriptor(annotationClass));
+    }
+
+    /**
+     * Find an annotation in a list of annotations.
+     *
+     * @param annotations          The list of annotations to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(@Nullable final List<AnnotationNode> annotations, final String annotationDescriptor) {
         if (annotations == null) return Optional.empty();
         for (AnnotationNode annotation : annotations) {
-            if (annotation.desc.equals(typeDescriptor(annotationClass))) return Optional.of(annotation);
+            if (annotation.desc.equals(annotationDescriptor)) return Optional.of(annotation);
         }
         return Optional.empty();
     }
@@ -63,6 +96,17 @@ public class AnnotationUtils {
     }
 
     /**
+     * Check if a {@link ClassNode} has an invisible annotation.
+     *
+     * @param classNode            The class node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the class node has the annotation
+     */
+    public static boolean hasInvisibleAnnotation(final ClassNode classNode, final String annotationDescriptor) {
+        return findInvisibleAnnotation(classNode, annotationDescriptor).isPresent();
+    }
+
+    /**
      * Check if a {@link MethodNode} has an invisible annotation.
      *
      * @param methodNode      The method node to search in
@@ -74,6 +118,17 @@ public class AnnotationUtils {
     }
 
     /**
+     * Check if a {@link MethodNode} has an invisible annotation.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasInvisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
+        return findInvisibleAnnotation(methodNode, annotationDescriptor).isPresent();
+    }
+
+    /**
      * Check if a list of annotations has an annotation.
      *
      * @param annotations     The list of annotations to search in
@@ -82,6 +137,17 @@ public class AnnotationUtils {
      */
     public static boolean hasAnnotation(@Nullable final List<AnnotationNode> annotations, final Class<?> annotationClass) {
         return findAnnotation(annotations, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a list of annotations has an annotation.
+     *
+     * @param annotations          The list of annotations to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the list of annotations has the annotation
+     */
+    public static boolean hasAnnotation(@Nullable final List<AnnotationNode> annotations, final String annotationDescriptor) {
+        return findAnnotation(annotations, annotationDescriptor).isPresent();
     }
 
 }

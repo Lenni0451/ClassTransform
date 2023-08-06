@@ -89,18 +89,11 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     /**
-     * Check if the given list of annotation nodes contains an annotation of the given type.
-     *
-     * @param nodes The list of annotation nodes
-     * @param desc  The descriptor of the annotation
-     * @return If the list contains the annotation
+     * <b>Use {@link AnnotationUtils#hasAnnotation(List, String)}</b>
      */
+    @Deprecated
     public static boolean hasAnnotation(@Nullable final List<AnnotationNode> nodes, final String desc) {
-        if (nodes == null) return false;
-        for (AnnotationNode annotation : nodes) {
-            if (annotation.desc.equals(desc)) return true;
-        }
-        return false;
+        return AnnotationUtils.hasAnnotation(nodes, desc);
     }
 
 
