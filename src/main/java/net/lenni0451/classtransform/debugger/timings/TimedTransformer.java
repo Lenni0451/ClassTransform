@@ -30,4 +30,6 @@ public class TimedTransformer {
         return this.name;
     }
 
+    // Do not add a hashCode() method here, this class needs to be a unique key in a map
+
 }
