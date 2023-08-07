@@ -282,8 +282,11 @@ public class TransformerManager implements ClassFileTransformer {
      * @return A set of all transformed classes
      * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation and {@code requireAnnotation} is {@code true}
      */
-    public Set<String> addTransformer(final ClassNode classNode, final boolean requireAnnotation) {
-        for (IAnnotationHandlerPreprocessor preprocessor : this.annotationHandlerPreprocessor) preprocessor.process(classNode);
+    public Set<String> addTransformer(ClassNode classNode, final boolean requireAnnotation) {
+        for (IAnnotationHandlerPreprocessor preprocessor : this.annotationHandlerPreprocessor) {
+            preprocessor.process(classNode);
+            classNode = preprocessor.replace(classNode);
+        }
         Optional<AnnotationNode> opt = AnnotationUtils.findInvisibleAnnotation(classNode, CTransformer.class);
         if (!opt.isPresent()) {
             if (requireAnnotation) throw new IllegalStateException("Transformer does not have CTransformer annotation");

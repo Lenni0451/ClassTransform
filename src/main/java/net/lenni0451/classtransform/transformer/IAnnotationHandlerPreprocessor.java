@@ -19,4 +19,15 @@ public interface IAnnotationHandlerPreprocessor {
      */
     void process(final ClassNode node);
 
+    /**
+     * Process a transformer before it is read.<br>
+     * You can modify the class transform annotations before parsing.
+     *
+     * @param node The class node of the transformer
+     * @return The modified class node
+     */
+    default ClassNode replace(final ClassNode node) {
+        return node;
+    }
+
 }
