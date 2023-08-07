@@ -98,6 +98,14 @@ class InfoFiller {
                     names.add(methodNode.name + methodNode.desc);
                 }
             }
+        } else {
+            MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
+            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
+                if (!target.name.equals(fullDeclaration.getOwner())) {
+                    throw new IllegalArgumentException("The owner of the method '" + current + "' does not match the target class '" + target.name + "'");
+                }
+                current = fullDeclaration.getName() + fullDeclaration.getDesc();
+            }
         }
         if (names.isEmpty()) { //If no names have been found, get all methods from the current name and descriptor and add those
             List<MethodNode> methods = ASMUtils.getMethodsFromCombi(target, current);
@@ -147,6 +155,14 @@ class InfoFiller {
                     if (fieldNode == null) throw new FieldNotFoundException(target, transformer, mappedFieldName + ":" + mappedDescriptor);
                     names.add(fieldNode.name + ":" + fieldNode.desc);
                 }
+            }
+        } else {
+            MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
+            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
+                if (!target.name.equals(fullDeclaration.getOwner())) {
+                    throw new IllegalArgumentException("The owner of the field '" + current + "' does not match the target class '" + target.name + "'");
+                }
+                current = fullDeclaration.getName() + fullDeclaration.getDesc();
             }
         }
         if (names.isEmpty()) { //If no names have been found, get all fields from the current name and descriptor and add those
