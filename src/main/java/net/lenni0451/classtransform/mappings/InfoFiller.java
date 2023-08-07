@@ -69,7 +69,7 @@ class InfoFiller {
             if (originalTarget == null) originalTarget = target.name;
 
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) {
+            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
                 if (!originalTarget.equals(fullDeclaration.getOwner())) {
                     throw new IllegalArgumentException("The owner of the method '" + current + "' does not match the target class '" + originalTarget + "'");
                 }
@@ -119,7 +119,7 @@ class InfoFiller {
             if (originalTarget == null) originalTarget = target.name;
 
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) {
+            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
                 if (!originalTarget.equals(fullDeclaration.getOwner())) {
                     throw new IllegalArgumentException("The owner of the field '" + current + "' does not match the target class '" + originalTarget + "'");
                 }
