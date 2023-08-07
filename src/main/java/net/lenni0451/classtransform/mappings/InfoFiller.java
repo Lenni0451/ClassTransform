@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.FillType;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.MemberDeclaration;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -67,6 +68,13 @@ class InfoFiller {
             String originalTarget = remapper.reverse().map(target.name);
             if (originalTarget == null) originalTarget = target.name;
 
+            MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
+            if (fullDeclaration != null) {
+                if (!originalTarget.equals(fullDeclaration.getOwner())) {
+                    throw new IllegalArgumentException("The owner of the method '" + current + "' does not match the target class '" + originalTarget + "'");
+                }
+                current = fullDeclaration.getName() + fullDeclaration.getDesc();
+            }
             if (current.contains("(")) { //If a descriptor is available, remap the method name and descriptor
                 String unmappedMethodName = current.substring(0, current.indexOf('('));
                 String unmappedMethodDesc = current.substring(current.indexOf('('));
@@ -110,6 +118,13 @@ class InfoFiller {
             String originalTarget = remapper.reverse().map(target.name);
             if (originalTarget == null) originalTarget = target.name;
 
+            MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
+            if (fullDeclaration != null) {
+                if (!originalTarget.equals(fullDeclaration.getOwner())) {
+                    throw new IllegalArgumentException("The owner of the field '" + current + "' does not match the target class '" + originalTarget + "'");
+                }
+                current = fullDeclaration.getName() + fullDeclaration.getDesc();
+            }
             if (current.contains(":")) { //If a descriptor is available, remap the field name and descriptor
                 String unmappedName = current.substring(0, current.indexOf(':'));
                 String unmappedDescriptor = current.substring(current.indexOf(":") + 1);
