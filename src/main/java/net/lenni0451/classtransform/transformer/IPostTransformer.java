@@ -6,6 +6,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * A handler for all transformed classes after they are transformed.
  */
 @ParametersAreNonnullByDefault
+@FunctionalInterface
 public interface IPostTransformer {
 
     /**

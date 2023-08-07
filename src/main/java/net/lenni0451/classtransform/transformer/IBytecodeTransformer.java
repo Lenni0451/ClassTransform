@@ -7,6 +7,7 @@ import java.lang.instrument.ClassFileTransformer;
  * A bytecode transformer like {@link ClassFileTransformer}.
  */
 @ParametersAreNonnullByDefault
+@FunctionalInterface
 public interface IBytecodeTransformer {
 
     /**

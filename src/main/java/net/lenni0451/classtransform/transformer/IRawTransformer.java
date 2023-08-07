@@ -9,6 +9,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * A transformer which has access to the parsed class node of the transformed class.
  */
 @ParametersAreNonnullByDefault
+@FunctionalInterface
 public interface IRawTransformer {
 
     /**

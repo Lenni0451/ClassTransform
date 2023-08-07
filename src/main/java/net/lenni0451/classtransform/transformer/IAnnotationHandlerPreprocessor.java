@@ -9,6 +9,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * This is used to modify the transformer class before it is parsed.
  */
 @ParametersAreNonnullByDefault
+@FunctionalInterface
 public interface IAnnotationHandlerPreprocessor {
 
     /**
