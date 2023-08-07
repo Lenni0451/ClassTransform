@@ -65,8 +65,7 @@ class InfoFiller {
             current = methodNode.name + methodNode.desc;
         }
         if (!remapper.isEmpty()) { //Remap the current name if mappings are available
-            String originalTarget = remapper.reverse().map(target.name);
-            if (originalTarget == null) originalTarget = target.name;
+            String originalTarget = remapper.reverse().mapSafe(target.name);
 
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
             if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
@@ -115,8 +114,7 @@ class InfoFiller {
             current = fieldNode.name + ":" + fieldNode.desc;
         }
         if (!remapper.isEmpty()) { //Remap the current name if mappings are available
-            String originalTarget = remapper.reverse().map(target.name);
-            if (originalTarget == null) originalTarget = target.name;
+            String originalTarget = remapper.reverse().mapSafe(target.name);
 
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
             if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
