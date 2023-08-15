@@ -56,7 +56,7 @@ public class InjectionCallback {
     @Nullable
     public Object getReturnValue() {
         if (!this.returnValueSet) throw new IllegalStateException("Return value not set");
-        return returnValue;
+        return this.returnValue;
     }
 
     /**

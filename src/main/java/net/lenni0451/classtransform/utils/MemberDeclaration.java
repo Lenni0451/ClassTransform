@@ -53,12 +53,12 @@ public class MemberDeclaration {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MemberDeclaration that = (MemberDeclaration) o;
-        return Objects.equals(owner, that.owner) && Objects.equals(name, that.name) && Objects.equals(desc, that.desc);
+        return Objects.equals(this.owner, that.owner) && Objects.equals(this.name, that.name) && Objects.equals(this.desc, that.desc);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(owner, name, desc);
+        return Objects.hash(this.owner, this.name, this.desc);
     }
 
 

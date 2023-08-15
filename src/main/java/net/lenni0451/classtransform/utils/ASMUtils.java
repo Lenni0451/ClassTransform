@@ -43,7 +43,7 @@ public class ASMUtils {
     }
 
     /**
-     * Get the bytecode from a class node
+     * Get the bytecode from a class node.
      *
      * @param node          The class node
      * @param classTree     The class tree used to get the super classes
@@ -57,7 +57,7 @@ public class ASMUtils {
     }
 
     /**
-     * Get the bytecode from a class node without calculating stack map frames
+     * Get the bytecode from a class node without calculating stack map frames.
      *
      * @param node The class node
      * @return The bytecode of the class

@@ -406,7 +406,7 @@ public class TransformerManager implements ClassFileTransformer {
                     timings.start(TimedGroup.REMAPPER, classNode.name);
                     try {
                         classNode = ASMUtils.cloneClass(classNode);
-                        classNode = this.mapper.mapClass(classTree, this.classProvider, clazz, classNode);
+                        classNode = this.mapper.mapClass(this.classTree, this.classProvider, clazz, classNode);
                     } catch (Throwable t) {
                         Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;

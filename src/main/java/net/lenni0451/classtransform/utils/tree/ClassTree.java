@@ -52,7 +52,7 @@ public class ClassTree {
             do {
                 oldSize = part.superClasses.size();
                 for (String superClass : part.superClasses.toArray(new String[0])) {
-                    TreePart superTree = getTreePart(classProvider, superClass);
+                    TreePart superTree = this.getTreePart(classProvider, superClass);
                     if (superTree != null) part.superClasses.addAll(superTree.superClasses);
                 }
             } while (oldSize != part.superClasses.size());
@@ -145,12 +145,12 @@ public class ClassTree {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             TreePart treePart = (TreePart) o;
-            return Objects.equals(name, treePart.name);
+            return Objects.equals(this.name, treePart.name);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name);
+            return Objects.hash(this.name);
         }
 
     }

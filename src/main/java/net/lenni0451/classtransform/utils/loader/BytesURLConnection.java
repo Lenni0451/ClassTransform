@@ -24,7 +24,7 @@ class BytesURLConnection extends URLConnection {
 
     @Override
     public InputStream getInputStream() {
-        return new ByteArrayInputStream(data);
+        return new ByteArrayInputStream(this.data);
     }
 
 }

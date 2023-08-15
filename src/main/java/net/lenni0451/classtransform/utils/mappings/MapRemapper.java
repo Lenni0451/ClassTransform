@@ -185,29 +185,29 @@ public class MapRemapper extends Remapper {
     @Override
     @Nonnull
     public String mapMethodName(final String owner, final String name, final String descriptor) {
-        String remappedName = map(owner + '.' + name + descriptor);
+        String remappedName = this.map(owner + '.' + name + descriptor);
         return remappedName == null ? name : remappedName;
     }
 
     @Override
     @Nonnull
     public String mapInvokeDynamicMethodName(final String name, final String descriptor) {
-        String remappedName = map('.' + name + descriptor);
+        String remappedName = this.map('.' + name + descriptor);
         return remappedName == null ? name : remappedName;
     }
 
     @Override
     @Nonnull
     public String mapAnnotationAttributeName(final String descriptor, final String name) {
-        String remappedName = map(descriptor + '.' + name);
+        String remappedName = this.map(descriptor + '.' + name);
         return remappedName == null ? name : remappedName;
     }
 
     @Override
     @Nonnull
     public String mapFieldName(final String owner, final String name, final String descriptor) {
-        String remappedName = map(owner + '.' + name + ':' + descriptor);
-        if (remappedName == null) remappedName = map(owner + '.' + name + ":");
+        String remappedName = this.map(owner + '.' + name + ':' + descriptor);
+        if (remappedName == null) remappedName = this.map(owner + '.' + name + ":");
         return remappedName == null ? name : remappedName;
     }
 

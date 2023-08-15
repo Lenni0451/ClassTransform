@@ -72,9 +72,6 @@ public class StringParser {
 
     private static AbstractInsnNode read(final Map<String, LabelNode> labels, final int opcode, final StringReader reader) {
         switch (opcode) {
-            default:
-                return new InsnNode(opcode);
-
             case Opcodes.BIPUSH:
             case Opcodes.SIPUSH:
             case Opcodes.NEWARRAY:
@@ -168,6 +165,9 @@ public class StringParser {
 
             case Opcodes.MULTIANEWARRAY:
                 return new MultiANewArrayInsnNode(reader.readString(), reader.readInt());
+
+            default:
+                return new InsnNode(opcode);
         }
     }
 

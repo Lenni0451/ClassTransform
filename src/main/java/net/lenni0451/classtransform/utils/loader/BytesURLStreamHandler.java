@@ -17,7 +17,7 @@ class BytesURLStreamHandler extends URLStreamHandler {
 
     @Override
     protected URLConnection openConnection(final URL url) {
-        return new BytesURLConnection(url, bytes);
+        return new BytesURLConnection(url, this.bytes);
     }
 
 }

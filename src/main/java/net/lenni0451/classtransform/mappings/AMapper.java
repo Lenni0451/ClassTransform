@@ -184,13 +184,13 @@ public abstract class AMapper {
             } else {
                 if (value instanceof String) {
                     String s = (String) value;
-                    values.put(method.getName(), remap(remap.value(), s));
+                    values.put(method.getName(), this.remap(remap.value(), s));
                 } else if (value instanceof String[]) {
                     String[] strings = (String[]) value;
-                    for (int i = 0; i < strings.length; i++) strings[i] = remap(remap.value(), strings[i]);
+                    for (int i = 0; i < strings.length; i++) strings[i] = this.remap(remap.value(), strings[i]);
                 } else if (value instanceof List) {
                     List<String> list = (List<String>) value;
-                    list.replaceAll(s -> remap(remap.value(), s));
+                    list.replaceAll(s -> this.remap(remap.value(), s));
                 }
             }
         }

@@ -88,7 +88,7 @@ public class ClassDefiner<T> {
      * @return The defined class
      */
     public Class<?> getClazz() {
-        return clazz;
+        return this.clazz;
     }
 
     /**
@@ -134,7 +134,7 @@ public class ClassDefiner<T> {
      */
     public T newInstance(final Class<?>[] types, final Object[] values) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (types.length != values.length) throw new IllegalArgumentException("Types and values must be of the same length");
-        Constructor<T> constructor = clazz.getDeclaredConstructor(types);
+        Constructor<T> constructor = this.clazz.getDeclaredConstructor(types);
         constructor.setAccessible(true);
         return constructor.newInstance(values);
     }

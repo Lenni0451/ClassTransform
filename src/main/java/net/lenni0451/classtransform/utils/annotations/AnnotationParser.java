@@ -89,7 +89,7 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     /**
-     * <b>Use {@link AnnotationUtils#hasAnnotation(List, String)}</b>
+     * <b>Use {@link AnnotationUtils#hasAnnotation(List, String)}.</b>
      */
     @Deprecated
     public static boolean hasAnnotation(@Nullable final List<AnnotationNode> nodes, final String desc) {
@@ -123,8 +123,8 @@ public class AnnotationParser<T extends Annotation> {
         this.declareMethods();
 
         try {
-            return ClassDefiner.
-                    <T>defineAnonymousClass(ASMUtils.toBytes(this.node, this.classTree, this.classProvider))
+            return ClassDefiner
+                    .<T>defineAnonymousClass(ASMUtils.toBytes(this.node, this.classTree, this.classProvider))
                     .newInstance(new Class[]{ClassTree.class, IClassProvider.class, Map.class}, new Object[]{this.classTree, this.classProvider, this.values});
         } catch (Throwable t) {
             throw new IllegalStateException("Failed to create instance of '" + this.type.getName() + "'", t);
@@ -299,7 +299,7 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     private void visitClass(final MethodVisitor methodVisitor, final Object value) {
-        if (value instanceof Class<?> || value instanceof Type) visitType(methodVisitor, value);
+        if (value instanceof Class<?> || value instanceof Type) this.visitType(methodVisitor, value);
         else throw new IllegalArgumentException("Unexpected value class for type 'Class': " + value.getClass());
     }
 

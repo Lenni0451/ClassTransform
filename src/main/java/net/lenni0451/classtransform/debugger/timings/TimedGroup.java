@@ -10,7 +10,7 @@ public enum TimedGroup {
     ANNOTATION_HANDLER,
     POST_TRANSFORMER,
     /**
-     * Not really a transformer but still timed
+     * Not really a transformer but still timed.
      */
     REMAPPER
 

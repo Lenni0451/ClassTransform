@@ -190,7 +190,7 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
 
         @CRedirect(method = "setPi", target = @CTarget(value = "PUTFIELD", target = "Lnet/lenni0451/classtransform/test/VCalculator;pi:D"))
         public void setPi(final VCalculator vCalculator, final double pii) {
-            pi = 3.21;
+            this.pi = 3.21;
         }
 
     }
