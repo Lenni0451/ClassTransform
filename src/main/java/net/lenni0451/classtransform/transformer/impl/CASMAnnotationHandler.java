@@ -47,13 +47,13 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
         Type[] args = argumentTypes(transformerMethod.desc);
         Type returnType = returnType(transformerMethod.desc);
         if (!returnType.equals(Type.VOID_TYPE)) {
-            throw new TransformerException(transformerMethod, transformer, "must be a void method")
+            throw new TransformerException(transformerMethod, transformer, "must return 'void'")
                     .help(Codifier.of(transformerMethod).returnType(Type.VOID_TYPE));
         }
         if (annotation.value().length == 0) {
             if (args.length != 1 || !type(ClassNode.class).equals(args[0])) {
                 throw new TransformerException(transformerMethod, transformer, "must have one argument (ClassNode)")
-                        .help(Codifier.of(transformerMethod).param(null).param(type(ClassNode.class)));
+                        .help(Codifier.of(transformerMethod).params(null, type(ClassNode.class)));
             }
 
             ClassDefiner<?> classDefiner = this.isolateMethod(transformer, transformerMethod);
@@ -68,7 +68,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
         } else {
             if (args.length != 1 || !type(MethodNode.class).equals(args[0])) {
                 throw new TransformerException(transformerMethod, transformer, "must have one argument (MethodNode)")
-                        .help(Codifier.of(transformerMethod).param(null).param(type(MethodNode.class)));
+                        .help(Codifier.of(transformerMethod).params(null, type(MethodNode.class)));
             }
 
             ClassDefiner<?> classDefiner = this.isolateMethod(transformer, transformerMethod);

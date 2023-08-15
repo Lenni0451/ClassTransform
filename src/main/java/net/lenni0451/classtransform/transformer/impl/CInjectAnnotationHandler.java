@@ -91,7 +91,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
             }
         }
         if (!returnType(transformerMethod.desc).equals(Type.VOID_TYPE)) {
-            throw new TransformerException(transformerMethod, transformer, "must have void return type")
+            throw new TransformerException(transformerMethod, transformer, "must return 'void'")
                     .help(Codifier.of(target).returnType(Type.VOID_TYPE));
         }
 
