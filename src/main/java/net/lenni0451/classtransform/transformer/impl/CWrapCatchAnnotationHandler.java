@@ -85,11 +85,11 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
 
                 InsnList insertAfter = new InsnList();
                 LabelNode start = new LabelNode();
-                LabelNode end_handler = new LabelNode();
+                LabelNode endHandler = new LabelNode();
                 LabelNode jumpAfter = new LabelNode();
                 target.instructions.insertBefore(instruction, start);
                 insertAfter.add(new JumpInsnNode(Opcodes.GOTO, jumpAfter));
-                insertAfter.add(end_handler);
+                insertAfter.add(endHandler);
                 if (Modifier.isStatic(target.access)) {
                     insertAfter.add(new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access)));
                 } else {
@@ -102,7 +102,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
                 insertAfter.add(jumpAfter);
                 target.instructions.insert(instruction, insertAfter);
 
-                target.tryCatchBlocks.add(new TryCatchBlockNode(start, end_handler, end_handler, exceptionType.getInternalName()));
+                target.tryCatchBlocks.add(new TryCatchBlockNode(start, endHandler, endHandler, exceptionType.getInternalName()));
             }
         }
     }
