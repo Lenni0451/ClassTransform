@@ -33,15 +33,13 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
     @Override
     public void transform(CWrapCatch annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
-            boolean isStatic = Modifier.isStatic(target.access);
-            throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
-                    .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
         Type[] args = argumentTypes(transformerMethod.desc);
         Type returnType = returnType(transformerMethod.desc);
         if (args.length != 1) {
             throw new TransformerException(transformerMethod, transformer, "must have one argument (Exception to catch)")
-                    .help(Codifier.of(transformerMethod).param(null).param(type(Exception.class)));
+                    .help(Codifier.of(transformerMethod).params(null, type(Exception.class)));
         }
         if (annotation.target().isEmpty()) {
             Type targetReturnType = returnType(target.desc);

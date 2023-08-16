@@ -5,7 +5,6 @@ import net.lenni0451.classtransform.annotations.injection.COverride;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -28,16 +27,13 @@ public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<
     @Override
     public void transform(COverride annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
-            boolean isStatic = Modifier.isStatic(target.access);
-            throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
-                    .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
         if (!ASMUtils.compareTypes(argumentTypes(target.desc), argumentTypes(transformerMethod.desc))) {
-            throw new TransformerException(transformerMethod, transformer, "must have the same arguments as the target method")
-                    .help(Codifier.of(target));
+            throw TransformerException.wrongArguments(transformerMethod, transformer, argumentTypes(target.desc));
         }
         if (ASMUtils.isAccessLower(transformerMethod.access, target.access)) {
-            throw new TransformerException(transformerMethod, transformer, "must be higher/equal to original method");
+            throw new TransformerException(transformerMethod, transformer, "must have higher/equal access than original method");
         }
         transformerMethod.name = target.name;
         transformerMethod.desc = target.desc;

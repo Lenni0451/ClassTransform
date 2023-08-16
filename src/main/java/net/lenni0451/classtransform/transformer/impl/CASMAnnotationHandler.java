@@ -6,7 +6,6 @@ import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.types.RemovingAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.ClassDefiner;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import org.objectweb.asm.Handle;
@@ -40,21 +39,12 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
 
     @Override
     public void transform(CASM annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
-        if (!Modifier.isStatic(transformerMethod.access)) {
-            throw new TransformerException(transformerMethod, transformer, "must be static")
-                    .help(Codifier.of(transformerMethod).access(transformerMethod.access | Modifier.STATIC));
-        }
+        if (!Modifier.isStatic(transformerMethod.access)) throw TransformerException.wrongStaticAccess(transformerMethod, transformer, true);
         Type[] args = argumentTypes(transformerMethod.desc);
         Type returnType = returnType(transformerMethod.desc);
-        if (!returnType.equals(Type.VOID_TYPE)) {
-            throw new TransformerException(transformerMethod, transformer, "must return 'void'")
-                    .help(Codifier.of(transformerMethod).returnType(Type.VOID_TYPE));
-        }
+        if (!returnType.equals(Type.VOID_TYPE)) throw TransformerException.mustReturnVoid(transformerMethod, transformer);
         if (annotation.value().length == 0) {
-            if (args.length != 1 || !type(ClassNode.class).equals(args[0])) {
-                throw new TransformerException(transformerMethod, transformer, "must have one argument (ClassNode)")
-                        .help(Codifier.of(transformerMethod).params(null, type(ClassNode.class)));
-            }
+            if (args.length != 1 || !type(ClassNode.class).equals(args[0])) throw TransformerException.wrongArguments(transformerMethod, transformer, ClassNode.class);
 
             ClassDefiner<?> classDefiner = this.isolateMethod(transformer, transformerMethod);
             try {
@@ -63,13 +53,10 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                 isolatedMethod.setAccessible(true);
                 isolatedMethod.invoke(instance, transformedClass);
             } catch (Throwable t) {
-                throw new IllegalStateException("Failed to call isolated method '" + transformerMethod.name + "' of transformer '" + transformer.name + "'", t);
+                throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (ClassNode)");
             }
         } else {
-            if (args.length != 1 || !type(MethodNode.class).equals(args[0])) {
-                throw new TransformerException(transformerMethod, transformer, "must have one argument (MethodNode)")
-                        .help(Codifier.of(transformerMethod).params(null, type(MethodNode.class)));
-            }
+            if (args.length != 1 || !type(MethodNode.class).equals(args[0])) throw TransformerException.wrongArguments(transformerMethod, transformer, MethodNode.class);
 
             ClassDefiner<?> classDefiner = this.isolateMethod(transformer, transformerMethod);
             for (String targetCombi : annotation.value()) {
@@ -82,7 +69,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                         isolatedMethod.setAccessible(true);
                         isolatedMethod.invoke(instance, target);
                     } catch (Throwable t) {
-                        throw new IllegalStateException("Failed to call isolated method '" + transformerMethod.name + "' of transformer '" + transformer.name + "'", t);
+                        throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (MethodNode)");
                     }
                 }
             }

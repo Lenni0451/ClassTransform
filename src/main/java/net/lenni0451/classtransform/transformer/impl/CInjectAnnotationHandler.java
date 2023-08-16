@@ -46,9 +46,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
         boolean hasCallback;
         List<CLocalVariable> localVariables = new ArrayList<>();
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
-            boolean isStatic = Modifier.isStatic(target.access);
-            throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
-                    .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
         {
             Type[] arguments = argumentTypes(transformerMethod.desc);
@@ -90,10 +88,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
                         .help(Codifier.of(target).param(type(InjectionCallback.class)));
             }
         }
-        if (!returnType(transformerMethod.desc).equals(Type.VOID_TYPE)) {
-            throw new TransformerException(transformerMethod, transformer, "must return 'void'")
-                    .help(Codifier.of(target).returnType(Type.VOID_TYPE));
-        }
+        if (!returnType(transformerMethod.desc).equals(Type.VOID_TYPE)) throw TransformerException.mustReturnVoid(transformerMethod, transformer);
 
         this.copyBackLocalVars(transformerMethod, localVariables);
         this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CInject");

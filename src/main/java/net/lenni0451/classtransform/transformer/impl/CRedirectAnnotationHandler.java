@@ -10,7 +10,6 @@ import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectNew;
 import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
-import net.lenni0451.classtransform.utils.Codifier;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -50,9 +49,7 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
         }
 
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
-            boolean isStatic = Modifier.isStatic(target.access);
-            throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
-                    .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
 
         List<AbstractInsnNode> injectionInstructions = iInjectionTarget.getTargets(injectionTargets, target, annotation.target(), annotation.slice());

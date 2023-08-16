@@ -58,9 +58,7 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
         else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
 
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
-            boolean isStatic = Modifier.isStatic(target.access);
-            throw new TransformerException(transformerMethod, transformer, "must " + (isStatic ? "" : "not ") + "be static")
-                    .help(Codifier.of(transformerMethod).access(isStatic ? transformerMethod.access | Modifier.STATIC : transformerMethod.access & ~Modifier.STATIC));
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
         Type[] transformerArguments = argumentTypes(transformerMethod.desc);
         if (constantType != null) {
