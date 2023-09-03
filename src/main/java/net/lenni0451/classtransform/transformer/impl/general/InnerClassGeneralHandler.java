@@ -65,15 +65,13 @@ public class InnerClassGeneralHandler extends AnnotationHandler {
 
     private void makeMethodsPublic(final ClassNode transformer) {
         for (MethodNode method : transformer.methods) {
-            if ((method.access & Opcodes.ACC_SYNTHETIC) != 0) {
-                method.access = ASMUtils.setAccess(method.access, Opcodes.ACC_PUBLIC);
-                method.access &= ~Opcodes.ACC_BRIDGE;
-                AnnotationUtils.findInvisibleAnnotation(method, CShadow.class).ifPresent(annotation -> {
-                    Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
-                    values.put("makePublic", true);
-                    annotation.values = AnnotationParser.mapToList(values);
-                });
-            }
+            method.access = ASMUtils.setAccess(method.access, Opcodes.ACC_PUBLIC);
+            method.access &= ~Opcodes.ACC_BRIDGE;
+            AnnotationUtils.findInvisibleAnnotation(method, CShadow.class).ifPresent(annotation -> {
+                Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
+                values.put("makePublic", true);
+                annotation.values = AnnotationParser.mapToList(values);
+            });
         }
     }
 
