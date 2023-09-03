@@ -7,7 +7,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
@@ -21,88 +21,152 @@ class AnnotationUtilsTest {
     private static final Class<Deprecated> DEPRECATED_CLASS = Deprecated.class;
     private static final String DEPRECATED_DESCRIPTOR = typeDescriptor(Deprecated.class);
 
-    private static List<AnnotationNode> annotations;
+    private static List<AnnotationNode> visibleAnnotations;
+    private static List<AnnotationNode> invisibleAnnotations;
     private static ClassNode classNode;
     private static FieldNode fieldNode;
     private static MethodNode methodNode;
 
     @BeforeAll
     static void setUp() {
-        annotations = new ArrayList<>();
-        annotations.add(new AnnotationNode(OVERRIDE_DESCRIPTOR));
+        visibleAnnotations = Collections.singletonList(new AnnotationNode(DEPRECATED_DESCRIPTOR));
+        invisibleAnnotations = Collections.singletonList(new AnnotationNode(OVERRIDE_DESCRIPTOR));
+
         classNode = new ClassNode();
-        classNode.visibleAnnotations = annotations;
-        classNode.invisibleAnnotations = annotations;
+        classNode.visibleAnnotations = visibleAnnotations;
+        classNode.invisibleAnnotations = invisibleAnnotations;
+
         fieldNode = new FieldNode(0, null, null, null, null);
-        fieldNode.visibleAnnotations = annotations;
-        fieldNode.invisibleAnnotations = annotations;
+        fieldNode.visibleAnnotations = visibleAnnotations;
+        fieldNode.invisibleAnnotations = invisibleAnnotations;
+
         methodNode = new MethodNode();
-        methodNode.visibleAnnotations = annotations;
-        methodNode.invisibleAnnotations = annotations;
+        methodNode.visibleAnnotations = visibleAnnotations;
+        methodNode.invisibleAnnotations = invisibleAnnotations;
     }
 
     @Test
-    void findInvisibleAnnotationInClass() {
+    void findAnnotationInClass() {
+        assertFalse(AnnotationUtils.findVisibleAnnotation(classNode, OVERRIDE_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findVisibleAnnotation(classNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findVisibleAnnotation(classNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findVisibleAnnotation(classNode, DEPRECATED_DESCRIPTOR).isPresent());
+
         assertTrue(AnnotationUtils.findInvisibleAnnotation(classNode, OVERRIDE_CLASS).isPresent());
         assertTrue(AnnotationUtils.findInvisibleAnnotation(classNode, OVERRIDE_DESCRIPTOR).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(classNode, DEPRECATED_CLASS).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(classNode, DEPRECATED_DESCRIPTOR).isPresent());
+
+        assertTrue(AnnotationUtils.findAnnotation(classNode, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(classNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(classNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(classNode, DEPRECATED_DESCRIPTOR).isPresent());
     }
 
     @Test
-    void findInvisibleAnnotationInField() {
+    void findAnnotationInField() {
+        assertFalse(AnnotationUtils.findVisibleAnnotation(fieldNode, OVERRIDE_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findVisibleAnnotation(fieldNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findVisibleAnnotation(fieldNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findVisibleAnnotation(fieldNode, DEPRECATED_DESCRIPTOR).isPresent());
+
         assertTrue(AnnotationUtils.findInvisibleAnnotation(fieldNode, OVERRIDE_CLASS).isPresent());
         assertTrue(AnnotationUtils.findInvisibleAnnotation(fieldNode, OVERRIDE_DESCRIPTOR).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(fieldNode, DEPRECATED_CLASS).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(fieldNode, DEPRECATED_DESCRIPTOR).isPresent());
+
+        assertTrue(AnnotationUtils.findAnnotation(fieldNode, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(fieldNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(fieldNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(fieldNode, DEPRECATED_DESCRIPTOR).isPresent());
     }
 
     @Test
-    void findInvisibleAnnotationInMethod() {
+    void findAnnotationInMethod() {
+        assertFalse(AnnotationUtils.findVisibleAnnotation(methodNode, OVERRIDE_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findVisibleAnnotation(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findVisibleAnnotation(methodNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findVisibleAnnotation(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
+
         assertTrue(AnnotationUtils.findInvisibleAnnotation(methodNode, OVERRIDE_CLASS).isPresent());
         assertTrue(AnnotationUtils.findInvisibleAnnotation(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(methodNode, DEPRECATED_CLASS).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
+
+        assertTrue(AnnotationUtils.findAnnotation(methodNode, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(methodNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
     }
 
     @Test
     void findAnnotation() {
-        assertTrue(AnnotationUtils.findAnnotation(annotations, OVERRIDE_CLASS).isPresent());
-        assertTrue(AnnotationUtils.findAnnotation(annotations, OVERRIDE_DESCRIPTOR).isPresent());
-        assertFalse(AnnotationUtils.findAnnotation(annotations, DEPRECATED_CLASS).isPresent());
-        assertFalse(AnnotationUtils.findAnnotation(annotations, DEPRECATED_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(invisibleAnnotations, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findAnnotation(invisibleAnnotations, OVERRIDE_DESCRIPTOR).isPresent());
+        assertFalse(AnnotationUtils.findAnnotation(invisibleAnnotations, DEPRECATED_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findAnnotation(invisibleAnnotations, DEPRECATED_DESCRIPTOR).isPresent());
     }
 
     @Test
-    void classHasInvisibleAnnotation() {
+    void classHasAnnotation() {
+        assertFalse(AnnotationUtils.hasVisibleAnnotation(classNode, OVERRIDE_CLASS));
+        assertFalse(AnnotationUtils.hasVisibleAnnotation(classNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasVisibleAnnotation(classNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasVisibleAnnotation(classNode, DEPRECATED_DESCRIPTOR));
+
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(classNode, OVERRIDE_CLASS));
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(classNode, OVERRIDE_DESCRIPTOR));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(classNode, DEPRECATED_CLASS));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(classNode, DEPRECATED_DESCRIPTOR));
+
+        assertTrue(AnnotationUtils.hasAnnotation(classNode, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(classNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasAnnotation(classNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(classNode, DEPRECATED_DESCRIPTOR));
     }
 
     @Test
-    void fieldHasInvisibleAnnotation() {
+    void fieldHasAnnotation() {
+        assertFalse(AnnotationUtils.hasVisibleAnnotation(fieldNode, OVERRIDE_CLASS));
+        assertFalse(AnnotationUtils.hasVisibleAnnotation(fieldNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasVisibleAnnotation(fieldNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasVisibleAnnotation(fieldNode, DEPRECATED_DESCRIPTOR));
+
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(fieldNode, OVERRIDE_CLASS));
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(fieldNode, OVERRIDE_DESCRIPTOR));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(fieldNode, DEPRECATED_CLASS));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(fieldNode, DEPRECATED_DESCRIPTOR));
+
+        assertTrue(AnnotationUtils.hasAnnotation(fieldNode, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(fieldNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasAnnotation(fieldNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(fieldNode, DEPRECATED_DESCRIPTOR));
     }
 
     @Test
-    void methodHasInvisibleAnnotation() {
+    void methodHasAnnotation() {
+        assertFalse(AnnotationUtils.hasVisibleAnnotation(methodNode, OVERRIDE_CLASS));
+        assertFalse(AnnotationUtils.hasVisibleAnnotation(methodNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasVisibleAnnotation(methodNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasVisibleAnnotation(methodNode, DEPRECATED_DESCRIPTOR));
+
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(methodNode, OVERRIDE_CLASS));
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(methodNode, OVERRIDE_DESCRIPTOR));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(methodNode, DEPRECATED_CLASS));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(methodNode, DEPRECATED_DESCRIPTOR));
+
+        assertTrue(AnnotationUtils.hasAnnotation(methodNode, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(methodNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasAnnotation(methodNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(methodNode, DEPRECATED_DESCRIPTOR));
     }
 
     @Test
     void hasAnnotation() {
-        assertTrue(AnnotationUtils.hasAnnotation(annotations, OVERRIDE_CLASS));
-        assertTrue(AnnotationUtils.hasAnnotation(annotations, OVERRIDE_DESCRIPTOR));
-        assertFalse(AnnotationUtils.hasAnnotation(annotations, DEPRECATED_CLASS));
-        assertFalse(AnnotationUtils.hasAnnotation(annotations, DEPRECATED_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasAnnotation(invisibleAnnotations, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasAnnotation(invisibleAnnotations, OVERRIDE_DESCRIPTOR));
+        assertFalse(AnnotationUtils.hasAnnotation(invisibleAnnotations, DEPRECATED_CLASS));
+        assertFalse(AnnotationUtils.hasAnnotation(invisibleAnnotations, DEPRECATED_DESCRIPTOR));
     }
 
 }

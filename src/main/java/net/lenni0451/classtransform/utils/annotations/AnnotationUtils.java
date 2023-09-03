@@ -16,6 +16,73 @@ import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 public class AnnotationUtils {
 
     /**
+     * Find a visible annotation in a {@link ClassNode}.
+     *
+     * @param classNode       The class node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findVisibleAnnotation(final ClassNode classNode, final Class<?> annotationClass) {
+        return findAnnotation(classNode.visibleAnnotations, annotationClass);
+    }
+
+    /**
+     * Find a visible annotation in a {@link ClassNode}.
+     *
+     * @param classNode            The class node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findVisibleAnnotation(final ClassNode classNode, final String annotationDescriptor) {
+        return findAnnotation(classNode.visibleAnnotations, annotationDescriptor);
+    }
+
+    /**
+     * Find a visible annotation in a {@link FieldNode}.
+     *
+     * @param fieldNode       The field node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findVisibleAnnotation(final FieldNode fieldNode, final Class<?> annotationClass) {
+        return findAnnotation(fieldNode.visibleAnnotations, annotationClass);
+    }
+
+    /**
+     * Find a visible annotation in a {@link FieldNode}.
+     *
+     * @param fieldNode            The field node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findVisibleAnnotation(final FieldNode fieldNode, final String annotationDescriptor) {
+        return findAnnotation(fieldNode.visibleAnnotations, annotationDescriptor);
+    }
+
+    /**
+     * Find a visible annotation in a {@link MethodNode}.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findVisibleAnnotation(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findAnnotation(methodNode.visibleAnnotations, annotationClass);
+    }
+
+    /**
+     * Find a visible annotation in a {@link MethodNode}.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findVisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
+        return findAnnotation(methodNode.visibleAnnotations, annotationDescriptor);
+    }
+
+
+    /**
      * Find an invisible annotation in a {@link ClassNode}.
      *
      * @param classNode       The class node to search in
@@ -81,6 +148,85 @@ public class AnnotationUtils {
         return findAnnotation(methodNode.invisibleAnnotations, annotationDescriptor);
     }
 
+
+    /**
+     * Find a visible or invisible annotation in a {@link ClassNode}.
+     *
+     * @param classNode       The class node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(final ClassNode classNode, final Class<?> annotationClass) {
+        Optional<AnnotationNode> annotationNode = findVisibleAnnotation(classNode, annotationClass);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleAnnotation(classNode, annotationClass);
+    }
+
+    /**
+     * Find a visible or invisible annotation in a {@link ClassNode}.
+     *
+     * @param classNode            The class node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(final ClassNode classNode, final String annotationDescriptor) {
+        Optional<AnnotationNode> annotationNode = findVisibleAnnotation(classNode, annotationDescriptor);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleAnnotation(classNode, annotationDescriptor);
+    }
+
+    /**
+     * Find a visible or invisible annotation in a {@link FieldNode}.
+     *
+     * @param fieldNode       The field node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(final FieldNode fieldNode, final Class<?> annotationClass) {
+        Optional<AnnotationNode> annotationNode = findVisibleAnnotation(fieldNode, annotationClass);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleAnnotation(fieldNode, annotationClass);
+    }
+
+    /**
+     * Find a visible or invisible annotation in a {@link FieldNode}.
+     *
+     * @param fieldNode            The field node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(final FieldNode fieldNode, final String annotationDescriptor) {
+        Optional<AnnotationNode> annotationNode = findVisibleAnnotation(fieldNode, annotationDescriptor);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleAnnotation(fieldNode, annotationDescriptor);
+    }
+
+    /**
+     * Find a visible or invisible annotation in a {@link MethodNode}.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(final MethodNode methodNode, final Class<?> annotationClass) {
+        Optional<AnnotationNode> annotationNode = findVisibleAnnotation(methodNode, annotationClass);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleAnnotation(methodNode, annotationClass);
+    }
+
+    /**
+     * Find a visible or invisible annotation in a {@link MethodNode}.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
+        Optional<AnnotationNode> annotationNode = findVisibleAnnotation(methodNode, annotationDescriptor);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleAnnotation(methodNode, annotationDescriptor);
+    }
+
     /**
      * Find an annotation in a list of annotations.
      *
@@ -106,6 +252,74 @@ public class AnnotationUtils {
         }
         return Optional.empty();
     }
+
+
+    /**
+     * Check if a {@link ClassNode} has a visible annotation.
+     *
+     * @param classNode       The class node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the class node has the annotation
+     */
+    public static boolean hasVisibleAnnotation(final ClassNode classNode, final Class<?> annotationClass) {
+        return findVisibleAnnotation(classNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link ClassNode} has a visible annotation.
+     *
+     * @param classNode            The class node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the class node has the annotation
+     */
+    public static boolean hasVisibleAnnotation(final ClassNode classNode, final String annotationDescriptor) {
+        return findVisibleAnnotation(classNode, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if a {@link FieldNode} has a visible annotation.
+     *
+     * @param fieldNode       The field node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the field node has the annotation
+     */
+    public static boolean hasVisibleAnnotation(final FieldNode fieldNode, final Class<?> annotationClass) {
+        return findVisibleAnnotation(fieldNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link FieldNode} has a visible annotation.
+     *
+     * @param fieldNode            The field node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the field node has the annotation
+     */
+    public static boolean hasVisibleAnnotation(final FieldNode fieldNode, final String annotationDescriptor) {
+        return findVisibleAnnotation(fieldNode, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has a visible annotation.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasVisibleAnnotation(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findVisibleAnnotation(methodNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has a visible annotation.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasVisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
+        return findVisibleAnnotation(methodNode, annotationDescriptor).isPresent();
+    }
+
 
     /**
      * Check if a {@link ClassNode} has an invisible annotation.
@@ -171,6 +385,73 @@ public class AnnotationUtils {
      */
     public static boolean hasInvisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
         return findInvisibleAnnotation(methodNode, annotationDescriptor).isPresent();
+    }
+
+
+    /**
+     * Check if a {@link ClassNode} has a visible or invisible annotation.
+     *
+     * @param classNode       The class node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the class node has the annotation
+     */
+    public static boolean hasAnnotation(final ClassNode classNode, final Class<?> annotationClass) {
+        return findAnnotation(classNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link ClassNode} has a visible or invisible annotation.
+     *
+     * @param classNode            The class node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the class node has the annotation
+     */
+    public static boolean hasAnnotation(final ClassNode classNode, final String annotationDescriptor) {
+        return findAnnotation(classNode, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if a {@link FieldNode} has a visible or invisible annotation.
+     *
+     * @param fieldNode       The field node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the field node has the annotation
+     */
+    public static boolean hasAnnotation(final FieldNode fieldNode, final Class<?> annotationClass) {
+        return findAnnotation(fieldNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link FieldNode} has a visible or invisible annotation.
+     *
+     * @param fieldNode            The field node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the field node has the annotation
+     */
+    public static boolean hasAnnotation(final FieldNode fieldNode, final String annotationDescriptor) {
+        return findAnnotation(fieldNode, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has a visible or invisible annotation.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasAnnotation(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findAnnotation(methodNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has a visible or invisible annotation.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
+        return findAnnotation(methodNode, annotationDescriptor).isPresent();
     }
 
     /**
