@@ -2,7 +2,9 @@ package net.lenni0451.classtransform.transformer.types;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
+import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -31,6 +33,14 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
     @Override
     public final void transform(T annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         for (String targetCombi : this.targetCombis.apply(annotation)) {
+            if (targetCombi.isEmpty()) throw new TransformerException(transformerMethod, transformer, "Target is empty");
+            if (targetCombi.matches(ASMUtils.METHOD_DECLARATION_PATTERN)) {
+                MemberDeclaration declaration = ASMUtils.splitMemberDeclaration(targetCombi);
+                if (declaration == null) throw new TransformerException(transformerMethod, transformer, "Target is not a valid method declaration");
+                if (!transformedClass.name.equals(declaration.getOwner())) continue;
+                targetCombi = declaration.getName() + declaration.getDesc();
+            }
+
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
             if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
             for (MethodNode target : targets) {

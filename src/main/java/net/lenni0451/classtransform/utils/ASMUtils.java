@@ -27,8 +27,8 @@ import static net.lenni0451.classtransform.utils.Types.*;
 @ParametersAreNonnullByDefault
 public class ASMUtils {
 
-    private static final String METHOD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
-    private static final String FIELD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+):(.+)$";
+    public static final String METHOD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
+    public static final String FIELD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+):(.+)$";
 
     /**
      * Get a class node from the raw bytecode of a class.

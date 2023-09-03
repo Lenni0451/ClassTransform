@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -68,10 +69,8 @@ class InfoFiller {
             String originalTarget = remapper.reverse().mapSafe(target.name);
 
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
-                if (!originalTarget.equals(fullDeclaration.getOwner())) {
-                    throw new IllegalArgumentException("The owner of the method '" + current + "' does not match the target class '" + originalTarget + "'");
-                }
+            if (fullDeclaration != null) {
+                if (!originalTarget.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
                 current = fullDeclaration.getName() + fullDeclaration.getDesc();
             }
             if (current.contains("(")) { //If a descriptor is available, remap the method name and descriptor
@@ -100,10 +99,8 @@ class InfoFiller {
             }
         } else {
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
-                if (!target.name.equals(fullDeclaration.getOwner())) {
-                    throw new IllegalArgumentException("The owner of the method '" + current + "' does not match the target class '" + target.name + "'");
-                }
+            if (fullDeclaration != null) {
+                if (!target.name.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
                 current = fullDeclaration.getName() + fullDeclaration.getDesc();
             }
         }
@@ -125,10 +122,8 @@ class InfoFiller {
             String originalTarget = remapper.reverse().mapSafe(target.name);
 
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
-                if (!originalTarget.equals(fullDeclaration.getOwner())) {
-                    throw new IllegalArgumentException("The owner of the field '" + current + "' does not match the target class '" + originalTarget + "'");
-                }
+            if (fullDeclaration != null) {
+                if (!originalTarget.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
                 current = fullDeclaration.getName() + fullDeclaration.getDesc();
             }
             if (current.contains(":")) { //If a descriptor is available, remap the field name and descriptor
@@ -158,10 +153,8 @@ class InfoFiller {
             }
         } else {
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) { //TODO: Add support for only targeting specific members when specifying multiple target classes
-                if (!target.name.equals(fullDeclaration.getOwner())) {
-                    throw new IllegalArgumentException("The owner of the field '" + current + "' does not match the target class '" + target.name + "'");
-                }
+            if (fullDeclaration != null) {
+                if (!target.name.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
                 current = fullDeclaration.getName() + fullDeclaration.getDesc();
             }
         }
