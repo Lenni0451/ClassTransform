@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.utils.annotations;
 
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
@@ -34,6 +35,28 @@ public class AnnotationUtils {
      */
     public static Optional<AnnotationNode> findInvisibleAnnotation(final ClassNode classNode, final String annotationDescriptor) {
         return findAnnotation(classNode.invisibleAnnotations, annotationDescriptor);
+    }
+
+    /**
+     * Find an invisible annotation in a {@link FieldNode}.
+     *
+     * @param fieldNode       The field node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findInvisibleAnnotation(final FieldNode fieldNode, final Class<?> annotationClass) {
+        return findAnnotation(fieldNode.invisibleAnnotations, annotationClass);
+    }
+
+    /**
+     * Find an invisible annotation in a {@link FieldNode}.
+     *
+     * @param fieldNode            The field node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotation if found
+     */
+    public static Optional<AnnotationNode> findInvisibleAnnotation(final FieldNode fieldNode, final String annotationDescriptor) {
+        return findAnnotation(fieldNode.invisibleAnnotations, annotationDescriptor);
     }
 
     /**
@@ -104,6 +127,28 @@ public class AnnotationUtils {
      */
     public static boolean hasInvisibleAnnotation(final ClassNode classNode, final String annotationDescriptor) {
         return findInvisibleAnnotation(classNode, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if a {@link FieldNode} has an invisible annotation.
+     *
+     * @param fieldNode       The field node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the field node has the annotation
+     */
+    public static boolean hasInvisibleAnnotation(final FieldNode fieldNode, final Class<?> annotationClass) {
+        return findInvisibleAnnotation(fieldNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link FieldNode} has an invisible annotation.
+     *
+     * @param fieldNode            The field node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the field node has the annotation
+     */
+    public static boolean hasInvisibleAnnotation(final FieldNode fieldNode, final String annotationDescriptor) {
+        return findInvisibleAnnotation(fieldNode, annotationDescriptor).isPresent();
     }
 
     /**

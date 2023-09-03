@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ class AnnotationUtilsTest {
 
     private static List<AnnotationNode> annotations;
     private static ClassNode classNode;
+    private static FieldNode fieldNode;
     private static MethodNode methodNode;
 
     @BeforeAll
@@ -31,6 +33,9 @@ class AnnotationUtilsTest {
         classNode = new ClassNode();
         classNode.visibleAnnotations = annotations;
         classNode.invisibleAnnotations = annotations;
+        fieldNode = new FieldNode(0, null, null, null, null);
+        fieldNode.visibleAnnotations = annotations;
+        fieldNode.invisibleAnnotations = annotations;
         methodNode = new MethodNode();
         methodNode.visibleAnnotations = annotations;
         methodNode.invisibleAnnotations = annotations;
@@ -42,6 +47,14 @@ class AnnotationUtilsTest {
         assertTrue(AnnotationUtils.findInvisibleAnnotation(classNode, OVERRIDE_DESCRIPTOR).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(classNode, DEPRECATED_CLASS).isPresent());
         assertFalse(AnnotationUtils.findInvisibleAnnotation(classNode, DEPRECATED_DESCRIPTOR).isPresent());
+    }
+
+    @Test
+    void findInvisibleAnnotationInField() {
+        assertTrue(AnnotationUtils.findInvisibleAnnotation(fieldNode, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findInvisibleAnnotation(fieldNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertFalse(AnnotationUtils.findInvisibleAnnotation(fieldNode, DEPRECATED_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findInvisibleAnnotation(fieldNode, DEPRECATED_DESCRIPTOR).isPresent());
     }
 
     @Test
@@ -66,6 +79,14 @@ class AnnotationUtilsTest {
         assertTrue(AnnotationUtils.hasInvisibleAnnotation(classNode, OVERRIDE_DESCRIPTOR));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(classNode, DEPRECATED_CLASS));
         assertFalse(AnnotationUtils.hasInvisibleAnnotation(classNode, DEPRECATED_DESCRIPTOR));
+    }
+
+    @Test
+    void fieldHasInvisibleAnnotation() {
+        assertTrue(AnnotationUtils.hasInvisibleAnnotation(fieldNode, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasInvisibleAnnotation(fieldNode, OVERRIDE_DESCRIPTOR));
+        assertFalse(AnnotationUtils.hasInvisibleAnnotation(fieldNode, DEPRECATED_CLASS));
+        assertFalse(AnnotationUtils.hasInvisibleAnnotation(fieldNode, DEPRECATED_DESCRIPTOR));
     }
 
     @Test
