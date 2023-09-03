@@ -8,6 +8,7 @@ import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -44,6 +45,7 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
             List<FieldNode> targets = ASMUtils.getFieldsFromCombi(target, annotation.value());
             if (targets.isEmpty()) throw new FieldNotFoundException(target, transformer, annotation.value());
             for (FieldNode targetField : targets) {
+                if (annotation.makePublic()) targetField.access = ASMUtils.setAccess(targetField.access, Opcodes.ACC_PUBLIC);
                 if (field.name.equals(targetField.name) && field.desc.equals(targetField.desc)) continue;
                 remapper.addFieldMapping(transformer.name, field.name, field.desc, targetField.name);
             }
@@ -61,6 +63,7 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(target, annotation.value());
             if (targets.isEmpty()) throw new MethodNotFoundException(target, transformer, annotation.value());
             for (MethodNode targetMethod : targets) {
+                if (annotation.makePublic()) targetMethod.access = ASMUtils.setAccess(targetMethod.access, Opcodes.ACC_PUBLIC);
                 if (method.name.equals(targetMethod.name) && method.desc.equals(targetMethod.desc)) continue;
                 remapper.addMethodMapping(transformer.name, method.name, method.desc, targetMethod.name);
             }

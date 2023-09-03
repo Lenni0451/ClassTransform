@@ -26,4 +26,11 @@ public @interface CShadow {
     @AnnotationRemap(RemapType.SHORT_MEMBER)
     String value() default "";
 
+    /**
+     * Make the shadow member public.
+     *
+     * @return If the shadow member should be public
+     */
+    boolean makePublic() default false;
+
 }
