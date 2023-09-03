@@ -27,7 +27,7 @@ public @interface CWrapCatch {
      *
      * @return The method name and descriptor
      */
-    @AnnotationRemap(RemapType.SHORT_MEMBER)
+    @AnnotationRemap(value = RemapType.SHORT_MEMBER, allowClassPrefix = true)
     String[] value();
 
     /**

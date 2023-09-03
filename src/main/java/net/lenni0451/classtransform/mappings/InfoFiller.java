@@ -35,7 +35,7 @@ class InfoFiller {
         if (method.getReturnType().equals(String.class)) {
             String current = (String) value;
             if (!remap.fill().equals(FillType.KEEP_EMPTY)) {
-                List<String> names = getNames(remapper, holder, current, target, transformer);
+                List<String> names = getNames(remapper, holder, remap, current, target, transformer);
                 if (names.size() != 1) throw new MethodNotFoundException(target, transformer, current);
                 values.put(method.getName(), names.get(0));
             }
@@ -43,23 +43,23 @@ class InfoFiller {
             List<String> current = (List<String>) value;
             if (current == null) current = new ArrayList<>();
             if (current.isEmpty()) {
-                if (!remap.fill().equals(FillType.KEEP_EMPTY)) current.addAll(getMethodNames(remapper, holder, null, target, transformer));
+                if (!remap.fill().equals(FillType.KEEP_EMPTY)) current.addAll(getMethodNames(remapper, holder, remap, null, target, transformer));
             } else {
                 List<String> newValues = new ArrayList<>();
-                for (String name : current) newValues.addAll(getNames(remapper, holder, name, target, transformer));
+                for (String name : current) newValues.addAll(getNames(remapper, holder, remap, name, target, transformer));
                 current = newValues;
             }
             values.put(method.getName(), current);
         }
     }
 
-    private static List<String> getNames(final MapRemapper remapper, final Object holder, final String current, final ClassNode target, final ClassNode transformer) {
-        if (holder instanceof MethodNode) return getMethodNames(remapper, holder, current, target, transformer);
-        else if (holder instanceof FieldNode) return getFieldNames(remapper, holder, current, target, transformer);
+    private static List<String> getNames(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, final String current, final ClassNode target, final ClassNode transformer) {
+        if (holder instanceof MethodNode) return getMethodNames(remapper, holder, remap, current, target, transformer);
+        else if (holder instanceof FieldNode) return getFieldNames(remapper, holder, remap, current, target, transformer);
         else throw new IllegalArgumentException("Unknown holder type '" + holder.getClass().getName() + "' from transformer '" + transformer.name + "'");
     }
 
-    private static List<String> getMethodNames(final MapRemapper remapper, final Object holder, @Nullable String current, final ClassNode target, final ClassNode transformer) {
+    private static List<String> getMethodNames(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, @Nullable String current, final ClassNode target, final ClassNode transformer) {
         List<String> names = new ArrayList<>();
         if (current == null) { //Copy the name and descriptor of the transformer method
             MethodNode methodNode = (MethodNode) holder;
@@ -68,10 +68,12 @@ class InfoFiller {
         if (!remapper.isEmpty()) { //Remap the current name if mappings are available
             String originalTarget = remapper.reverse().mapSafe(target.name);
 
-            MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) {
-                if (!originalTarget.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
-                current = fullDeclaration.getName() + fullDeclaration.getDesc();
+            if (remap.allowClassPrefix()) {
+                MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
+                if (fullDeclaration != null) {
+                    if (!originalTarget.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
+                    current = fullDeclaration.getName() + fullDeclaration.getDesc();
+                }
             }
             if (current.contains("(")) { //If a descriptor is available, remap the method name and descriptor
                 String unmappedMethodName = current.substring(0, current.indexOf('('));
@@ -97,7 +99,7 @@ class InfoFiller {
                     names.add(methodNode.name + methodNode.desc);
                 }
             }
-        } else {
+        } else if (remap.allowClassPrefix()) {
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
             if (fullDeclaration != null) {
                 if (!target.name.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
@@ -112,7 +114,7 @@ class InfoFiller {
         return names;
     }
 
-    private static List<String> getFieldNames(final MapRemapper remapper, final Object holder, @Nullable String current, final ClassNode target, final ClassNode transformer) {
+    private static List<String> getFieldNames(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, @Nullable String current, final ClassNode target, final ClassNode transformer) {
         List<String> names = new ArrayList<>();
         if (current == null) { //Copy the name of the transformer field
             FieldNode fieldNode = (FieldNode) holder;
@@ -121,10 +123,12 @@ class InfoFiller {
         if (!remapper.isEmpty()) { //Remap the current name if mappings are available
             String originalTarget = remapper.reverse().mapSafe(target.name);
 
-            MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
-            if (fullDeclaration != null) {
-                if (!originalTarget.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
-                current = fullDeclaration.getName() + fullDeclaration.getDesc();
+            if (remap.allowClassPrefix()) {
+                MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
+                if (fullDeclaration != null) {
+                    if (!originalTarget.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);
+                    current = fullDeclaration.getName() + fullDeclaration.getDesc();
+                }
             }
             if (current.contains(":")) { //If a descriptor is available, remap the field name and descriptor
                 String unmappedName = current.substring(0, current.indexOf(':'));
@@ -151,7 +155,7 @@ class InfoFiller {
                     names.add(fieldNode.name + ":" + fieldNode.desc);
                 }
             }
-        } else {
+        } else if (remap.allowClassPrefix()) {
             MemberDeclaration fullDeclaration = ASMUtils.splitMemberDeclaration(current);
             if (fullDeclaration != null) {
                 if (!target.name.equals(fullDeclaration.getOwner())) return Collections.singletonList(current);

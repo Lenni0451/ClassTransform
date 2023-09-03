@@ -31,4 +31,12 @@ public @interface AnnotationRemap {
      */
     FillType fill() default FillType.REPLACE;
 
+    /**
+     * Allow a class prefix to be added to <b>short members only</b>.<br>
+     * e.g. {@code "Ljava/lang/String;hashCode()I"} or {@code "java/lang/String.hashCode()I"}
+     *
+     * @return If a class prefix should be allowed
+     */
+    boolean allowClassPrefix() default false;
+
 }
