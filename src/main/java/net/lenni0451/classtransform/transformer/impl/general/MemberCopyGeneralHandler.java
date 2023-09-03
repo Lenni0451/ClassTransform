@@ -62,7 +62,7 @@ public class MemberCopyGeneralHandler extends AnnotationHandler {
     private void mergeMethods(final ClassNode transformedClass, final ClassNode transformer) {
         for (MethodNode method : transformer.methods) {
             if (method.name.startsWith("<")) continue;
-            if (AnnotationUtils.hasInvisibleAnnotation(method, CASM.class)) continue; //Special case for CASM bottom handler
+            if (AnnotationUtils.hasAnnotation(method, CASM.class)) continue; //Special case for CASM bottom handler
             if (ASMUtils.getMethod(transformedClass, method.name, method.desc) != null) {
                 throw new IllegalStateException("Method '" + method.name + method.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "' and does not override it");
             }

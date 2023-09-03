@@ -22,7 +22,7 @@ public class CInlineAnnotationHandler extends AnnotationHandler {
     public void transform(TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer) {
         List<MethodNode> methodsToInline = transformedClass.methods
                 .stream()
-                .filter(methodNode -> AnnotationUtils.findInvisibleAnnotation(methodNode, CInline.class).isPresent())
+                .filter(methodNode -> AnnotationUtils.hasAnnotation(methodNode, CInline.class))
                 .collect(Collectors.toList());
         for (MethodNode methodNode : methodsToInline) MethodInliner.wrappedInline(transformedClass, methodNode, transformedClass.name);
     }
