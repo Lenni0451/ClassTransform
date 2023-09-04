@@ -441,6 +441,9 @@ public class TransformerManager implements ClassFileTransformer {
                 timings.end();
             }
             return transformedBytecode;
+        } catch (Throwable t) {
+            Logger.error("Failed to transform class '{}'", name, t);
+            throw t;
         } finally {
             this.getDebugger().addTimings(name, timings.getTimings());
         }
