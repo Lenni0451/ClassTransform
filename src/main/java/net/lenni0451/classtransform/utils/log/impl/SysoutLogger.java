@@ -4,7 +4,6 @@ import net.lenni0451.classtransform.utils.log.ILogger;
 import net.lenni0451.classtransform.utils.log.Logger.MessageArgs;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,7 +13,6 @@ import static net.lenni0451.classtransform.utils.log.Logger.resolve;
 public class SysoutLogger implements ILogger {
 
     private static final Pattern ARG_PATTERN = Pattern.compile("\\{}");
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Override
     public void info(String message, Object... args) {
@@ -39,7 +37,6 @@ public class SysoutLogger implements ILogger {
 
     protected String format(final String level, final String message, final Object[] args) {
         StringBuffer builder = new StringBuffer();
-        builder.append("[").append(DATE_FORMAT.format(System.currentTimeMillis())).append("] ");
         builder.append("[").append(level).append("] ");
 
         Matcher matcher = ARG_PATTERN.matcher(message);
