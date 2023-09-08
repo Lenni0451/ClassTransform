@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -34,7 +35,8 @@ public class ClassTree {
      * @param className     The name of the class
      * @return The tree part
      */
-    public TreePart getTreePart(final IClassProvider classProvider, String className) {
+    @Nonnull
+    public TreePart getTreePart(final IClassProvider classProvider, String className) throws ClassNotFoundException {
         className = dot(className);
         synchronized (this.tree) {
             if (this.tree.containsKey(className)) return this.tree.get(className);
@@ -53,7 +55,7 @@ public class ClassTree {
                 oldSize = part.superClasses.size();
                 for (String superClass : part.superClasses.toArray(new String[0])) {
                     TreePart superTree = this.getTreePart(classProvider, superClass);
-                    if (superTree != null) part.superClasses.addAll(superTree.superClasses);
+                    part.superClasses.addAll(superTree.superClasses);
                 }
             } while (oldSize != part.superClasses.size());
 
@@ -106,7 +108,7 @@ public class ClassTree {
          * @return The class node of the super class
          */
         @Nullable
-        public TreePart parseSuperClass(final IClassProvider classProvider) {
+        public TreePart parseSuperClass(final IClassProvider classProvider) throws ClassNotFoundException {
             if (this.superClass == null) return null;
             return ClassTree.this.getTreePart(classProvider, this.superClass);
         }
@@ -126,7 +128,7 @@ public class ClassTree {
          * @param includeSelf   Add the current class to the set
          * @return A set of all super classes and their super classes including interfaces
          */
-        public Set<TreePart> getParsedSuperClasses(final IClassProvider classProvider, final boolean includeSelf) {
+        public Set<TreePart> getParsedSuperClasses(final IClassProvider classProvider, final boolean includeSelf) throws ClassNotFoundException {
             Set<TreePart> out = new HashSet<>();
             if (includeSelf) out.add(this);
             for (String superClass : this.superClasses) out.add(ClassTree.this.getTreePart(classProvider, superClass));

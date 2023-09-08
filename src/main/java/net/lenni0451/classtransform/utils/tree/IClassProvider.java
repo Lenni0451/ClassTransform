@@ -19,7 +19,7 @@ public interface IClassProvider {
      * @return The bytecode of the class
      */
     @Nonnull
-    byte[] getClass(final String name);
+    byte[] getClass(final String name) throws ClassNotFoundException;
 
     /**
      * Get a map of all classes with a supplier for their bytecode.<br>

@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.tree;
 
+import lombok.SneakyThrows;
 import org.objectweb.asm.ClassWriter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,13 +26,12 @@ public class TreeClassWriter extends ClassWriter {
     }
 
     @Override
+    @SneakyThrows
     protected String getCommonSuperClass(String type1, String type2) {
         if (type1.equals(IN_Object) || type2.equals(IN_Object)) return IN_Object;
 
         ClassTree.TreePart class1 = this.classTree.getTreePart(this.classProvider, type1);
-        if (class1 == null) throw new TypeNotPresentException(type1, new NullPointerException());
         ClassTree.TreePart class2 = this.classTree.getTreePart(this.classProvider, type2);
-        if (class2 == null) throw new TypeNotPresentException(type2, new NullPointerException());
 
         if (class2.getSuperClasses().contains(class1.getName())) {
             return type1;

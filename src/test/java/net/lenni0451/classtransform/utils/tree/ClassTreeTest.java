@@ -12,7 +12,7 @@ class ClassTreeTest {
 
     @Test
     @DisplayName("Check super classes")
-    public void checkSuperClasses() {
+    public void checkSuperClasses() throws ClassNotFoundException {
         ClassTree.TreePart tree = new ClassTree().getTreePart(new BasicClassProvider(), "java.lang.reflect.Method");
         Set<String> superClasses = tree.getSuperClasses();
         assertEquals(6, superClasses.size());

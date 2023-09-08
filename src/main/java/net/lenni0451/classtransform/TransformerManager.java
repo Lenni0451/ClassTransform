@@ -244,7 +244,11 @@ public class TransformerManager implements ClassFileTransformer {
                 }
             }
         } else {
-            classes.add(this.classProvider.getClass(transformer));
+            try {
+                classes.add(this.classProvider.getClass(transformer));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Failed to load transformer '" + transformer + "'", e);
+            }
         }
         for (byte[] bytecode : classes) {
             String name = null;

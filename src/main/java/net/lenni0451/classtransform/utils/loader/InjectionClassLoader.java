@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils.loader;
 
+import lombok.SneakyThrows;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 
@@ -262,6 +263,7 @@ public class InjectionClassLoader extends URLClassLoader {
      * @param classProvider The class provider to get the bytecode from
      * @param className     The name of the class to copy
      */
+    @SneakyThrows
     public void copyClass(final IClassProvider classProvider, final String className) {
         byte[] classBytes = classProvider.getClass(className);
         this.addRuntimeResource(slash(className) + ".class", classBytes);

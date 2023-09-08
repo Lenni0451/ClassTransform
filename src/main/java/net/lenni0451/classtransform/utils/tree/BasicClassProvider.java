@@ -5,6 +5,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
@@ -16,7 +17,7 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 @ParametersAreNonnullByDefault
 public class BasicClassProvider implements IClassProvider {
 
-    private final ClassLoader classLoader;
+    protected ClassLoader classLoader;
 
     public BasicClassProvider() {
         this(BasicClassProvider.class.getClassLoader());
@@ -28,29 +29,23 @@ public class BasicClassProvider implements IClassProvider {
 
     @Override
     @Nonnull
-    public byte[] getClass(String name) {
+    public byte[] getClass(String name) throws ClassNotFoundException {
         try (InputStream is = this.classLoader.getResourceAsStream(slash(name) + ".class")) {
-            if (is == null) throw new ClassNotFoundException(name);
+            Objects.requireNonNull(is, "Class input stream is null");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
             int len;
             while ((len = is.read(buf)) > 0) baos.write(buf, 0, len);
             return baos.toByteArray();
         } catch (Throwable t) {
-            this.sneak(t);
+            throw new ClassNotFoundException(name, t);
         }
-        throw new RuntimeException("Unable to find class '" + name + "'");
     }
 
     @Override
     @Nonnull
     public Map<String, Supplier<byte[]>> getAllClasses() {
         throw new UnsupportedOperationException("Not implemented");
-    }
-
-
-    private <T extends Throwable> void sneak(final Throwable t) throws T {
-        throw (T) t;
     }
 
 }

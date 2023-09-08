@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.transformer;
 
+import lombok.SneakyThrows;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
@@ -26,11 +27,12 @@ public abstract class AnnotationHandlerTest {
     protected ClassNode virtualCalculatorClass;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws ClassNotFoundException {
         this.staticCalculatorClass = ASMUtils.fromBytes(this.classProvider.getClass(SCalculator.class.getName()));
         this.virtualCalculatorClass = ASMUtils.fromBytes(this.classProvider.getClass(VCalculator.class.getName()));
     }
 
+    @SneakyThrows
     protected ClassNode getTransformerClass(final String name) {
         ClassNode transformer = ASMUtils.fromBytes(this.classProvider.getClass(name));
         List<Object> annotation = AnnotationUtils.findInvisibleAnnotation(transformer, CTransformer.class).map(a -> a.values).orElse(null);
