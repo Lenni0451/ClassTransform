@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static net.lenni0451.classtransform.utils.Sneaky.sneakySupply;
+
 @ParametersAreNonnullByDefault
 public class GuavaClassPathProvider extends BasicClassProvider {
 
@@ -32,7 +34,9 @@ public class GuavaClassPathProvider extends BasicClassProvider {
     @Nonnull
     public Map<String, Supplier<byte[]>> getAllClasses() {
         Map<String, Supplier<byte[]>> map = new HashMap<>();
-        for (ClassPath.ClassInfo classInfo : this.classPath.getAllClasses()) map.put(classInfo.getName(), () -> this.getClass(classInfo.getName()));
+        for (ClassPath.ClassInfo classInfo : this.classPath.getAllClasses()) {
+            map.put(classInfo.getName(), sneakySupply(() -> this.getClass(classInfo.getName())));
+        }
         return map;
     }
 
