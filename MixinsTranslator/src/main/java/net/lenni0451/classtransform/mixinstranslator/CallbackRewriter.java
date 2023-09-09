@@ -1,7 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
 import net.lenni0451.classtransform.InjectionCallback;
-import net.lenni0451.classtransform.utils.parser.StringReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -44,15 +43,17 @@ class CallbackRewriter {
                     String cirStart = "L" + CALLBACK_INFO_RETURNABLE.getInternalName();
                     int start = methodNode.signature.indexOf(cirStart);
                     if (start == -1) break;
+
                     String rest = methodNode.signature.substring(start + cirStart.length());
-                    StringReader reader = new StringReader(rest);
+                    int index = 0;
                     int open = 0;
-                    char c;
-                    while ((c = reader.read()) != ';' || open > 0) {
+                    for (char c : rest.toCharArray()) {
+                        index++;
+                        if (c == ';' && open <= 0) break;
                         if (c == '<') open++;
                         else if (c == '>') open--;
                     }
-                    methodNode.signature = methodNode.signature.substring(0, start) + INJECTION_CALLBACK.getDescriptor() + methodNode.signature.substring(start + cirStart.length() + reader.getCursor());
+                    methodNode.signature = methodNode.signature.substring(0, start) + INJECTION_CALLBACK.getDescriptor() + methodNode.signature.substring(start + cirStart.length() + index);
                 }
             }
         }
