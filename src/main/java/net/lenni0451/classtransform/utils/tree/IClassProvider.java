@@ -23,7 +23,8 @@ public interface IClassProvider {
 
     /**
      * Get a map of all classes with a supplier for their bytecode.<br>
-     * Class names need to be with '.' instead of '/'.
+     * Class names need to be with '.' instead of '/'.<br>
+     * <b>The map must be mutable!</b>
      *
      * @return A map of all class names to their bytecode supplier
      */
