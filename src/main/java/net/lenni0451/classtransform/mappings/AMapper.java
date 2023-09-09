@@ -180,6 +180,8 @@ public abstract class AMapper {
                         this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
                         node.values = AnnotationParser.mapToList(nodeMap);
                     }
+                } else {
+                    throw new IllegalStateException("Unexpected value type '" + value.getClass().getName() + "' for annotation '" + annotation.getName() + "' value '" + annotation.getName() + "'");
                 }
             } else {
                 if (value instanceof String) {
@@ -191,6 +193,8 @@ public abstract class AMapper {
                 } else if (value instanceof List) {
                     List<String> list = (List<String>) value;
                     list.replaceAll(s -> this.remap(remap.value(), s));
+                } else {
+                    throw new IllegalStateException("Unexpected value type '" + value.getClass().getName() + "' for annotation '" + annotation.getName() + "' value '" + annotation.getName() + "'");
                 }
             }
         }
