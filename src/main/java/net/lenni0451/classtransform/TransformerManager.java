@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.debugger.TransformerTimings;
 import net.lenni0451.classtransform.debugger.timings.TimedGroup;
+import net.lenni0451.classtransform.exceptions.TransformerLoadException;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
@@ -222,8 +223,9 @@ public class TransformerManager implements ClassFileTransformer {
      * If the class is specified directly an exception will be thrown if the class is missing the {@link CTransformer} annotation.
      *
      * @param transformer The name of transformer class to add
-     * @throws IllegalStateException If the class is specified directly and is missing the {@link CTransformer} annotation
-     * @throws RuntimeException      If the class bytecode could not be parsed using ASM
+     * @throws IllegalStateException    If the class is specified directly and is missing the {@link CTransformer} annotation
+     * @throws TransformerLoadException If the transformer could not be loaded
+     * @throws RuntimeException         If the class bytecode could not be parsed using ASM
      */
     public void addTransformer(final String transformer) {
         List<byte[]> classes = new ArrayList<>();
@@ -232,22 +234,30 @@ public class TransformerManager implements ClassFileTransformer {
             wildcard = true;
             String packageName = transformer.substring(0, transformer.length() - 2);
             for (Map.Entry<String, Supplier<byte[]>> entry : this.classProvider.getAllClasses().entrySet()) {
-                if (entry.getKey().startsWith(packageName)) classes.add(entry.getValue().get());
+                try {
+                    if (entry.getKey().startsWith(packageName)) classes.add(entry.getValue().get());
+                } catch (Throwable t) {
+                    throw new TransformerLoadException(entry.getKey(), t);
+                }
             }
         } else if (transformer.endsWith(".*")) {
             wildcard = true;
             String packageName = transformer.substring(0, transformer.length() - 1);
             for (Map.Entry<String, Supplier<byte[]>> entry : this.classProvider.getAllClasses().entrySet()) {
                 if (entry.getKey().startsWith(packageName)) {
-                    String classPackage = entry.getKey().substring(0, entry.getKey().lastIndexOf('.') + 1);
-                    if (classPackage.equals(packageName)) classes.add(entry.getValue().get());
+                    try {
+                        String classPackage = entry.getKey().substring(0, entry.getKey().lastIndexOf('.') + 1);
+                        if (classPackage.equals(packageName)) classes.add(entry.getValue().get());
+                    } catch (Throwable t) {
+                        throw new TransformerLoadException(entry.getKey(), t);
+                    }
                 }
             }
         } else {
             try {
                 classes.add(this.classProvider.getClass(transformer));
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException("Failed to load transformer '" + transformer + "'", e);
+                throw new TransformerLoadException(transformer, e);
             }
         }
         for (byte[] bytecode : classes) {
@@ -260,7 +270,7 @@ public class TransformerManager implements ClassFileTransformer {
                 else if (!wildcard) Logger.warn("Transformer '{}' does not transform any classes", name);
             } catch (Throwable e) {
                 if (name == null) throw new RuntimeException("Unable to parse transformer bytecode", e);
-                else throw new RuntimeException("Unable to load transformer '" + name + "'", e);
+                else throw new TransformerLoadException(name, e);
             }
         }
     }
