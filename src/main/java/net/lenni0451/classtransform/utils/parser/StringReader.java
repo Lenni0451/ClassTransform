@@ -11,6 +11,7 @@ import java.util.Locale;
 /**
  * The string reader used by the {@link StringParser}.
  */
+@Deprecated
 public class StringReader {
 
     private static final char QUOTE_CHAR = '"';

@@ -12,6 +12,7 @@ import java.util.*;
 /**
  * Parse a string to an insn list.
  */
+@Deprecated
 @ParametersAreNonnullByDefault
 public class StringParser {
 
