@@ -19,7 +19,11 @@ public class TreeClassWriter extends ClassWriter {
     private final IClassProvider classProvider;
 
     public TreeClassWriter(final ClassTree classTree, final IClassProvider classProvider) {
-        super(ClassWriter.COMPUTE_FRAMES);
+        this(ClassWriter.COMPUTE_FRAMES, classTree, classProvider);
+    }
+
+    public TreeClassWriter(final int flags, final ClassTree classTree, final IClassProvider classProvider) {
+        super(flags);
 
         this.classTree = classTree;
         this.classProvider = classProvider;

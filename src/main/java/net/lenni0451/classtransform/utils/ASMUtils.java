@@ -37,8 +37,19 @@ public class ASMUtils {
      * @return The parsed class node
      */
     public static ClassNode fromBytes(final byte[] bytecode) {
+        return fromBytes(bytecode, ClassReader.EXPAND_FRAMES);
+    }
+
+    /**
+     * Get a class node from the raw bytecode of a class.
+     *
+     * @param bytecode The bytecode of the class
+     * @param flags    The flags to use for the class reader
+     * @return The parsed class node
+     */
+    public static ClassNode fromBytes(final byte[] bytecode, final int flags) {
         ClassNode node = new ClassNode();
-        new ClassReader(bytecode).accept(node, ClassReader.EXPAND_FRAMES);
+        new ClassReader(bytecode).accept(node, flags);
         return node;
     }
 
@@ -52,6 +63,21 @@ public class ASMUtils {
      */
     public static byte[] toBytes(final ClassNode node, final ClassTree classTree, final IClassProvider classProvider) {
         TreeClassWriter writer = new TreeClassWriter(classTree, classProvider);
+        node.accept(writer);
+        return writer.toByteArray();
+    }
+
+    /**
+     * Get the bytecode from a class node.
+     *
+     * @param node          The class node
+     * @param classTree     The class tree used to get the super classes
+     * @param classProvider The class provider used for stack frame calculation
+     * @param flags         The flags to use for the class writer
+     * @return The bytecode of the class
+     */
+    public static byte[] toBytes(final ClassNode node, final ClassTree classTree, final IClassProvider classProvider, final int flags) {
+        TreeClassWriter writer = new TreeClassWriter(flags, classTree, classProvider);
         node.accept(writer);
         return writer.toByteArray();
     }
