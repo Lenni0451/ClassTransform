@@ -5,17 +5,17 @@ import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import javax.annotation.Nullable;
 import java.nio.file.FileSystem;
 
-public class ClosableFileSystemProvider extends FileSystemClassProvider implements AutoCloseable {
+public class ClosableFileSystemClassProvider extends FileSystemClassProvider implements AutoCloseable {
 
-    public ClosableFileSystemProvider(final FileSystem fileSystem) {
+    public ClosableFileSystemClassProvider(final FileSystem fileSystem) {
         super(fileSystem);
     }
 
-    public ClosableFileSystemProvider(final FileSystem fileSystem, @Nullable final IClassProvider parent) {
+    public ClosableFileSystemClassProvider(final FileSystem fileSystem, @Nullable final IClassProvider parent) {
         super(fileSystem, parent);
     }
 
-    public ClosableFileSystemProvider(@Nullable final IClassProvider parent, final FileSystem fileSystem) {
+    public ClosableFileSystemClassProvider(@Nullable final IClassProvider parent, final FileSystem fileSystem) {
         super(parent, fileSystem);
     }
 
