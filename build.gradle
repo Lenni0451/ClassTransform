@@ -19,9 +19,9 @@ allprojects {
 
     dependencies {
         compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-        compileOnly "org.projectlombok:lombok:1.18.28"
+        compileOnly "org.projectlombok:lombok:1.18.30"
 
-        annotationProcessor "org.projectlombok:lombok:1.18.28"
+        annotationProcessor "org.projectlombok:lombok:1.18.30"
     }
 
     java {
@@ -108,11 +108,11 @@ dependencies {
     api "org.ow2.asm:asm-analysis:9.5"
 
     testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
-    testCompileOnly "org.projectlombok:lombok:1.18.28"
+    testCompileOnly "org.projectlombok:lombok:1.18.30"
     testImplementation platform("org.junit:junit-bom:5.10.0")
     testImplementation "org.junit.jupiter:junit-jupiter"
 
-    testAnnotationProcessor "org.projectlombok:lombok:1.18.28"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.30"
 }
 
 test {
