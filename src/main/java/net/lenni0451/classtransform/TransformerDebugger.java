@@ -37,7 +37,7 @@ public class TransformerDebugger {
                 Class<?> clazz = classLoader.loadClass(transformedClass);
                 Logger.info("Loaded transformed class {}", clazz.getName());
             } catch (Throwable t) {
-                Logger.error("Failed to load transformed class {}", transformedClass);
+                Logger.error("Failed to load transformed class {}", transformedClass, t);
             }
         }
     }
