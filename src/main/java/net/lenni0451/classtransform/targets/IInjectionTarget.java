@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.targets;
 
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
+import net.lenni0451.classtransform.exceptions.SliceException;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -55,18 +56,18 @@ public interface IInjectionTarget {
             from = 0;
         } else {
             IInjectionTarget target = injectionTargets.get(slice.from().value());
-            if (target == null) throw new IllegalArgumentException("Unknown from target in slice: " + slice.from().value());
+            if (target == null) throw SliceException.unknown("from", slice.from().value());
             List<AbstractInsnNode> targets = target.getTargets(injectionTargets, method, slice.from(), null);
-            if (targets.size() != 1) throw new IllegalArgumentException("From target in slice has more than one match: " + slice.from().value());
+            if (targets.size() != 1) throw SliceException.count("From", slice.from().value(), targets.size());
             from = method.instructions.indexOf(targets.get(0));
         }
         if (slice.to().value().isEmpty()) {
             to = method.instructions.size();
         } else {
             IInjectionTarget target = injectionTargets.get(slice.to().value());
-            if (target == null) throw new IllegalArgumentException("Unknown to target in slice: " + slice.to().value());
+            if (target == null) throw SliceException.unknown("to", slice.to().value());
             List<AbstractInsnNode> targets = target.getTargets(injectionTargets, method, slice.to(), null);
-            if (targets.size() != 1) throw new IllegalArgumentException("To target in slice has more than one match: " + slice.to().value());
+            if (targets.size() != 1) throw SliceException.count("To", slice.to().value(), targets.size());
             to = method.instructions.indexOf(targets.get(0));
         }
 

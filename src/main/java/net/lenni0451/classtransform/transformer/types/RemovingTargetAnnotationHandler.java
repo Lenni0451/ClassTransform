@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.types;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
+import net.lenni0451.classtransform.exceptions.SliceException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
@@ -44,7 +45,11 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
             List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
             if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
             for (MethodNode target : targets) {
-                this.transform(annotation, transformerManager, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod), target);
+                try {
+                    this.transform(annotation, transformerManager, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod), target);
+                } catch (SliceException e) {
+                    throw new TransformerException(transformerMethod, transformer, "- " + e.getMessage());
+                }
             }
         }
     }
