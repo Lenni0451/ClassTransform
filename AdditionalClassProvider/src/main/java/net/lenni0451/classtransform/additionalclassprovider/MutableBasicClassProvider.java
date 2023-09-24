@@ -11,6 +11,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class MutableBasicClassProvider extends BasicClassProvider {
 
+    public MutableBasicClassProvider() {
+        this(MutableBasicClassProvider.class.getClassLoader());
+    }
+
+    public MutableBasicClassProvider(final ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
     public void setClassLoader(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
