@@ -138,9 +138,9 @@ public class InjectionClassLoader extends URLClassLoader {
     private URLConnection getClassConnection(final String className) throws IOException {
         URL url = this.findResource(slash(className) + ".class");
         if (url != null) {
-            if (url.getRef() == null) {
+            if ("jar".equalsIgnoreCase(url.getProtocol()) && url.getRef() == null) {
                 //Append the '#runtime' ref to make sure the opened jarfile handles multi release jars correctly
-                url = new URL(url + "#runtime");
+                url = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile() + "#runtime");
             }
             return url.openConnection();
         }
