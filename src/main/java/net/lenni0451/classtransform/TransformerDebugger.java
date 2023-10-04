@@ -13,6 +13,7 @@ public class TransformerDebugger {
 
     private final TransformerManager transformerManager;
     private final Map<String, Map<TimedTransformer, Integer>> timings;
+    private boolean dumpClasses = System.getProperty("classtransform.dumpClasses") != null;
 
     TransformerDebugger(final TransformerManager transformerManager) {
         this.transformerManager = transformerManager;
@@ -47,6 +48,23 @@ public class TransformerDebugger {
      */
     public Map<String, Map<TimedTransformer, Integer>> getTimings() {
         return Collections.unmodifiableMap(this.timings);
+    }
+
+    /**
+     * Enable or disable dumping of transformed classes.<br>
+     * This is enabled by default if the system property {@code classtransform.dumpClasses} is set.
+     *
+     * @param dumpClasses If classes should be dumped
+     */
+    public void setDumpClasses(final boolean dumpClasses) {
+        this.dumpClasses = dumpClasses;
+    }
+
+    /**
+     * @return If classes should be dumped
+     */
+    public boolean isDumpClasses() {
+        return this.dumpClasses;
     }
 
 
