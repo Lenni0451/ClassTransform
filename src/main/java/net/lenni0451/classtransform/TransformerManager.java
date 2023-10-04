@@ -89,6 +89,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new InnerClassGeneralHandler()); //Make inner classes public to allow access from the transformed class
         this.annotationHandler.add(new SyntheticMethodGeneralHandler()); //Rename synthetic members to be unique
         this.annotationHandler.add(new CShadowAnnotationHandler());
+        this.annotationHandler.add(new CRecordComponentAnnotationHandler());
         this.annotationHandler.add(new MemberCopyGeneralHandler(true)); //Copy all interfaces, fields and initializers to the transformed class
         //HandlerPosition#PRE
         this.annotationHandler.add(new COverrideAnnotationHandler());
