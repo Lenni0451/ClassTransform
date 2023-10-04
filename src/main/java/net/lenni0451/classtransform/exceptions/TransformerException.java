@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.exceptions;
 import net.lenni0451.classtransform.utils.Codifier;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,6 +45,14 @@ public class TransformerException extends RuntimeException {
                 .help(Codifier.of(transformerMethod).param(null).params(expected));
     }
 
+    public static TransformerException alreadyExists(final MethodNode method, final ClassNode transformer, final ClassNode transformedClass) {
+        return new TransformerException(method, transformer, "already exists in class '" + transformedClass.name + "'");
+    }
+
+    public static TransformerException alreadyExists(final FieldNode field, final ClassNode transformer, final ClassNode transformedClass) {
+        return new TransformerException(field, transformer, "already exists in class '" + transformedClass.name + "'");
+    }
+
 
     private final String memberType;
     private final String memberNameAndDesc;
@@ -51,6 +60,13 @@ public class TransformerException extends RuntimeException {
     private final String state;
 
     private String help;
+
+    public TransformerException(final FieldNode field, final ClassNode transformer, final String state) {
+        this.memberType = "Field";
+        this.memberNameAndDesc = field.name + field.desc;
+        this.transformerName = transformer.name;
+        this.state = state;
+    }
 
     public TransformerException(final MethodNode method, final ClassNode transformer, final String state) {
         this.memberType = "Method";
