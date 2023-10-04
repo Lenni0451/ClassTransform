@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.transformer;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.InjectionInfo;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -95,7 +96,7 @@ public abstract class AnnotationHandler {
         if (annotations != null) {
             for (AnnotationNode annotation : annotations) {
                 if (annotation.desc.equals(typeDescriptor(annotationClass))) {
-                    return AnnotationParser.parse(annotationClass, transformerManager, AnnotationParser.listToMap(annotation.values));
+                    return AnnotationParser.parse(annotationClass, transformerManager, AnnotationUtils.listToMap(annotation.values));
                 }
             }
         }

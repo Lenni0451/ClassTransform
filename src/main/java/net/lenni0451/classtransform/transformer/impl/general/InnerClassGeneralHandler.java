@@ -4,7 +4,6 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
@@ -56,9 +55,9 @@ public class InnerClassGeneralHandler extends AnnotationHandler {
         for (FieldNode field : transformer.fields) {
             field.access = ASMUtils.setAccess(field.access, Opcodes.ACC_PUBLIC);
             AnnotationUtils.findAnnotation(field, CShadow.class).ifPresent(annotation -> {
-                Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
+                Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
                 values.put("makePublic", true);
-                annotation.values = AnnotationParser.mapToList(values);
+                annotation.values = AnnotationUtils.mapToList(values);
             });
         }
     }
@@ -68,9 +67,9 @@ public class InnerClassGeneralHandler extends AnnotationHandler {
             method.access = ASMUtils.setAccess(method.access, Opcodes.ACC_PUBLIC);
             method.access &= ~Opcodes.ACC_BRIDGE;
             AnnotationUtils.findAnnotation(method, CShadow.class).ifPresent(annotation -> {
-                Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
+                Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
                 values.put("makePublic", true);
-                annotation.values = AnnotationParser.mapToList(values);
+                annotation.values = AnnotationUtils.mapToList(values);
             });
         }
     }

@@ -37,7 +37,7 @@ public abstract class AnnotationHandlerTest {
         ClassNode transformer = ASMUtils.fromBytes(this.classProvider.getClass(name));
         List<Object> annotation = AnnotationUtils.findInvisibleAnnotation(transformer, CTransformer.class).map(a -> a.values).orElse(null);
         if (annotation != null) {
-            CTransformer cTransformer = AnnotationParser.parse(CTransformer.class, this.classTree, this.classProvider, AnnotationParser.listToMap(annotation));
+            CTransformer cTransformer = AnnotationParser.parse(CTransformer.class, this.classTree, this.classProvider, AnnotationUtils.listToMap(annotation));
             Class<?> targetClass = cTransformer.value()[0];
             ClassNode targetNode = ASMUtils.fromBytes(this.classProvider.getClass(targetClass.getName()));
             this.voidMapper.mapClass(this.classTree, this.classProvider, targetNode, transformer);

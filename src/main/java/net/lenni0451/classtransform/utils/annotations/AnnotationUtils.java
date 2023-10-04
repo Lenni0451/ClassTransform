@@ -7,13 +7,47 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
 @ParametersAreNonnullByDefault
 public class AnnotationUtils {
+
+    /**
+     * Convert a list of key-value pairs to a map.<br>
+     * The list must be in the format {@code [key, value, key, value, ...]}.
+     *
+     * @param list The list to convert
+     * @return The converted map
+     * @throws IndexOutOfBoundsException If the size of the list is not even
+     * @throws ClassCastException        If the key is not a string
+     */
+    public static Map<String, Object> listToMap(@Nullable final List<Object> list) {
+        Map<String, Object> map = new HashMap<>();
+        if (list != null) {
+            for (int i = 0; i < list.size(); i += 2) map.put((String) list.get(i), list.get(i + 1));
+        }
+        return map;
+    }
+
+    /**
+     * Convert a map to a list of key-value pairs.<br>
+     * The list will be in the format {@code [key, value, key, value, ...]}.
+     *
+     * @param map The map to convert
+     * @return The converted list
+     */
+    public static List<Object> mapToList(@Nullable final Map<String, Object> map) {
+        List<Object> list = new ArrayList<>();
+        if (map != null) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                list.add(entry.getKey());
+                list.add(entry.getValue());
+            }
+        }
+        return list;
+    }
 
     /**
      * Find a visible annotation in a {@link ClassNode}.

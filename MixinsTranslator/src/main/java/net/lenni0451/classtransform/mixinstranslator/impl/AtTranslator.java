@@ -1,7 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.CTarget;
-import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -16,7 +16,7 @@ class AtTranslator implements IAnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation) {
         annotation.desc = Type.getDescriptor(CTarget.class);
-        Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
+        Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
         if (values.containsKey("value") && values.containsKey("target")) {
             String value = (String) values.get("value");
             String target = (String) values.get("target");
@@ -48,7 +48,7 @@ class AtTranslator implements IAnnotationTranslator {
             //Mixins injects before by default most of the time
             values.put("shift", new String[]{typeDescriptor(CTarget.Shift.class), "BEFORE"});
         }
-        annotation.values = AnnotationParser.mapToList(values);
+        annotation.values = AnnotationUtils.mapToList(values);
     }
 
 }

@@ -59,33 +59,19 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     /**
-     * Convert the raw ASM bytecode values list to a map.
-     *
-     * @param list The raw ASM bytecode values list
-     * @return The map
-     * @throws IndexOutOfBoundsException If the list is does not contain key value pairs
+     * <b>Use {@link AnnotationUtils#listToMap(List)}.</b>
      */
+    @Deprecated
     public static Map<String, Object> listToMap(@Nullable final List<Object> list) {
-        Map<String, Object> map = new HashMap<>();
-        if (list != null) for (int i = 0; i < list.size(); i += 2) map.put((String) list.get(i), list.get(i + 1));
-        return map;
+        return AnnotationUtils.listToMap(list);
     }
 
     /**
-     * Convert a map to a raw ASM bytecode values list.
-     *
-     * @param map The map
-     * @return The raw ASM bytecode values list
+     * <b>Use {@link AnnotationUtils#mapToList(Map)}.</b>
      */
+    @Deprecated
     public static List<Object> mapToList(@Nullable final Map<String, Object> map) {
-        List<Object> list = new ArrayList<>();
-        if (map != null) {
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                list.add(entry.getKey());
-                list.add(entry.getValue());
-            }
-        }
-        return list;
+        return AnnotationUtils.mapToList(map);
     }
 
     /**
@@ -350,7 +336,7 @@ public class AnnotationParser<T extends Annotation> {
             }
         } else {
             AnnotationNode a = (AnnotationNode) value;
-            Map<String, Object> map = listToMap(a.values);
+            Map<String, Object> map = AnnotationUtils.listToMap(a.values);
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 methodVisitor.visitInsn(Opcodes.DUP);
                 methodVisitor.visitLdcInsn(entry.getKey());

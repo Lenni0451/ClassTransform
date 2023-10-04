@@ -13,6 +13,7 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.Types;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -60,7 +61,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
                         if (paramAnnotations != null) {
                             for (AnnotationNode paramAnnotation : paramAnnotations) {
                                 if (paramAnnotation.desc.equals(typeDescriptor(CLocalVariable.class))) {
-                                    CLocalVariable localVariable = AnnotationParser.parse(CLocalVariable.class, transformerManager, AnnotationParser.listToMap(paramAnnotation.values));
+                                    CLocalVariable localVariable = AnnotationParser.parse(CLocalVariable.class, transformerManager, AnnotationUtils.listToMap(paramAnnotation.values));
                                     localVariables.add(localVariable);
                                 }
                             }

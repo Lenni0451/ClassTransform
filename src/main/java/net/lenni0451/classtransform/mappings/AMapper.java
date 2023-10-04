@@ -5,7 +5,7 @@ import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
-import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.log.Logger;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
@@ -115,9 +115,9 @@ public abstract class AMapper {
                 continue;
             }
             try {
-                Map<String, Object> annotationMap = AnnotationParser.listToMap(annotation.annotation.values);
+                Map<String, Object> annotationMap = AnnotationUtils.listToMap(annotation.annotation.values);
                 this.mapAnnotation(annotation.holder, annotationClass, annotationMap, target, transformer);
-                annotation.annotation.values = AnnotationParser.mapToList(annotationMap);
+                annotation.annotation.values = AnnotationUtils.mapToList(annotationMap);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Unable to remap annotation '" + annotation.annotation.desc + "' from transformer '" + transformer.name + "'", e);
             }
@@ -161,24 +161,24 @@ public abstract class AMapper {
                 if (value instanceof AnnotationNode) {
                     AnnotationNode node = (AnnotationNode) value;
                     Type type = Type.getType(node.desc);
-                    Map<String, Object> nodeMap = AnnotationParser.listToMap(node.values);
+                    Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
                     this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
-                    node.values = AnnotationParser.mapToList(nodeMap);
+                    node.values = AnnotationUtils.mapToList(nodeMap);
                 } else if (value instanceof AnnotationNode[]) {
                     AnnotationNode[] nodes = (AnnotationNode[]) value;
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
-                        Map<String, Object> nodeMap = AnnotationParser.listToMap(node.values);
+                        Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
                         this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
-                        node.values = AnnotationParser.mapToList(nodeMap);
+                        node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else if (value instanceof List) {
                     List<AnnotationNode> nodes = (List<AnnotationNode>) value;
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
-                        Map<String, Object> nodeMap = AnnotationParser.listToMap(node.values);
+                        Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
                         this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
-                        node.values = AnnotationParser.mapToList(nodeMap);
+                        node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else {
                     throw new IllegalStateException("Unexpected value type '" + value.getClass().getName() + "' for annotation '" + annotation.getName() + "' value '" + annotation.getName() + "'");

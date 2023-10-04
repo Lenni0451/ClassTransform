@@ -1,7 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.injection.CInject;
-import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -15,7 +15,7 @@ class InjectTranslator implements IAnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation) {
         annotation.desc = Type.getDescriptor(CInject.class);
-        Map<String, Object> values = AnnotationParser.listToMap(annotation.values);
+        Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
         Boolean optional = null;
         if (values.containsKey("require")) optional = ((int) values.get("require")) <= 0;
         if (values.containsKey("at")) values.put("target", values.remove("at"));
@@ -30,7 +30,7 @@ class InjectTranslator implements IAnnotationTranslator {
             }
         }
         if (values.containsKey("slice")) this.dynamicTranslate((AnnotationNode) values.get("slice"));
-        annotation.values = AnnotationParser.mapToList(values);
+        annotation.values = AnnotationUtils.mapToList(values);
     }
 
 }
