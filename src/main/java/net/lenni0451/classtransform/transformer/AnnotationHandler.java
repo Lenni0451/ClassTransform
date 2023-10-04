@@ -42,6 +42,7 @@ public abstract class AnnotationHandler {
      * @param transformerManager The transformer manager
      * @return The parsed annotation or null if not found
      */
+    @Nullable
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final ClassNode classNode, final TransformerManager transformerManager) {
         T annotation = this.getAnnotation(annotationClass, classNode.visibleAnnotations, transformerManager);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, classNode.invisibleAnnotations, transformerManager);
@@ -57,6 +58,7 @@ public abstract class AnnotationHandler {
      * @param transformerManager The transformer manager
      * @return The parsed annotation or null if not found
      */
+    @Nullable
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final FieldNode field, final TransformerManager transformerManager) {
         T annotation = this.getAnnotation(annotationClass, field.visibleAnnotations, transformerManager);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, field.invisibleAnnotations, transformerManager);
@@ -72,6 +74,7 @@ public abstract class AnnotationHandler {
      * @param transformerManager The transformer manager
      * @return The parsed annotation or null if not found
      */
+    @Nullable
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, final MethodNode method, final TransformerManager transformerManager) {
         T annotation = this.getAnnotation(annotationClass, method.visibleAnnotations, transformerManager);
         if (annotation == null) annotation = this.getAnnotation(annotationClass, method.invisibleAnnotations, transformerManager);
@@ -87,6 +90,7 @@ public abstract class AnnotationHandler {
      * @param transformerManager The transformer manager
      * @return The parsed annotation or null if not found
      */
+    @Nullable
     protected <T extends Annotation> T getAnnotation(final Class<T> annotationClass, @Nullable final List<AnnotationNode> annotations, final TransformerManager transformerManager) {
         if (annotations != null) {
             for (AnnotationNode annotation : annotations) {
