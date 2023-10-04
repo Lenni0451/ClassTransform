@@ -15,6 +15,7 @@ import org.objectweb.asm.tree.*;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
@@ -30,10 +31,13 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
         List<FieldNode> toString = new ArrayList<>();
         List<FieldNode> equals = new ArrayList<>();
         List<FieldNode> hashCode = new ArrayList<>();
-        for (FieldNode field : transformer.fields) {
+        Iterator<FieldNode> it = transformer.fields.iterator();
+        while (it.hasNext()) {
+            FieldNode field = it.next();
             CRecordComponent recordComponent = this.getAnnotation(CRecordComponent.class, field, transformerManager);
             if (recordComponent == null) continue;
             this.copyField(transformer, transformedClass, field);
+            it.remove();
 
             if (recordComponent.addRecordComponent()) recordComponents.add(field);
             if (recordComponent.addConstructor()) constructor.add(field);
