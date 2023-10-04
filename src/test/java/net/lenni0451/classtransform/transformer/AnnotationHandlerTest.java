@@ -35,7 +35,7 @@ public abstract class AnnotationHandlerTest {
     @SneakyThrows
     protected ClassNode getTransformerClass(final String name) {
         ClassNode transformer = ASMUtils.fromBytes(this.classProvider.getClass(name));
-        List<Object> annotation = AnnotationUtils.findInvisibleAnnotation(transformer, CTransformer.class).map(a -> a.values).orElse(null);
+        List<Object> annotation = AnnotationUtils.findAnnotation(transformer, CTransformer.class).map(a -> a.values).orElse(null);
         if (annotation != null) {
             CTransformer cTransformer = AnnotationParser.parse(CTransformer.class, this.classTree, this.classProvider, AnnotationUtils.listToMap(annotation));
             Class<?> targetClass = cTransformer.value()[0];

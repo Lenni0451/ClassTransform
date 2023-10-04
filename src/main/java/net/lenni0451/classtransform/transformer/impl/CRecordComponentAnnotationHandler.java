@@ -67,7 +67,7 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
         String newDescriptor = Types.methodDescriptor(void.class, newRecordComponents.stream().map(comp -> comp.descriptor).toArray(Object[]::new));
 
         MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", newDescriptor, null, null);
-        if (ASMUtils.getMethod(transformedClass, "<init>", mainDescriptor) != null) throw TransformerException.alreadyExists(constructor, transformer, transformedClass);
+        if (ASMUtils.getMethod(transformedClass, constructor.name, constructor.desc) != null) throw TransformerException.alreadyExists(constructor, transformer, transformedClass);
         constructor.visitVarInsn(Opcodes.ALOAD, 0);
         int varIndex = 1;
         for (RecordComponentNode component : oldRecordComponents) {
