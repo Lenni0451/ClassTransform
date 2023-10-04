@@ -63,7 +63,7 @@ public class TransformerException extends RuntimeException {
 
     public TransformerException(final FieldNode field, final ClassNode transformer, final String state) {
         this.memberType = "Field";
-        this.memberNameAndDesc = field.name + field.desc;
+        this.memberNameAndDesc = field.name + ":" + field.desc;
         this.transformerName = transformer.name;
         this.state = state;
     }
