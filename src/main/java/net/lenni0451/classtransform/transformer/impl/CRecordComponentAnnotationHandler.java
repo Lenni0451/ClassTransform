@@ -101,6 +101,8 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
             getter.visitVarInsn(Opcodes.ALOAD, 0);
             getter.visitFieldInsn(Opcodes.GETFIELD, transformedClass.name, field.name, field.desc);
             getter.visitInsn(type.getOpcode(Opcodes.IRETURN));
+
+            transformedClass.methods.add(getter);
         }
     }
 
