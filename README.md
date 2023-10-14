@@ -34,7 +34,7 @@ It even contains a custom ClassLoader to inject into classes before loading them
 
 ## Usage
 ### Gradle/Maven
-To use ClassTransform with Gradle/Maven you can get it from [maven central](https://central.sonatype.dev/search?q=net.lenni0451.classtransform).\
+To use ClassTransform with Gradle/Maven you can get it from [maven central](https://mvnrepository.com/artifact/net.lenni0451.classtransform).\
 You can also find instructions how to implement it into your build script there.
 
 ### Jar File
@@ -260,7 +260,7 @@ The RawMapper is an integrated AMapper implementation but instead of a file it d
 
 ### Copy-Pasting Mixins
 If you want to copy-paste your mixins for the usage with ClassTransform or just like mixins annotations more you can implement MixinsTranslator into your project.\
-You can find ``mixinstranslator`` on [maven central](https://central.sonatype.dev/search?q=net.lenni0451.classtransform) as well.\
+You can find ``mixinstranslator`` on [maven central](https://mvnrepository.com/artifact/net.lenni0451.classtransform/mixinstranslator) as well.\
 If you do not have mixins in you class path you also need to add ``ClassTransform-MixinsDummy``.
 
 To allow the usage of mixins annotations you need to add the ``MixinsTranslator`` transformer preprocessor:
