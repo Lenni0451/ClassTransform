@@ -20,17 +20,17 @@ import static net.lenni0451.classtransform.utils.Types.*;
 public class CRedirectField implements IRedirectTarget {
 
     @Override
-    public void inject(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, List<AbstractInsnNode> targetNodes) {
+    public void inject(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, List<AbstractInsnNode> targetNodes, List<MethodInsnNode> transformerMethodCalls) {
         for (AbstractInsnNode instruction : targetNodes) {
             if (instruction.getOpcode() == Opcodes.GETSTATIC || instruction.getOpcode() == Opcodes.GETFIELD) {
-                this.redirectGetField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) instruction);
+                this.redirectGetField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) instruction, transformerMethodCalls);
             } else if (instruction.getOpcode() == Opcodes.PUTSTATIC || instruction.getOpcode() == Opcodes.PUTFIELD) {
-                this.redirectPutField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) instruction);
+                this.redirectPutField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) instruction, transformerMethodCalls);
             }
         }
     }
 
-    private void redirectGetField(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, FieldInsnNode fieldInsnNode) {
+    private void redirectGetField(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, FieldInsnNode fieldInsnNode, List<MethodInsnNode> transformerMethodCalls) {
         Type returnType = returnType(transformerMethod.desc);
         Type[] argumentTypes = argumentTypes(transformerMethod.desc);
         Type originalType = type(fieldInsnNode.desc);
@@ -57,17 +57,14 @@ public class CRedirectField implements IRedirectTarget {
         if (fieldInsnNode.getOpcode() != Opcodes.GETSTATIC && !Modifier.isStatic(transformerMethod.access)) {
             targetMethod.instructions.insertBefore(fieldInsnNode, new InsnNode(Opcodes.SWAP));
         }
-        if (Modifier.isStatic(transformerMethod.access)) {
-            targetMethod.instructions.set(fieldInsnNode, new MethodInsnNode(Opcodes.INVOKESTATIC, targetClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(targetClass.access)));
-        } else {
-            targetMethod.instructions.set(fieldInsnNode, new MethodInsnNode(Modifier.isInterface(targetClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, targetClass.name, transformerMethod.name, transformerMethod.desc));
-        }
         if (!originalType.equals(returnType)) {
             targetMethod.instructions.insert(fieldInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, originalType.getInternalName()));
         }
+
+        this.callTransformerMethod(targetClass, targetMethod, transformerMethod, fieldInsnNode, transformerMethodCalls);
     }
 
-    private void redirectPutField(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, FieldInsnNode fieldInsnNode) {
+    private void redirectPutField(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, FieldInsnNode fieldInsnNode, List<MethodInsnNode> transformerMethodCalls) {
         Type returnType = returnType(transformerMethod.desc);
         Type[] argumentTypes = argumentTypes(transformerMethod.desc);
         Type originalType = type(fieldInsnNode.desc);
@@ -104,11 +101,19 @@ public class CRedirectField implements IRedirectTarget {
             targetMethod.instructions.insertBefore(fieldInsnNode, new VarInsnNode(ASMUtils.getLoadOpcode(originalOwnerType), ownerStore));
         }
         targetMethod.instructions.insertBefore(fieldInsnNode, new VarInsnNode(ASMUtils.getLoadOpcode(originalType), valueStore));
+
+        this.callTransformerMethod(targetClass, targetMethod, transformerMethod, fieldInsnNode, transformerMethodCalls);
+    }
+
+    private void callTransformerMethod(ClassNode targetClass, MethodNode targetMethod, MethodNode transformerMethod, FieldInsnNode fieldInsnNode, List<MethodInsnNode> transformerMethodCalls) {
+        MethodInsnNode transformerCall;
         if (Modifier.isStatic(transformerMethod.access)) {
-            targetMethod.instructions.set(fieldInsnNode, new MethodInsnNode(Opcodes.INVOKESTATIC, targetClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(targetClass.access)));
+            transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, targetClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(targetClass.access));
         } else {
-            targetMethod.instructions.set(fieldInsnNode, new MethodInsnNode(Modifier.isInterface(targetClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, targetClass.name, transformerMethod.name, transformerMethod.desc));
+            transformerCall = new MethodInsnNode(Modifier.isInterface(targetClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, targetClass.name, transformerMethod.name, transformerMethod.desc);
         }
+        targetMethod.instructions.set(fieldInsnNode, transformerCall);
+        transformerMethodCalls.add(transformerCall);
     }
 
 }

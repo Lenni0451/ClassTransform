@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CWrapCatch;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
+import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -15,6 +16,7 @@ import org.objectweb.asm.tree.*;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,10 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
 
     @Override
     public void transform(CWrapCatch annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
+        for (IAnnotationCoprocessor coprocessor : coprocessors) {
+            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
+        }
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
@@ -41,6 +47,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
             throw new TransformerException(transformerMethod, transformer, "must have one argument (Exception to catch)")
                     .help(Codifier.of(transformerMethod).params(null, type(Exception.class)));
         }
+        List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         if (annotation.target().isEmpty()) {
             Type targetReturnType = returnType(target.desc);
             if (!ASMUtils.compareType(targetReturnType, returnType)) {
@@ -55,17 +62,20 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
             LabelNode end_handler = new LabelNode();
             target.instructions.insertBefore(target.instructions.getFirst(), start);
             target.instructions.add(end_handler);
+            MethodInsnNode transformerCall;
             if (Modifier.isStatic(target.access)) {
-                target.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access)));
+                transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
             } else {
                 target.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
                 target.instructions.add(new InsnNode(Opcodes.SWAP));
-                target.instructions.add(new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc));
+                transformerCall = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
             }
+            target.instructions.add(transformerCall);
             if (cast) target.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, returnType(target.desc).getInternalName()));
             target.instructions.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
 
             target.tryCatchBlocks.add(new TryCatchBlockNode(start, end_handler, end_handler, exceptionType.getInternalName()));
+            transformerMethodCalls.add(transformerCall);
         } else {
             Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
             List<AbstractInsnNode> targetInstructions = injectionTargets.get("INVOKE").getTargets(injectionTargets, target, new MethodCTarget(annotation.target(), annotation.ordinal()), annotation.slice());
@@ -90,20 +100,26 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
                 target.instructions.insertBefore(instruction, start);
                 insertAfter.add(new JumpInsnNode(Opcodes.GOTO, jumpAfter));
                 insertAfter.add(endHandler);
+                MethodInsnNode transformerCall;
                 if (Modifier.isStatic(target.access)) {
-                    insertAfter.add(new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access)));
+                    transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
                 } else {
                     insertAfter.add(new VarInsnNode(Opcodes.ALOAD, 0));
                     insertAfter.add(new InsnNode(Opcodes.SWAP));
-                    insertAfter.add(new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc));
+                    transformerCall = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
                 }
+                insertAfter.add(transformerCall);
                 if (cast) insertAfter.add(new TypeInsnNode(Opcodes.CHECKCAST, returnType(target.desc).getInternalName()));
                 insertAfter.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
                 insertAfter.add(jumpAfter);
                 target.instructions.insert(instruction, insertAfter);
 
                 target.tryCatchBlocks.add(new TryCatchBlockNode(start, endHandler, endHandler, exceptionType.getInternalName()));
+                transformerMethodCalls.add(transformerCall);
             }
+        }
+        for (IAnnotationCoprocessor coprocessor : coprocessors) {
+            coprocessor.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
         }
     }
 

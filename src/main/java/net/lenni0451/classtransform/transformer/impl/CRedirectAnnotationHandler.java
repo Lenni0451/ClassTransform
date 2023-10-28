@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.injection.CRedirect;
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
+import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectField;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectNew;
@@ -12,14 +13,12 @@ import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The annotation handler for the {@link CRedirect} annotation.
@@ -41,6 +40,10 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
 
     @Override
     public void transform(CRedirect annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
+        for (IAnnotationCoprocessor coprocessor : coprocessors) {
+            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
+        }
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         IRedirectTarget iRedirectTarget = this.redirectTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
@@ -62,8 +65,12 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
                     .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
         }
 
+        List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
-        iRedirectTarget.inject(transformedClass, target, transformer, transformerMethod, injectionInstructions);
+        iRedirectTarget.inject(transformedClass, target, transformer, transformerMethod, injectionInstructions, transformerMethodCalls);
+        for (IAnnotationCoprocessor coprocessor : coprocessors) {
+            coprocessor.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        }
     }
 
 }

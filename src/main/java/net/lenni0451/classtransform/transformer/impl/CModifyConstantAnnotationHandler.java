@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
+import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -35,6 +36,10 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
 
     @Override
     public void transform(CModifyConstant annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
+        for (IAnnotationCoprocessor coprocessor : coprocessors) {
+            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
+        }
         IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
         boolean hasNullValue = parsedAnnotation.wasSet("nullValue");
         boolean hasIntValue = parsedAnnotation.wasSet("intValue");
@@ -124,20 +129,24 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
             throw new TransformerException(transformerMethod, transformer, "target constant could not be found")
                     .help("e.g. intValue = 0");
         }
+        List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         for (int i = 0; i < toReplace.size(); i++) {
             AbstractInsnNode instruction = toReplace.get(i);
             if (annotation.ordinal() != -1 && i != annotation.ordinal()) continue;
 
+            MethodInsnNode invoke;
             if (!Modifier.isStatic(transformerMethod.access)) {
                 target.instructions.insertBefore(instruction, new VarInsnNode(Opcodes.ALOAD, 0));
-                MethodInsnNode invoke = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
-                if (transformerArguments.length == 1) target.instructions.insert(instruction, invoke);
-                else target.instructions.set(instruction, invoke);
+                invoke = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
             } else {
-                MethodInsnNode invoke = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
-                if (transformerArguments.length == 1) target.instructions.insert(instruction, invoke);
-                else target.instructions.set(instruction, invoke);
+                invoke = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
             }
+            if (transformerArguments.length == 1) target.instructions.insert(instruction, invoke);
+            else target.instructions.set(instruction, invoke);
+            transformerMethodCalls.add(invoke);
+        }
+        for (IAnnotationCoprocessor coprocessor : coprocessors) {
+            coprocessor.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
         }
     }
 
