@@ -57,6 +57,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final IClassProvider classProvider;
     private final AMapper mapper;
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
+    private final List<Supplier<? extends IAnnotationCoprocessor>> coprocessors = new ArrayList<>();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private final TransformerDebugger debugger = new TransformerDebugger(this);
     private FailStrategy failStrategy = FailStrategy.EXIT;
@@ -154,6 +155,27 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public Set<String> getTransformedClasses() {
         return Collections.unmodifiableSet(this.transformedClasses);
+    }
+
+    /**
+     * Add a new annotation handler coprocessor.<br>
+     * A new coprocessor instance will be created for each annotation handler.
+     *
+     * @param coprocessorSupplier The coprocessor supplier
+     */
+    public void addCoprocessor(final Supplier<? extends IAnnotationCoprocessor> coprocessorSupplier) {
+        this.coprocessors.add(coprocessorSupplier);
+    }
+
+    /**
+     * Create and get a new array of all coprocessors.
+     *
+     * @return The coprocessors
+     */
+    public IAnnotationCoprocessor[] getCoprocessors() {
+        IAnnotationCoprocessor[] coprocessors = new IAnnotationCoprocessor[this.coprocessors.size()];
+        for (int i = 0; i < coprocessors.length; i++) coprocessors[i] = this.coprocessors.get(i).get();
+        return coprocessors;
     }
 
     /**
