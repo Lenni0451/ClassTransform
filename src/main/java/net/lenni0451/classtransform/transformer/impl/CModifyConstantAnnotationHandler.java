@@ -145,8 +145,8 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
             else target.instructions.set(instruction, invoke);
             transformerMethodCalls.add(invoke);
         }
-        for (IAnnotationCoprocessor coprocessor : coprocessors) {
-            coprocessor.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        for (int i = coprocessors.length - 1; i >= 0; i--) {
+            coprocessors[i].postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
         }
     }
 

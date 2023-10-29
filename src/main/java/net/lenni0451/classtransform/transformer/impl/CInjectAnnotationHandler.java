@@ -104,8 +104,8 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
                 else target.instructions.insert(instruction, instructions);
             }
         }
-        for (IAnnotationCoprocessor coprocessor : coprocessors) {
-            coprocessor.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        for (int i = coprocessors.length - 1; i >= 0; i--) {
+            coprocessors[i].postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
         }
     }
 
