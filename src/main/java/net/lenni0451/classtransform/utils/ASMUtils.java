@@ -592,6 +592,54 @@ public class ASMUtils {
     }
 
     /**
+     * Get the maximum line number of a class node.
+     *
+     * @param classNode The class node
+     * @return The maximum line number
+     */
+    public static int getMaxLineNumber(final ClassNode classNode) {
+        int max = 1;
+        for (MethodNode methodNode : classNode.methods) max = Math.max(max, getMaxLineNumber(methodNode));
+        return max;
+    }
+
+    /**
+     * Get the maximum line number of a method node.
+     *
+     * @param methodNode The method node
+     * @return The maximum line number
+     */
+    public static int getMaxLineNumber(final MethodNode methodNode) {
+        int max = 1;
+        for (AbstractInsnNode instruction : methodNode.instructions) {
+            if (instruction instanceof LineNumberNode) max = Math.max(max, ((LineNumberNode) instruction).line);
+        }
+        return max;
+    }
+
+    /**
+     * Offset all line numbers of a class node by a given amount.
+     *
+     * @param classNode The class node
+     * @param offset    The offset
+     */
+    public static void offsetLineNumbers(final ClassNode classNode, final int offset) {
+        for (MethodNode methodNode : classNode.methods) offsetLineNumbers(methodNode, offset);
+    }
+
+    /**
+     * Offset all line numbers of a method node by a given amount.
+     *
+     * @param methodNode The method node
+     * @param offset     The offset
+     */
+    public static void offsetLineNumbers(final MethodNode methodNode, final int offset) {
+        for (AbstractInsnNode instruction : methodNode.instructions) {
+            if (instruction instanceof LineNumberNode) ((LineNumberNode) instruction).line += offset;
+        }
+    }
+
+    /**
      * Replace all slashes with dots in the given class/package name.
      *
      * @param s The class/package name

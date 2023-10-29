@@ -15,6 +15,7 @@ import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
+import net.lenni0451.classtransform.transformer.impl.general.SourceMapGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGeneralHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
@@ -89,6 +90,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.mapper.load();
 
         //Annotation handler
+        this.annotationHandler.add(new SourceMapGeneralHandler());
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.TOP));
         this.annotationHandler.add(new InnerClassGeneralHandler()); //Make inner classes public to allow access from the transformed class
         this.annotationHandler.add(new SyntheticMethodGeneralHandler()); //Rename synthetic members to be unique
