@@ -33,8 +33,7 @@ public interface IAnnotationCoprocessor {
 
     /**
      * Postprocess the transformer and target method after the annotation handler injected calls to the target method.<br>
-     * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.<br>
-     * <b>This method should be called in reverse order of the {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)} method if multiple coprocessors are present.</b>
+     * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.
      *
      * @param transformerManager     The transformer manager
      * @param transformedClass       The target class node

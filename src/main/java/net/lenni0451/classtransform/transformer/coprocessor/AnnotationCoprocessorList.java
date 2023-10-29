@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * A list of {@link IAnnotationCoprocessor} used to track the state of the transformation as every coprocessor can only be used once.
+ */
 public class AnnotationCoprocessorList {
 
     private final List<Supplier<? extends IAnnotationCoprocessor>> coprocessorSupplier;
@@ -35,11 +38,19 @@ public class AnnotationCoprocessorList {
         this.state = newState;
     }
 
+    /**
+     * Add a new coprocessor to the list.
+     *
+     * @param coprocessorSupplier The supplier of the coprocessor
+     */
     public void add(final Supplier<? extends IAnnotationCoprocessor> coprocessorSupplier) {
         this.expect(State.OPEN);
         this.coprocessorSupplier.add(coprocessorSupplier);
     }
 
+    /**
+     * @return A built list of coprocessors
+     */
     public AnnotationCoprocessorList build() {
         this.expect(State.OPEN);
         AnnotationCoprocessorList list = new AnnotationCoprocessorList(null, new ArrayList<>(), State.BUILT);
@@ -47,6 +58,17 @@ public class AnnotationCoprocessorList {
         return list;
     }
 
+    /**
+     * Preprocess the transformer method before the annotation handler injects calls to the target method.<br>
+     * This happens before the transformer method is verified by the annotation handler.
+     *
+     * @param transformerManager The transformer manager
+     * @param transformedClass   The target class node
+     * @param transformedMethod  The target method node
+     * @param transformer        The transformer class node
+     * @param transformerMethod  The transformer method node
+     * @return The preprocessed method node
+     */
     public MethodNode preprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final ClassNode transformer, MethodNode transformerMethod) {
         this.expect(State.BUILT, State.USED);
         for (IAnnotationCoprocessor coprocessor : this.coprocessors) {
@@ -55,6 +77,17 @@ public class AnnotationCoprocessorList {
         return transformerMethod;
     }
 
+    /**
+     * Postprocess the transformer and target method after the annotation handler injected calls to the target method.<br>
+     * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.
+     *
+     * @param transformerManager     The transformer manager
+     * @param transformedClass       The target class node
+     * @param transformedMethod      The target method node
+     * @param transformerMethodCalls The list of calls to the transformer method
+     * @param transformer            The transformer class node
+     * @param transformerMethod      The transformer method node
+     */
     public void postprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final List<MethodInsnNode> transformerMethodCalls, final ClassNode transformer, final MethodNode transformerMethod) {
         this.expect(State.USED, State.CLOSED);
         if (this.coprocessors == null) throw new IllegalStateException("This list is not built");
