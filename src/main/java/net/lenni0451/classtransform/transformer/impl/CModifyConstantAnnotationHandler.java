@@ -6,7 +6,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
+import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -36,10 +36,8 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
 
     @Override
     public void transform(CModifyConstant annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
-        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
-        for (IAnnotationCoprocessor coprocessor : coprocessors) {
-            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
-        }
+        AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
+        transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
         boolean hasNullValue = parsedAnnotation.wasSet("nullValue");
         boolean hasIntValue = parsedAnnotation.wasSet("intValue");
@@ -145,9 +143,7 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
             else target.instructions.set(instruction, invoke);
             transformerMethodCalls.add(invoke);
         }
-        for (int i = coprocessors.length - 1; i >= 0; i--) {
-            coprocessors[i].postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
-        }
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
     }
 
     private int getTrueCount(final boolean... booleans) {

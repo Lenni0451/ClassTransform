@@ -5,7 +5,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CWrapCatch;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
+import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -34,10 +34,8 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
 
     @Override
     public void transform(CWrapCatch annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
-        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
-        for (IAnnotationCoprocessor coprocessor : coprocessors) {
-            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
-        }
+        AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
+        transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
@@ -118,9 +116,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
                 transformerMethodCalls.add(transformerCall);
             }
         }
-        for (int i = coprocessors.length - 1; i >= 0; i--) {
-            coprocessors[i].postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
-        }
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
     }
 
 

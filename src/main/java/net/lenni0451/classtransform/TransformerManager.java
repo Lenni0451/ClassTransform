@@ -12,6 +12,7 @@ import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.targets.impl.*;
 import net.lenni0451.classtransform.transformer.*;
+import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
@@ -57,7 +58,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final IClassProvider classProvider;
     private final AMapper mapper;
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
-    private final List<Supplier<? extends IAnnotationCoprocessor>> coprocessors = new ArrayList<>();
+    private final AnnotationCoprocessorList coprocessors = new AnnotationCoprocessorList();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private final TransformerDebugger debugger = new TransformerDebugger(this);
     private FailStrategy failStrategy = FailStrategy.EXIT;
@@ -172,10 +173,8 @@ public class TransformerManager implements ClassFileTransformer {
      *
      * @return The coprocessors
      */
-    public IAnnotationCoprocessor[] getCoprocessors() {
-        IAnnotationCoprocessor[] coprocessors = new IAnnotationCoprocessor[this.coprocessors.size()];
-        for (int i = 0; i < coprocessors.length; i++) coprocessors[i] = this.coprocessors.get(i).get();
-        return coprocessors;
+    public AnnotationCoprocessorList getCoprocessors() {
+        return coprocessors.build();
     }
 
     /**

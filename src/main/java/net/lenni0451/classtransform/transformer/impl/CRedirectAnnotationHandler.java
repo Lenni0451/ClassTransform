@@ -5,7 +5,7 @@ import net.lenni0451.classtransform.annotations.injection.CRedirect;
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
+import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectField;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectNew;
@@ -40,10 +40,8 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
 
     @Override
     public void transform(CRedirect annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
-        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
-        for (IAnnotationCoprocessor coprocessor : coprocessors) {
-            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
-        }
+        AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
+        transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
         IRedirectTarget iRedirectTarget = this.redirectTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
@@ -68,9 +66,7 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
         iRedirectTarget.inject(transformedClass, target, transformer, transformerMethod, injectionInstructions, transformerMethodCalls);
-        for (int i = coprocessors.length - 1; i >= 0; i--) {
-            coprocessors[i].postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
-        }
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
     }
 
 }

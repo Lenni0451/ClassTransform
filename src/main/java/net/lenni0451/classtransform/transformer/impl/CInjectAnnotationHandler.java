@@ -7,7 +7,7 @@ import net.lenni0451.classtransform.annotations.injection.CInject;
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
-import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
+import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
@@ -42,10 +42,8 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
 
     @Override
     public void transform(CInject annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
-        IAnnotationCoprocessor[] coprocessors = transformerManager.getCoprocessors();
-        for (IAnnotationCoprocessor coprocessor : coprocessors) {
-            transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
-        }
+        AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
+        transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         boolean hasArgs;
         boolean hasCallback;
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
@@ -104,9 +102,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
                 else target.instructions.insert(instruction, instructions);
             }
         }
-        for (int i = coprocessors.length - 1; i >= 0; i--) {
-            coprocessors[i].postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
-        }
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
     }
 
     private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final boolean cancellable, final boolean hasArgs, final boolean hasCallback, final List<MethodInsnNode> transformerMethodCalls) {
