@@ -29,7 +29,7 @@ public interface IAnnotationCoprocessor {
      * @param transformedMethod  The target method node
      * @param transformer        The transformer class node
      * @param transformerMethod  The transformer method node
-     * @return The preprocessed method node
+     * @return The preprocessed {@code transformerMethod} node
      */
     MethodNode preprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final ClassNode transformer, final MethodNode transformerMethod);
 
@@ -44,7 +44,7 @@ public interface IAnnotationCoprocessor {
      * @param transformedMethod  The target method node
      * @param transformer        The transformer class node
      * @param transformerMethod  The transformer method node
-     * @return The preprocessed method node
+     * @return The preprocessed {@code transformerMethod} node
      */
     MethodNode transform(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final ClassNode transformer, final MethodNode transformerMethod);
 
