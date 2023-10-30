@@ -592,6 +592,34 @@ public class ASMUtils {
     }
 
     /**
+     * Get the variable indices for the parameters of a method.
+     *
+     * @param methodNode The method node
+     * @return The variable indices
+     */
+    public static int[] getParameterIndices(final MethodNode methodNode) {
+        return getParameterIndices(argumentTypes(methodNode), Modifier.isStatic(methodNode.access));
+    }
+
+    /**
+     * Get the variable indices for an array of types.
+     *
+     * @param types    The types
+     * @param isStatic If the first index should be 0 or 1
+     * @return The variable indices
+     */
+    public static int[] getParameterIndices(final Type[] types, final boolean isStatic) {
+        int[] indices = new int[types.length];
+        int current = isStatic ? 0 : 1;
+        for (int i = 0; i < types.length; i++) {
+            Type type = types[i];
+            indices[i] = current;
+            current += type.getSize();
+        }
+        return indices;
+    }
+
+    /**
      * Replace all slashes with dots in the given class/package name.
      *
      * @param s The class/package name
