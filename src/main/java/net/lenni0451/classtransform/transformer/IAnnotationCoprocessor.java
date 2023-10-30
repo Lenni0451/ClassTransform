@@ -32,6 +32,19 @@ public interface IAnnotationCoprocessor {
     MethodNode preprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final ClassNode transformer, final MethodNode transformerMethod);
 
     /**
+     * Process the target method before the annotation handler injects calls to the target method.<br>
+     * This happens before the transformer method is verified by the annotation handler but after {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)}.
+     *
+     * @param transformerManager The transformer manager
+     * @param transformedClass   The target class node
+     * @param transformedMethod  The target method node
+     * @param transformer        The transformer class node
+     * @param transformerMethod  The transformer method node
+     * @return The preprocessed method node
+     */
+    MethodNode transform(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final ClassNode transformer, final MethodNode transformerMethod);
+
+    /**
      * Postprocess the transformer and target method after the annotation handler injected calls to the target method.<br>
      * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.
      *

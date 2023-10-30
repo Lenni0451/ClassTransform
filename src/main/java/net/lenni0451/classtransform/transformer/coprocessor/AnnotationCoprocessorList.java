@@ -74,6 +74,9 @@ public class AnnotationCoprocessorList {
         for (IAnnotationCoprocessor coprocessor : this.coprocessors) {
             transformerMethod = coprocessor.preprocess(transformerManager, transformedClass, transformedMethod, transformer, transformerMethod);
         }
+        for (IAnnotationCoprocessor coprocessor : this.coprocessors) {
+            transformerMethod = coprocessor.transform(transformerManager, transformedClass, transformedMethod, transformer, transformerMethod);
+        }
         return transformerMethod;
     }
 
