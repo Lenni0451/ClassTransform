@@ -11,7 +11,7 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.List;
 
 /**
- * Coprocessor for annotation handlers.<br>
+ * Coprocessor for annotation handlers. The instance of this class will only be used once.<br>
  * Used to add support for special annotations like {@link CLocalVariable}.<br>
  * Annotation handlers which do not inject calls to the target method will not need this (e.g. {@link CASM}, {@link COverride}).<br>
  * <b>If you are adding your own annotation handler you need to add support for this manually <i>(unless you don't inject calls to the target method)</i>.</b>
@@ -20,7 +20,9 @@ public interface IAnnotationCoprocessor {
 
     /**
      * Preprocess the target method before the annotation handler injects calls to the target method.<br>
-     * This happens before the transformer method is verified by the annotation handler.
+     * This happens before the transformer method is verified by the annotation handler.<br>
+     * <br>
+     * Example usage: {@code Merge all parameters into one array and add it to the end of the method.}
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node
@@ -33,7 +35,9 @@ public interface IAnnotationCoprocessor {
 
     /**
      * Process the target method before the annotation handler injects calls to the target method.<br>
-     * This happens before the transformer method is verified by the annotation handler but after {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)}.
+     * This happens before the transformer method is verified by the annotation handler but after {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)}.<br>
+     * <br>
+     * Example usage: {@code Remove the previously added parameter array so the transformer method can be verified by the annotation handler.}
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node
@@ -46,7 +50,9 @@ public interface IAnnotationCoprocessor {
 
     /**
      * Postprocess the transformer and target method after the annotation handler injected calls to the target method.<br>
-     * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.
+     * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.<br>
+     * <br>
+     * Example usage: {@code Add the parameter array back and modify the calls to the transformer method to use the parameter array.}
      *
      * @param transformerManager     The transformer manager
      * @param transformedClass       The target class node
