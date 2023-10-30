@@ -115,6 +115,28 @@ public class AnnotationUtils {
         return findAnnotation(methodNode.visibleAnnotations, annotationDescriptor);
     }
 
+    /**
+     * Find visible parameter annotations in a {@link MethodNode}.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findVisibleParameterAnnotations(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findParameterAnnotations(methodNode.visibleParameterAnnotations, annotationClass);
+    }
+
+    /**
+     * Find visible parameter annotations in a {@link MethodNode}.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findVisibleParameterAnnotations(final MethodNode methodNode, final String annotationDescriptor) {
+        return findParameterAnnotations(methodNode.visibleParameterAnnotations, annotationDescriptor);
+    }
+
 
     /**
      * Find an invisible annotation in a {@link ClassNode}.
@@ -180,6 +202,28 @@ public class AnnotationUtils {
      */
     public static Optional<AnnotationNode> findInvisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
         return findAnnotation(methodNode.invisibleAnnotations, annotationDescriptor);
+    }
+
+    /**
+     * Find invisible parameter annotations in a {@link MethodNode}.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findInvisibleParameterAnnotations(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findParameterAnnotations(methodNode.invisibleParameterAnnotations, annotationClass);
+    }
+
+    /**
+     * Find invisible parameter annotations in a {@link MethodNode}.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findInvisibleParameterAnnotations(final MethodNode methodNode, final String annotationDescriptor) {
+        return findParameterAnnotations(methodNode.invisibleParameterAnnotations, annotationDescriptor);
     }
 
 
@@ -262,6 +306,32 @@ public class AnnotationUtils {
     }
 
     /**
+     * Find visible or invisible parameter annotations in a {@link MethodNode}.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findParameterAnnotations(final MethodNode methodNode, final Class<?> annotationClass) {
+        Optional<AnnotationNode[]> annotationNode = findVisibleParameterAnnotations(methodNode, annotationClass);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleParameterAnnotations(methodNode, annotationClass);
+    }
+
+    /**
+     * Find visible or invisible parameter annotations in a {@link MethodNode}.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findParameterAnnotations(final MethodNode methodNode, final String annotationDescriptor) {
+        Optional<AnnotationNode[]> annotationNode = findVisibleParameterAnnotations(methodNode, annotationDescriptor);
+        if (annotationNode.isPresent()) return annotationNode;
+        return findInvisibleParameterAnnotations(methodNode, annotationDescriptor);
+    }
+
+    /**
      * Find an annotation in a list of annotations.
      *
      * @param annotations     The list of annotations to search in
@@ -285,6 +355,37 @@ public class AnnotationUtils {
             if (annotation.desc.equals(annotationDescriptor)) return Optional.of(annotation);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Find parameter annotations in a list of annotations.
+     *
+     * @param annotations     The list of annotations to search in
+     * @param annotationClass The annotation class to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findParameterAnnotations(@Nullable final List<AnnotationNode>[] annotations, final Class<?> annotationClass) {
+        return findParameterAnnotations(annotations, typeDescriptor(annotationClass));
+    }
+
+    /**
+     * Find parameter annotations in a list of annotations.
+     *
+     * @param annotations          The list of annotations to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return The annotations if found
+     */
+    public static Optional<AnnotationNode[]> findParameterAnnotations(@Nullable final List<AnnotationNode>[] annotations, final String annotationDescriptor) {
+        if (annotations == null) return Optional.empty();
+        AnnotationNode[] annotationNodes = new AnnotationNode[annotations.length];
+        boolean found = false;
+        for (int i = 0; i < annotations.length; i++) {
+            Optional<AnnotationNode> annotationNode = findAnnotation(annotations[i], annotationDescriptor);
+            annotationNodes[i] = annotationNode.orElse(null);
+            if (annotationNode.isPresent()) found = true;
+        }
+        if (!found) return Optional.empty();
+        else return Optional.of(annotationNodes);
     }
 
 
@@ -354,6 +455,28 @@ public class AnnotationUtils {
         return findVisibleAnnotation(methodNode, annotationDescriptor).isPresent();
     }
 
+    /**
+     * Check if a {@link MethodNode} has visible parameter annotations.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasVisibleParameterAnnotations(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findVisibleParameterAnnotations(methodNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has visible parameter annotations.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasVisibleParameterAnnotations(final MethodNode methodNode, final String annotationDescriptor) {
+        return findVisibleParameterAnnotations(methodNode, annotationDescriptor).isPresent();
+    }
+
 
     /**
      * Check if a {@link ClassNode} has an invisible annotation.
@@ -419,6 +542,28 @@ public class AnnotationUtils {
      */
     public static boolean hasInvisibleAnnotation(final MethodNode methodNode, final String annotationDescriptor) {
         return findInvisibleAnnotation(methodNode, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has invisible parameter annotations.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasInvisibleParameterAnnotations(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findInvisibleParameterAnnotations(methodNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has invisible parameter annotations.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasInvisibleParameterAnnotations(final MethodNode methodNode, final String annotationDescriptor) {
+        return findInvisibleParameterAnnotations(methodNode, annotationDescriptor).isPresent();
     }
 
 
@@ -489,6 +634,28 @@ public class AnnotationUtils {
     }
 
     /**
+     * Check if a {@link MethodNode} has visible or invisible parameter annotations.
+     *
+     * @param methodNode      The method node to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasParameterAnnotations(final MethodNode methodNode, final Class<?> annotationClass) {
+        return findParameterAnnotations(methodNode, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if a {@link MethodNode} has visible or invisible parameter annotations.
+     *
+     * @param methodNode           The method node to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the method node has the annotation
+     */
+    public static boolean hasParameterAnnotations(final MethodNode methodNode, final String annotationDescriptor) {
+        return findParameterAnnotations(methodNode, annotationDescriptor).isPresent();
+    }
+
+    /**
      * Check if a list of annotations has an annotation.
      *
      * @param annotations     The list of annotations to search in
@@ -508,6 +675,28 @@ public class AnnotationUtils {
      */
     public static boolean hasAnnotation(@Nullable final List<AnnotationNode> annotations, final String annotationDescriptor) {
         return findAnnotation(annotations, annotationDescriptor).isPresent();
+    }
+
+    /**
+     * Check if an array of parameter annotations has an annotation.
+     *
+     * @param annotations     The array of parameter annotations to search in
+     * @param annotationClass The annotation class to search for
+     * @return If the array of parameter annotations has the annotation
+     */
+    public static boolean hasParameterAnnotations(@Nullable final List<AnnotationNode>[] annotations, final Class<?> annotationClass) {
+        return findParameterAnnotations(annotations, annotationClass).isPresent();
+    }
+
+    /**
+     * Check if an array of parameter annotations has an annotation.
+     *
+     * @param annotations          The array of parameter annotations to search in
+     * @param annotationDescriptor The descriptor of the annotation to search for
+     * @return If the array of parameter annotations has the annotation
+     */
+    public static boolean hasParameterAnnotations(@Nullable final List<AnnotationNode>[] annotations, final String annotationDescriptor) {
+        return findParameterAnnotations(annotations, annotationDescriptor).isPresent();
     }
 
 }
