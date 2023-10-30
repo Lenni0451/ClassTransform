@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.utils;
 
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -125,6 +126,7 @@ public class Types {
     public static Type[] argumentTypes(final Object ob) {
         if (ob instanceof String) return Type.getArgumentTypes((String) ob);
         else if (ob instanceof Method) return Type.getArgumentTypes((Method) ob);
+        else if (ob instanceof MethodNode) return Type.getArgumentTypes(((MethodNode) ob).desc);
         throw new IllegalArgumentException("Unable to get argument types of " + ob);
     }
 
