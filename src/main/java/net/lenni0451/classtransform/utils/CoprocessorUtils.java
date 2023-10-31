@@ -26,14 +26,17 @@ public class CoprocessorUtils {
     @Nullable
     public static AnnotatedParameter[] getAnnotatedParameters(final MethodNode methodNode, final Class<?> annotationClass) {
         Optional<AnnotationNode[]> optionalAnnotations = AnnotationUtils.findParameterAnnotations(methodNode, annotationClass);
-        if (!optionalAnnotations.isPresent()) return null;
+        if (!optionalAnnotations.isPresent()) return null; //No annotated parameters found
         AnnotationNode[] annotations = optionalAnnotations.get();
-        Type[] types = Types.argumentTypes(methodNode.desc);
-        int[] indices = ASMUtils.getParameterIndices(methodNode);
-        if (types.length != annotations.length) throw new RuntimeException("Parameter count does not match annotation count");
+        Type[] types = Types.argumentTypes(methodNode.desc); //The current method argument types
+        int[] indices = ASMUtils.getParameterIndices(methodNode); //The argument variable indices
+        if (types.length != annotations.length) {
+            //Ensure that the parameter count matches the annotation count
+            throw new RuntimeException("Parameter count does not match annotation count");
+        }
 
         AnnotatedParameter[] annotatedParameters = new AnnotatedParameter[annotations.length];
-        int x = 0;
+        int x = 0; //The index of the annotated parameter within all annotated parameters
         for (int i = 0; i < annotations.length; i++) annotatedParameters[i] = new AnnotatedParameter(x++, indices[i], types[i], annotations[i]);
         return annotatedParameters;
     }
@@ -44,32 +47,35 @@ public class CoprocessorUtils {
      *
      * @param methodNode          The method to merge the parameters from
      * @param annotatedParameters The annotated parameters to merge
+     * @return The variable index of the array
      */
-    public static void mergeParametersToArray(final MethodNode methodNode, final AnnotatedParameter[] annotatedParameters) {
-        Type[] types = Types.argumentTypes(methodNode.desc);
-        int[] typeIndices = ASMUtils.getParameterIndices(methodNode);
-        Map<Integer, Integer> indexMappings = new HashMap<>();
-        Map<Integer, AnnotatedParameter> arrayMappings = new HashMap<>();
+    public static int mergeParametersToArray(final MethodNode methodNode, final AnnotatedParameter[] annotatedParameters) {
+        Type[] types = Types.argumentTypes(methodNode.desc); //The current method argument types
+        int[] typeIndices = ASMUtils.getParameterIndices(methodNode); //The argument variable indices
+        Map<Integer, Integer> indexMappings = new HashMap<>(); //Mappings from old variable index to new variable index. Used for non annotated parameters.
+        Map<Integer, AnnotatedParameter> arrayMappings = new HashMap<>(); //Mappings from old variable index to annotated parameter
 
         //Calculate mappings
         List<Type> newTypes = new ArrayList<>();
-        int currentIndex = Modifier.isStatic(methodNode.access) ? 0 : 1; //The current variable index. Will be the new array index after the following loop
+        int currentIndex = Modifier.isStatic(methodNode.access) ? 0 : 1; //The current variable index. Will be the new array index after the following loop.
         for (int i = 0; i < types.length; i++) {
             Type type = types[i];
             int index = typeIndices[i];
             AnnotatedParameter parameter = annotatedParameters[i];
             if (parameter == null) {
+                //Not annotated
                 newTypes.add(type);
                 indexMappings.put(index, currentIndex);
                 currentIndex += type.getSize();
             } else {
+                //Annotated
                 arrayMappings.put(index, parameter);
             }
         }
 
         //New method descriptor
         newTypes.add(Types.type(Object[].class));
-        methodNode.desc = Types.methodDescriptor(Types.returnType(methodNode), newTypes.toArray());
+        methodNode.desc = Types.methodDescriptor(Types.returnType(methodNode), newTypes.toArray()); //Set new method descriptor
 
         //Map variables
         //Because at least one parameter is annotated we don't need to move the other local variables because we can't collide with them.
@@ -121,6 +127,7 @@ public class CoprocessorUtils {
                 }
             }
         }
+        return currentIndex;
     }
 
 

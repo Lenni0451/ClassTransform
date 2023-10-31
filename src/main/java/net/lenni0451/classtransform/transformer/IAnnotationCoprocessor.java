@@ -36,6 +36,7 @@ public interface IAnnotationCoprocessor {
     /**
      * Process the target method before the annotation handler injects calls to the target method.<br>
      * This happens before the transformer method is verified by the annotation handler but after {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)}.<br>
+     * The calls to this method are in reverse order of the {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)} calls.<br>
      * <br>
      * Example usage: {@code Remove the previously added parameter array so the transformer method can be verified by the annotation handler.}
      *
