@@ -127,15 +127,16 @@ public abstract class AnnotationHandler {
      * @param transformer      The transformer class node
      * @param transformedClass The target class node
      * @param extra            Extra data for the generated method name
+     * @return The renamed and copied method node
      */
-    protected void renameAndCopy(final MethodNode injectionMethod, final MethodNode targetMethod, final ClassNode transformer, final ClassNode transformedClass, final String extra) {
+    protected MethodNode renameAndCopy(final MethodNode injectionMethod, final MethodNode targetMethod, final ClassNode transformer, final ClassNode transformedClass, final String extra) {
         this.prepareForCopy(transformer, injectionMethod);
         int i = 0;
         String baseName = injectionMethod.name + "$" + targetMethod.name.replaceAll("[<>]", "") + "$" + extra;
         do {
             injectionMethod.name = baseName + i++;
         } while (this.hasMethod(transformedClass, injectionMethod.name));
-        Remapper.remapAndAdd(transformer, transformedClass, injectionMethod);
+        return Remapper.remapAndAdd(transformer, transformedClass, injectionMethod);
     }
 
 
