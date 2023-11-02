@@ -47,9 +47,8 @@ public class CoprocessorUtils {
      *
      * @param methodNode          The method to merge the parameters from
      * @param annotatedParameters The annotated parameters to merge
-     * @return The variable index of the array
      */
-    public static int mergeParametersToArray(final MethodNode methodNode, final AnnotatedParameter[] annotatedParameters) {
+    public static void mergeParametersToArray(final MethodNode methodNode, final AnnotatedParameter[] annotatedParameters) {
         Type[] types = Types.argumentTypes(methodNode.desc); //The current method argument types
         int[] typeIndices = ASMUtils.getParameterIndices(methodNode); //The argument variable indices
         Map<Integer, Integer> indexMappings = new HashMap<>(); //Mappings from old variable index to new variable index. Used for non annotated parameters.
@@ -127,7 +126,6 @@ public class CoprocessorUtils {
                 }
             }
         }
-        return currentIndex;
     }
 
 
