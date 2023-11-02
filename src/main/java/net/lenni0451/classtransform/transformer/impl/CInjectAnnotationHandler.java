@@ -199,7 +199,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
 
         MethodInsnNode transformerCall;
         if (Modifier.isStatic(target.access)) {
-            transformerCall = new MethodInsnNode(isInterface ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, classNode.name, source.name, source.desc, isInterface);
+            transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, classNode.name, source.name, source.desc, isInterface);
         } else {
             transformerCall = new MethodInsnNode(isInterface ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, classNode.name, source.name, source.desc, isInterface);
             instructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
