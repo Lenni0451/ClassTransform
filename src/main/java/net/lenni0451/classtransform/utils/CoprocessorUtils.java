@@ -37,7 +37,11 @@ public class CoprocessorUtils {
 
         AnnotatedParameter[] annotatedParameters = new AnnotatedParameter[annotations.length];
         int x = 0; //The index of the annotated parameter within all annotated parameters
-        for (int i = 0; i < annotations.length; i++) annotatedParameters[i] = new AnnotatedParameter(x++, indices[i], types[i], annotations[i]);
+        for (int i = 0; i < annotations.length; i++) {
+            AnnotationNode annotation = annotations[i];
+            if (annotation == null) continue; //Not annotated
+            annotatedParameters[i] = new AnnotatedParameter(x++, indices[i], types[i], annotation);
+        }
         return annotatedParameters;
     }
 
