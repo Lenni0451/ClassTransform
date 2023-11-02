@@ -20,7 +20,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
 public class CRedirectNew implements IRedirectTarget {
 
     @Override
-    public void inject(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, List<AbstractInsnNode> targetNodes) {
+    public void inject(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, List<AbstractInsnNode> targetNodes, List<MethodInsnNode> transformerMethodCalls) {
         for (AbstractInsnNode instruction : targetNodes) {
             MethodInsnNode methodInsnNode = (MethodInsnNode) instruction;
 
@@ -49,14 +49,17 @@ public class CRedirectNew implements IRedirectTarget {
             targetMethod.instructions.insertBefore(methodInsnNode, storeOpcodes);
             targetMethod.instructions.insertBefore(methodInsnNode, new InsnNode(Opcodes.POP2));
             if (cast) targetMethod.instructions.insert(methodInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, returnType(methodInsnNode.desc).getInternalName()));
+            MethodInsnNode transformerCall;
             if (!Modifier.isStatic(transformerMethod.access)) {
                 targetMethod.instructions.insertBefore(methodInsnNode, new VarInsnNode(Opcodes.ALOAD, 0));
                 targetMethod.instructions.insertBefore(methodInsnNode, loadOpcodes);
-                targetMethod.instructions.set(methodInsnNode, new MethodInsnNode(Modifier.isInterface(targetClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, targetClass.name, transformerMethod.name, transformerMethod.desc));
+                transformerCall = new MethodInsnNode(Modifier.isInterface(targetClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, targetClass.name, transformerMethod.name, transformerMethod.desc);
             } else {
                 targetMethod.instructions.insertBefore(methodInsnNode, loadOpcodes);
-                targetMethod.instructions.set(methodInsnNode, new MethodInsnNode(Opcodes.INVOKESTATIC, targetClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(targetClass.access)));
+                transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, targetClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(targetClass.access));
             }
+            targetMethod.instructions.set(methodInsnNode, transformerCall);
+            transformerMethodCalls.add(transformerCall);
         }
     }
 

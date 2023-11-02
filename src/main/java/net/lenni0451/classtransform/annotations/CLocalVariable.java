@@ -18,14 +18,16 @@ public @interface CLocalVariable {
     /**
      * The name of the local variable found in the local variable table.<br>
      * The local variable table is optional in the class file but is required for the name resolution.<br>
-     * Use the index if no local variable table is present.
+     * Use the index if no local variable table is present.<br>
+     * If {@link #name()} and {@link #index()} are both set, the name will be used if found. Otherwise, the index will be used instead.
      *
      * @return The name of the local variable
      */
     String name() default "";
 
     /**
-     * The var index of the local variable to get.
+     * The var index of the local variable to get.<br>
+     * If {@link #name()} and {@link #index()} are both set, the name will be used if found. Otherwise, the index will be used instead.
      *
      * @return The var index
      */

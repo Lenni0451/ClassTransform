@@ -12,6 +12,8 @@ import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.targets.impl.*;
 import net.lenni0451.classtransform.transformer.*;
+import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
+import net.lenni0451.classtransform.transformer.coprocessor.impl.CLocalVariableCoprocessor;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
@@ -57,6 +59,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final IClassProvider classProvider;
     private final AMapper mapper;
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
+    private final AnnotationCoprocessorList coprocessors = new AnnotationCoprocessorList();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private final TransformerDebugger debugger = new TransformerDebugger(this);
     private FailStrategy failStrategy = FailStrategy.EXIT;
@@ -107,6 +110,9 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CInlineAnnotationHandler());
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.BOTTOM));
 
+        //Annotation coprocessors
+        this.coprocessors.add(CLocalVariableCoprocessor::new);
+
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());
         this.injectionTargets.put("RETURN", new ReturnTarget());
@@ -154,6 +160,25 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public Set<String> getTransformedClasses() {
         return Collections.unmodifiableSet(this.transformedClasses);
+    }
+
+    /**
+     * Add a new annotation handler coprocessor.<br>
+     * A new coprocessor instance will be created for each annotation handler.
+     *
+     * @param coprocessorSupplier The coprocessor supplier
+     */
+    public void addCoprocessor(final Supplier<? extends IAnnotationCoprocessor> coprocessorSupplier) {
+        this.coprocessors.add(coprocessorSupplier);
+    }
+
+    /**
+     * Create and get a new array of all coprocessors.
+     *
+     * @return The coprocessors
+     */
+    public AnnotationCoprocessorList getCoprocessors() {
+        return coprocessors.build();
     }
 
     /**

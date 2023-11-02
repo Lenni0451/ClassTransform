@@ -23,6 +23,8 @@ class AnnotationUtilsTest {
 
     private static List<AnnotationNode> visibleAnnotations;
     private static List<AnnotationNode> invisibleAnnotations;
+    private static List<AnnotationNode>[] visibleParameterAnnotations;
+    private static List<AnnotationNode>[] invisibleParameterAnnotations;
     private static ClassNode classNode;
     private static FieldNode fieldNode;
     private static MethodNode methodNode;
@@ -31,6 +33,8 @@ class AnnotationUtilsTest {
     static void setUp() {
         visibleAnnotations = Collections.singletonList(new AnnotationNode(DEPRECATED_DESCRIPTOR));
         invisibleAnnotations = Collections.singletonList(new AnnotationNode(OVERRIDE_DESCRIPTOR));
+        visibleParameterAnnotations = new List[]{visibleAnnotations};
+        invisibleParameterAnnotations = new List[]{invisibleAnnotations};
 
         classNode = new ClassNode();
         classNode.visibleAnnotations = visibleAnnotations;
@@ -43,6 +47,8 @@ class AnnotationUtilsTest {
         methodNode = new MethodNode();
         methodNode.visibleAnnotations = visibleAnnotations;
         methodNode.invisibleAnnotations = invisibleAnnotations;
+        methodNode.visibleParameterAnnotations = visibleParameterAnnotations;
+        methodNode.invisibleParameterAnnotations = invisibleParameterAnnotations;
     }
 
     @Test
@@ -97,6 +103,24 @@ class AnnotationUtilsTest {
         assertTrue(AnnotationUtils.findAnnotation(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
         assertTrue(AnnotationUtils.findAnnotation(methodNode, DEPRECATED_CLASS).isPresent());
         assertTrue(AnnotationUtils.findAnnotation(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
+    }
+
+    @Test
+    void findParameterAnnotationsInMethod() {
+        assertFalse(AnnotationUtils.findVisibleParameterAnnotations(methodNode, OVERRIDE_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findVisibleParameterAnnotations(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findVisibleParameterAnnotations(methodNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findVisibleParameterAnnotations(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
+
+        assertTrue(AnnotationUtils.findInvisibleParameterAnnotations(methodNode, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findInvisibleParameterAnnotations(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertFalse(AnnotationUtils.findInvisibleParameterAnnotations(methodNode, DEPRECATED_CLASS).isPresent());
+        assertFalse(AnnotationUtils.findInvisibleParameterAnnotations(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
+
+        assertTrue(AnnotationUtils.findParameterAnnotations(methodNode, OVERRIDE_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findParameterAnnotations(methodNode, OVERRIDE_DESCRIPTOR).isPresent());
+        assertTrue(AnnotationUtils.findParameterAnnotations(methodNode, DEPRECATED_CLASS).isPresent());
+        assertTrue(AnnotationUtils.findParameterAnnotations(methodNode, DEPRECATED_DESCRIPTOR).isPresent());
     }
 
     @Test
@@ -162,11 +186,37 @@ class AnnotationUtilsTest {
     }
 
     @Test
+    void methodHasParameterAnnotations() {
+        assertFalse(AnnotationUtils.hasVisibleParameterAnnotations(methodNode, OVERRIDE_CLASS));
+        assertFalse(AnnotationUtils.hasVisibleParameterAnnotations(methodNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasVisibleParameterAnnotations(methodNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasVisibleParameterAnnotations(methodNode, DEPRECATED_DESCRIPTOR));
+
+        assertTrue(AnnotationUtils.hasInvisibleParameterAnnotations(methodNode, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasInvisibleParameterAnnotations(methodNode, OVERRIDE_DESCRIPTOR));
+        assertFalse(AnnotationUtils.hasInvisibleParameterAnnotations(methodNode, DEPRECATED_CLASS));
+        assertFalse(AnnotationUtils.hasInvisibleParameterAnnotations(methodNode, DEPRECATED_DESCRIPTOR));
+
+        assertTrue(AnnotationUtils.hasParameterAnnotations(methodNode, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasParameterAnnotations(methodNode, OVERRIDE_DESCRIPTOR));
+        assertTrue(AnnotationUtils.hasParameterAnnotations(methodNode, DEPRECATED_CLASS));
+        assertTrue(AnnotationUtils.hasParameterAnnotations(methodNode, DEPRECATED_DESCRIPTOR));
+    }
+
+    @Test
     void hasAnnotation() {
         assertTrue(AnnotationUtils.hasAnnotation(invisibleAnnotations, OVERRIDE_CLASS));
         assertTrue(AnnotationUtils.hasAnnotation(invisibleAnnotations, OVERRIDE_DESCRIPTOR));
         assertFalse(AnnotationUtils.hasAnnotation(invisibleAnnotations, DEPRECATED_CLASS));
         assertFalse(AnnotationUtils.hasAnnotation(invisibleAnnotations, DEPRECATED_DESCRIPTOR));
+    }
+
+    @Test
+    void hasParameterAnnotations() {
+        assertTrue(AnnotationUtils.hasParameterAnnotations(invisibleParameterAnnotations, OVERRIDE_CLASS));
+        assertTrue(AnnotationUtils.hasParameterAnnotations(invisibleParameterAnnotations, OVERRIDE_DESCRIPTOR));
+        assertFalse(AnnotationUtils.hasParameterAnnotations(invisibleParameterAnnotations, DEPRECATED_CLASS));
+        assertFalse(AnnotationUtils.hasParameterAnnotations(invisibleParameterAnnotations, DEPRECATED_DESCRIPTOR));
     }
 
 }

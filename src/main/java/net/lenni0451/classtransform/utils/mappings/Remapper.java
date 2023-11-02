@@ -1,7 +1,5 @@
 package net.lenni0451.classtransform.utils.mappings;
 
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.FieldRemapper;
 import org.objectweb.asm.commons.MethodRemapper;
@@ -24,9 +22,10 @@ public class Remapper {
      * @param source     The owner of the method node
      * @param target     The new owner of the remapped method node
      * @param methodNode The method node to remap
+     * @return The remapped method node
      */
-    public static void remapAndAdd(final ClassNode source, final ClassNode target, final MethodNode methodNode) {
-        remapAndAdd(source.name, target.name, target, methodNode);
+    public static MethodNode remapAndAdd(final ClassNode source, final ClassNode target, final MethodNode methodNode) {
+        return remapAndAdd(source.name, target.name, target, methodNode);
     }
 
     /**
@@ -36,9 +35,10 @@ public class Remapper {
      * @param source    The owner of the field node
      * @param target    The new owner of the remapped field node
      * @param fieldNode The field node to remap
+     * @return The remapped field node
      */
-    public static void remapAndAdd(final ClassNode source, final ClassNode target, final FieldNode fieldNode) {
-        remapAndAdd(source.name, target.name, target, fieldNode);
+    public static FieldNode remapAndAdd(final ClassNode source, final ClassNode target, final FieldNode fieldNode) {
+        return remapAndAdd(source.name, target.name, target, fieldNode);
     }
 
     /**
@@ -49,12 +49,15 @@ public class Remapper {
      * @param targetName The new name of the class
      * @param holder     The class node to which the remapped method node gets added
      * @param methodNode The method node to remap
+     * @return The remapped method node
      */
-    public static void remapAndAdd(final String sourceName, final String targetName, final ClassNode holder, final MethodNode methodNode) {
+    public static MethodNode remapAndAdd(final String sourceName, final String targetName, final ClassNode holder, final MethodNode methodNode) {
         MapRemapper remapper = new MapRemapper(sourceName, targetName);
-        MethodVisitor newNode = holder.visitMethod(methodNode.access, remapper.mapMethodName(sourceName, methodNode.name, methodNode.desc), remapper.mapDesc(methodNode.desc), methodNode.signature, methodNode.exceptions == null ? null : remapper.mapTypes(methodNode.exceptions.toArray(new String[0])));
+        MethodNode newNode = new MethodNode(methodNode.access, remapper.mapMethodName(sourceName, methodNode.name, methodNode.desc), remapper.mapDesc(methodNode.desc), methodNode.signature, methodNode.exceptions == null ? null : remapper.mapTypes(methodNode.exceptions.toArray(new String[0])));
         MethodRemapper methodRemapper = new MethodRemapper(newNode, remapper);
         methodNode.accept(methodRemapper);
+        holder.methods.add(newNode);
+        return newNode;
     }
 
     /**
@@ -65,10 +68,11 @@ public class Remapper {
      * @param targetName The new name of the class
      * @param holder     The class node to which the remapped field node gets added
      * @param fieldNode  The field node to remap
+     * @return The remapped field node
      */
-    public static void remapAndAdd(final String sourceName, final String targetName, final ClassNode holder, final FieldNode fieldNode) {
+    public static FieldNode remapAndAdd(final String sourceName, final String targetName, final ClassNode holder, final FieldNode fieldNode) {
         MapRemapper remapper = new MapRemapper(sourceName, targetName);
-        FieldVisitor newNode = holder.visitField(fieldNode.access, remapper.mapFieldName(sourceName, fieldNode.name, fieldNode.desc), remapper.mapDesc(fieldNode.desc), remapper.mapSignature(fieldNode.signature, true), fieldNode.value == null ? null : remapper.mapValue(fieldNode.value));
+        FieldNode newNode = new FieldNode(fieldNode.access, remapper.mapFieldName(sourceName, fieldNode.name, fieldNode.desc), remapper.mapDesc(fieldNode.desc), remapper.mapSignature(fieldNode.signature, true), fieldNode.value == null ? null : remapper.mapValue(fieldNode.value));
         FieldRemapper fieldRemapper = new FieldRemapper(newNode, remapper);
         if (fieldNode.visibleTypeAnnotations != null) {
             for (TypeAnnotationNode annotation : fieldNode.visibleTypeAnnotations) {
@@ -90,6 +94,8 @@ public class Remapper {
                 annotation.accept(fieldRemapper.visitAnnotation(annotation.desc, false));
             }
         }
+        holder.fields.add(newNode);
+        return newNode;
     }
 
     /**
