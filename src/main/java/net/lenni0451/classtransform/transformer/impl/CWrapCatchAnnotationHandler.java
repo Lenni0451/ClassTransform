@@ -113,7 +113,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
                 transformerMethodCalls.add(transformerCall);
             }
         }
-        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
     }
 
 
