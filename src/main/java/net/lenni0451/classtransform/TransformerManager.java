@@ -13,6 +13,7 @@ import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.targets.impl.*;
 import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
+import net.lenni0451.classtransform.transformer.coprocessor.impl.CLocalVariableCoprocessor;
 import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
@@ -108,6 +109,9 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new MemberCopyGeneralHandler(false)); //Copy all leftover methods to the transformed class
         this.annotationHandler.add(new CInlineAnnotationHandler());
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.BOTTOM));
+
+        //Annotation coprocessors
+        this.coprocessors.add(CLocalVariableCoprocessor::new);
 
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());
