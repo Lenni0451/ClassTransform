@@ -185,8 +185,10 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
             } else {
                 instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, internalName(InjectionCallback.class), MN_Init, methodDescriptor(void.class, boolean.class)));
             }
-            instructions.add(new VarInsnNode(Opcodes.ASTORE, callbackVar));
-            instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+            if (cancellable) {
+                instructions.add(new VarInsnNode(Opcodes.ASTORE, callbackVar));
+                instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+            }
         }
     }
 
