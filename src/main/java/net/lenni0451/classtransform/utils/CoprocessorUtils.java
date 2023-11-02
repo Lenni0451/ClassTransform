@@ -59,7 +59,7 @@ public class CoprocessorUtils {
         Map<Integer, AnnotatedParameter> arrayMappings = new HashMap<>(); //Mappings from old variable index to annotated parameter
 
         //Calculate mappings
-        List<Type> newTypes = new ArrayList<>();
+        List<Integer> parametersToRemove = new ArrayList<>();
         int currentIndex = Modifier.isStatic(methodNode.access) ? 0 : 1; //The current variable index. Will be the new array index after the following loop.
         for (int i = 0; i < types.length; i++) {
             Type type = types[i];
@@ -67,18 +67,18 @@ public class CoprocessorUtils {
             AnnotatedParameter parameter = annotatedParameters[i];
             if (parameter == null) {
                 //Not annotated
-                newTypes.add(type);
                 indexMappings.put(index, currentIndex);
                 currentIndex += type.getSize();
             } else {
                 //Annotated
+                parametersToRemove.add(i);
                 arrayMappings.put(index, parameter);
             }
         }
 
         //New method descriptor
-        newTypes.add(Types.type(Object[].class));
-        methodNode.desc = Types.methodDescriptor(Types.returnType(methodNode), newTypes.toArray()); //Set new method descriptor
+        ASMUtils.removeParameters(methodNode, parametersToRemove.stream().mapToInt(i -> i).toArray()); //Remove annotated parameters
+        ASMUtils.addParameters(methodNode, Types.type(Object[].class)); //Add array parameter
 
         //Map variables
         //Because at least one parameter is annotated we don't need to move the other local variables because we can't collide with them.
