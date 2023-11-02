@@ -12,10 +12,7 @@ import org.objectweb.asm.tree.*;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -617,6 +614,90 @@ public class ASMUtils {
             current += type.getSize();
         }
         return indices;
+    }
+
+    /**
+     * Cut the given amount of parameters from the end of a method.<br>
+     * The actual code is not changed, only the descriptor and annotations.
+     *
+     * @param methodNode The method node
+     * @param count      The amount of parameters to cut
+     */
+    public static void cutParameters(final MethodNode methodNode, final int count) {
+        if (count == 0) return;
+        if (count < 0) throw new IllegalArgumentException("Count cannot be negative");
+
+        Type[] parameters = argumentTypes(methodNode);
+        parameters = Arrays.copyOf(parameters, parameters.length - count);
+        methodNode.desc = methodDescriptor(returnType(methodNode), (Object[]) parameters);
+
+        if (methodNode.visibleParameterAnnotations != null) {
+            methodNode.visibleParameterAnnotations = Arrays.copyOf(methodNode.visibleParameterAnnotations, methodNode.visibleParameterAnnotations.length - count);
+        }
+        if (methodNode.invisibleParameterAnnotations != null) {
+            methodNode.invisibleParameterAnnotations = Arrays.copyOf(methodNode.invisibleParameterAnnotations, methodNode.invisibleParameterAnnotations.length - count);
+        }
+        if (methodNode.visibleAnnotableParameterCount > 0 && methodNode.visibleAnnotableParameterCount > parameters.length) {
+            methodNode.visibleAnnotableParameterCount = parameters.length;
+        }
+        if (methodNode.invisibleAnnotableParameterCount > 0 && methodNode.invisibleAnnotableParameterCount > parameters.length) {
+            methodNode.invisibleAnnotableParameterCount = parameters.length;
+        }
+    }
+
+    /**
+     * Remove the given parameter indices from a method.<br>
+     * The actual code is not changed, only the descriptor and annotations.
+     *
+     * @param methodNode The method node
+     * @param indices    The indices to remove
+     */
+    public static void removeParameters(final MethodNode methodNode, final int... indices) {
+        if (indices.length == 0) return;
+        Arrays.sort(indices);
+
+        List<Type> parameterList = new ArrayList<>(Arrays.asList(argumentTypes(methodNode)));
+        Optional<List<List<AnnotationNode>>> visibleParameterAnnotations = Optional.ofNullable(methodNode.visibleParameterAnnotations).map(Arrays::asList).map(ArrayList::new);
+        Optional<List<List<AnnotationNode>>> invisibleParameterAnnotations = Optional.ofNullable(methodNode.invisibleParameterAnnotations).map(Arrays::asList).map(ArrayList::new);
+        for (int i = indices.length - 1; i >= 0; i--) {
+            int index = indices[i];
+            parameterList.remove(index);
+            visibleParameterAnnotations.ifPresent(annotations -> annotations.remove(index));
+            invisibleParameterAnnotations.ifPresent(annotations -> annotations.remove(index));
+            if (methodNode.visibleAnnotableParameterCount > 0 && index < methodNode.visibleAnnotableParameterCount) {
+                methodNode.visibleAnnotableParameterCount--;
+            }
+            if (methodNode.invisibleAnnotableParameterCount > 0 && index < methodNode.invisibleAnnotableParameterCount) {
+                methodNode.invisibleAnnotableParameterCount--;
+            }
+        }
+        methodNode.desc = methodDescriptor(returnType(methodNode), (Object[]) parameterList.toArray(new Type[0]));
+        methodNode.visibleParameterAnnotations = visibleParameterAnnotations.map(l -> l.toArray(new List[0])).orElse(null);
+        methodNode.invisibleParameterAnnotations = invisibleParameterAnnotations.map(l -> l.toArray(new List[0])).orElse(null);
+    }
+
+    /**
+     * Add parameters to a method.<br>
+     * The actual code is not changed, only the descriptor and annotations.
+     *
+     * @param methodNode The method node
+     * @param parameters The parameters to add
+     */
+    public static void addParameters(final MethodNode methodNode, final Type... parameters) {
+        if (parameters.length == 0) return;
+
+        Type[] oldParameters = argumentTypes(methodNode);
+        Type[] newParameters = new Type[oldParameters.length + parameters.length];
+        System.arraycopy(oldParameters, 0, newParameters, 0, oldParameters.length);
+        System.arraycopy(parameters, 0, newParameters, oldParameters.length, parameters.length);
+        methodNode.desc = methodDescriptor(returnType(methodNode), (Object[]) newParameters);
+
+        if (methodNode.visibleParameterAnnotations != null) {
+            methodNode.visibleParameterAnnotations = Arrays.copyOf(methodNode.visibleParameterAnnotations, methodNode.visibleParameterAnnotations.length + 1);
+        }
+        if (methodNode.invisibleParameterAnnotations != null) {
+            methodNode.invisibleParameterAnnotations = Arrays.copyOf(methodNode.invisibleParameterAnnotations, methodNode.invisibleParameterAnnotations.length + 1);
+        }
     }
 
     /**
