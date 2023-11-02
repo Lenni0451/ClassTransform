@@ -45,6 +45,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
             throw new TransformerException(transformerMethod, transformer, "must have one argument (Exception to catch)")
                     .help(Codifier.of(transformerMethod).params(null, type(Exception.class)));
         }
+        MethodNode copiedTransformerMethod = null;
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         if (annotation.target().isEmpty()) {
             Type targetReturnType = returnType(target.desc);
@@ -54,7 +55,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
             }
             boolean cast = !targetReturnType.equals(returnType);
             Type exceptionType = args[0];
-            this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CWrapCatch");
+            copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CWrapCatch");
 
             LabelNode start = new LabelNode();
             LabelNode end_handler = new LabelNode();
@@ -77,7 +78,6 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
         } else {
             Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
             List<AbstractInsnNode> targetInstructions = injectionTargets.get("INVOKE").getTargets(injectionTargets, target, new MethodCTarget(annotation.target(), annotation.ordinal()), annotation.slice());
-            boolean copied = false;
             for (AbstractInsnNode instruction : targetInstructions) {
                 Type instructionReturnType = returnType(((MethodInsnNode) instruction).desc);
                 if (!ASMUtils.compareType(instructionReturnType, returnType)) {
@@ -86,10 +86,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
                 }
                 boolean cast = !instructionReturnType.equals(returnType);
                 Type exceptionType = args[0];
-                if (!copied) {
-                    this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CWrapCatch");
-                    copied = true;
-                }
+                if (copiedTransformerMethod == null) copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CWrapCatch");
 
                 InsnList insertAfter = new InsnList();
                 LabelNode start = new LabelNode();

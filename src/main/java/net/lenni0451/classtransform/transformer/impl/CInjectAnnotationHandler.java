@@ -72,7 +72,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
         }
         if (!returnType(transformerMethod.desc).equals(Type.VOID_TYPE)) throw TransformerException.mustReturnVoid(transformerMethod, transformer);
 
-        this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CInject");
+        MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CInject");
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         for (CTarget injectTarget : annotation.target()) {
@@ -102,7 +102,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
                 else target.instructions.insert(instruction, instructions);
             }
         }
-        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
     }
 
     private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final boolean cancellable, final boolean hasArgs, final boolean hasCallback, final List<MethodInsnNode> transformerMethodCalls) {

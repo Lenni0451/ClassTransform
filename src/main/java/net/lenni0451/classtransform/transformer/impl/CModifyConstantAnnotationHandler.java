@@ -85,7 +85,7 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
             }
         }
 
-        this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyConstant");
+        MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyConstant");
         List<AbstractInsnNode> toReplace = new ArrayList<>();
         for (AbstractInsnNode instruction : this.getSlice(transformerManager.getInjectionTargets(), target, annotation.slice())) {
             if (hasNullValue) {
@@ -143,7 +143,7 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
             else target.instructions.set(instruction, invoke);
             transformerMethodCalls.add(invoke);
         }
-        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
     }
 
     private int getTrueCount(final boolean... booleans) {

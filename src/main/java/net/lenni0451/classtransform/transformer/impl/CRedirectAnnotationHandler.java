@@ -64,9 +64,9 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
         }
 
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
-        this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
+        MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
         iRedirectTarget.inject(transformedClass, target, transformer, transformerMethod, injectionInstructions, transformerMethodCalls);
-        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, transformerMethod);
+        coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
     }
 
 }
