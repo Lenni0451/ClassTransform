@@ -109,6 +109,7 @@ public class Types {
     public static Type returnType(final Object ob) {
         if (ob instanceof String) return Type.getReturnType((String) ob);
         else if (ob instanceof Method) return Type.getReturnType((Method) ob);
+        else if (ob instanceof MethodNode) return Type.getReturnType(((MethodNode) ob).desc);
         else if (ob instanceof Type) return ((Type) ob).getReturnType();
         throw new IllegalArgumentException("Unable to get return type of " + asString(ob));
     }
