@@ -41,6 +41,7 @@ public abstract class AMapper {
     private final MapperConfig config;
     protected final MapRemapper remapper;
     private boolean initialized = false;
+    private ClassTree superMappingsTree = null;
 
     public AMapper(final MapperConfig config) {
         this.config = config;
@@ -86,7 +87,14 @@ public abstract class AMapper {
     public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
         if (this.config.fillSuperMappings) {
             try {
-                SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, classTree, classProvider);
+                ClassTree usedClassTree = classTree;
+                if (usedClassTree.canTransform()) {
+                    //Filling super mappings requires the unmodified class
+                    //The mappings were generated using the original class and not the transformed one
+                    if (this.superMappingsTree == null) this.superMappingsTree = new ClassTree();
+                    usedClassTree = this.superMappingsTree;
+                }
+                SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, usedClassTree, classProvider);
             } catch (Throwable t) {
                 if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
                     Logger.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);

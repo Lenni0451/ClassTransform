@@ -29,6 +29,13 @@ public class ClassTree {
     }
 
     /**
+     * @return If this class tree can transform classes
+     */
+    public boolean canTransform() {
+        return this.transformerManager != null;
+    }
+
+    /**
      * Get a tree part from a class by name.
      *
      * @param classProvider The class provider to get the bytecode from
