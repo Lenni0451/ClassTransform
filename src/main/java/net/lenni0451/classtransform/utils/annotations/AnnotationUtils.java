@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.MethodNode;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
@@ -48,6 +49,113 @@ public class AnnotationUtils {
         }
         return list;
     }
+
+
+    /**
+     * Iterate through all visible annotations in a {@link ClassNode}.
+     *
+     * @param classNode          The class node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEachVisible(final ClassNode classNode, final Consumer<AnnotationNode> annotationConsumer) {
+        if (classNode.visibleAnnotations != null) {
+            for (AnnotationNode annotation : classNode.visibleAnnotations) annotationConsumer.accept(annotation);
+        }
+    }
+
+    /**
+     * Iterate through all visible annotations in a {@link FieldNode}.
+     *
+     * @param fieldNode          The field node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEachVisible(final FieldNode fieldNode, final Consumer<AnnotationNode> annotationConsumer) {
+        if (fieldNode.visibleAnnotations != null) {
+            for (AnnotationNode annotation : fieldNode.visibleAnnotations) annotationConsumer.accept(annotation);
+        }
+    }
+
+    /**
+     * Iterate through all visible annotations in a {@link MethodNode}.
+     *
+     * @param methodNode         The method node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEachVisible(final MethodNode methodNode, final Consumer<AnnotationNode> annotationConsumer) {
+        if (methodNode.visibleAnnotations != null) {
+            for (AnnotationNode annotation : methodNode.visibleAnnotations) annotationConsumer.accept(annotation);
+        }
+    }
+
+    /**
+     * Iterate through all invisible annotations in a {@link ClassNode}.
+     *
+     * @param classNode          The class node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEachInvisible(final ClassNode classNode, final Consumer<AnnotationNode> annotationConsumer) {
+        if (classNode.invisibleAnnotations != null) {
+            for (AnnotationNode annotation : classNode.invisibleAnnotations) annotationConsumer.accept(annotation);
+        }
+    }
+
+    /**
+     * Iterate through all invisible annotations in a {@link FieldNode}.
+     *
+     * @param fieldNode          The field node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEachInvisible(final FieldNode fieldNode, final Consumer<AnnotationNode> annotationConsumer) {
+        if (fieldNode.invisibleAnnotations != null) {
+            for (AnnotationNode annotation : fieldNode.invisibleAnnotations) annotationConsumer.accept(annotation);
+        }
+    }
+
+    /**
+     * Iterate through all invisible annotations in a {@link MethodNode}.
+     *
+     * @param methodNode         The method node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEachInvisible(final MethodNode methodNode, final Consumer<AnnotationNode> annotationConsumer) {
+        if (methodNode.invisibleAnnotations != null) {
+            for (AnnotationNode annotation : methodNode.invisibleAnnotations) annotationConsumer.accept(annotation);
+        }
+    }
+
+    /**
+     * Iterate through all annotations in a {@link ClassNode}.
+     *
+     * @param classNode          The class node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEach(final ClassNode classNode, final Consumer<AnnotationNode> annotationConsumer) {
+        forEachVisible(classNode, annotationConsumer);
+        forEachInvisible(classNode, annotationConsumer);
+    }
+
+    /**
+     * Iterate through all annotations in a {@link FieldNode}.
+     *
+     * @param fieldNode          The field node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEach(final FieldNode fieldNode, final Consumer<AnnotationNode> annotationConsumer) {
+        forEachVisible(fieldNode, annotationConsumer);
+        forEachInvisible(fieldNode, annotationConsumer);
+    }
+
+    /**
+     * Iterate through all annotations in a {@link MethodNode}.
+     *
+     * @param methodNode         The method node to iterate through
+     * @param annotationConsumer The consumer to consume the annotations
+     */
+    public static void forEach(final MethodNode methodNode, final Consumer<AnnotationNode> annotationConsumer) {
+        forEachVisible(methodNode, annotationConsumer);
+        forEachInvisible(methodNode, annotationConsumer);
+    }
+
 
     /**
      * Find a visible annotation in a {@link ClassNode}.

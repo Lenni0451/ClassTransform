@@ -11,8 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AnnotationUtilsTest {
 
@@ -49,6 +48,41 @@ class AnnotationUtilsTest {
         methodNode.invisibleAnnotations = invisibleAnnotations;
         methodNode.visibleParameterAnnotations = visibleParameterAnnotations;
         methodNode.invisibleParameterAnnotations = invisibleParameterAnnotations;
+    }
+
+    @Test
+    void forEach() {
+        AnnotationUtils.forEachVisible(classNode, annotation -> assertEquals(annotation.desc, DEPRECATED_DESCRIPTOR));
+        AnnotationUtils.forEachVisible(fieldNode, annotation -> assertEquals(annotation.desc, DEPRECATED_DESCRIPTOR));
+        AnnotationUtils.forEachVisible(methodNode, annotation -> assertEquals(annotation.desc, DEPRECATED_DESCRIPTOR));
+
+        AnnotationUtils.forEachInvisible(classNode, annotation -> assertEquals(annotation.desc, OVERRIDE_DESCRIPTOR));
+        AnnotationUtils.forEachInvisible(fieldNode, annotation -> assertEquals(annotation.desc, OVERRIDE_DESCRIPTOR));
+        AnnotationUtils.forEachInvisible(methodNode, annotation -> assertEquals(annotation.desc, OVERRIDE_DESCRIPTOR));
+
+        int[] count = {0};
+        AnnotationUtils.forEach(classNode, annotation -> {
+            if (count[0] == 0) assertEquals(annotation.desc, DEPRECATED_DESCRIPTOR);
+            else if (count[0] == 1) assertEquals(annotation.desc, OVERRIDE_DESCRIPTOR);
+            else fail("Too many annotations");
+            count[0]++;
+        });
+
+        count[0] = 0;
+        AnnotationUtils.forEach(fieldNode, annotation -> {
+            if (count[0] == 0) assertEquals(annotation.desc, DEPRECATED_DESCRIPTOR);
+            else if (count[0] == 1) assertEquals(annotation.desc, OVERRIDE_DESCRIPTOR);
+            else fail("Too many annotations");
+            count[0]++;
+        });
+
+        count[0] = 0;
+        AnnotationUtils.forEach(methodNode, annotation -> {
+            if (count[0] == 0) assertEquals(annotation.desc, DEPRECATED_DESCRIPTOR);
+            else if (count[0] == 1) assertEquals(annotation.desc, OVERRIDE_DESCRIPTOR);
+            else fail("Too many annotations");
+            count[0]++;
+        });
     }
 
     @Test
