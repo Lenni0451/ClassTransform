@@ -169,6 +169,7 @@ public abstract class AMapper {
             if (this.remapper.isEmpty()) continue;
 
             Object value = values.get(method.getName());
+            if (value == null) continue;
 
             if (remap.value().equals(RemapType.ANNOTATION)) {
                 if (value instanceof AnnotationNode) {
