@@ -40,7 +40,16 @@ public class CoprocessorUtils {
         for (int i = 0; i < annotations.length; i++) {
             AnnotationNode annotation = annotations[i];
             if (annotation == null) continue; //Not annotated
-            annotatedParameters[i] = new AnnotatedParameter(x++, indices[i], types[i], annotation);
+            String name = null;
+            if (methodNode.localVariables != null) {
+                for (LocalVariableNode localVariable : methodNode.localVariables) {
+                    if (localVariable.index == indices[i]) {
+                        name = localVariable.name;
+                        break;
+                    }
+                }
+            }
+            annotatedParameters[i] = new AnnotatedParameter(x++, indices[i], name, types[i], annotation);
         }
         return annotatedParameters;
     }
@@ -139,12 +148,15 @@ public class CoprocessorUtils {
     public static class AnnotatedParameter {
         private final int annotationIndex;
         private final int index;
+        @Nullable
+        private final String name;
         private final Type type;
         private final AnnotationNode annotation;
 
-        private AnnotatedParameter(final int annotationIndex, final int index, final Type type, final AnnotationNode annotation) {
+        private AnnotatedParameter(final int annotationIndex, final int index, @Nullable final String name, final Type type, final AnnotationNode annotation) {
             this.annotationIndex = annotationIndex;
             this.index = index;
+            this.name = name;
             this.type = type;
             this.annotation = annotation;
         }
@@ -155,6 +167,11 @@ public class CoprocessorUtils {
 
         public int getIndex() {
             return this.index;
+        }
+
+        @Nullable
+        public String getName() {
+            return this.name;
         }
 
         public Type getType() {
