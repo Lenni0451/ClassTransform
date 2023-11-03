@@ -178,7 +178,7 @@ public class TransformerManager implements ClassFileTransformer {
      * @return The coprocessors
      */
     public AnnotationCoprocessorList getCoprocessors() {
-        return coprocessors.build();
+        return this.coprocessors.build();
     }
 
     /**
