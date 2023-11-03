@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 import net.lenni0451.classtransform.utils.tree.TreeClassWriter;
@@ -53,6 +54,16 @@ public class ASMUtils {
     /**
      * Get the bytecode from a class node.
      *
+     * @param node               The class node
+     * @param transformerManager The transformer manager
+     */
+    public static byte[] toBytes(final ClassNode node, final TransformerManager transformerManager) {
+        return toBytes(node, transformerManager.getClassTree(), transformerManager.getClassProvider());
+    }
+
+    /**
+     * Get the bytecode from a class node.
+     *
      * @param node          The class node
      * @param classTree     The class tree used to get the super classes
      * @param classProvider The class provider used for stack frame calculation
@@ -62,6 +73,17 @@ public class ASMUtils {
         TreeClassWriter writer = new TreeClassWriter(classTree, classProvider);
         node.accept(writer);
         return writer.toByteArray();
+    }
+
+    /**
+     * Get the bytecode from a class node.
+     *
+     * @param node               The class node
+     * @param transformerManager The transformer manager
+     * @param flags              The flags to use for the class writer
+     */
+    public static byte[] toBytes(final ClassNode node, final TransformerManager transformerManager, final int flags) {
+        return toBytes(node, transformerManager.getClassTree(), transformerManager.getClassProvider(), flags);
     }
 
     /**
