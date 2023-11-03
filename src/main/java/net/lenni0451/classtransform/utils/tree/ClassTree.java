@@ -37,31 +37,29 @@ public class ClassTree {
      * @throws ClassNotFoundException If the class could not be found
      */
     @Nonnull
-    public TreePart getTreePart(final IClassProvider classProvider, String className) throws ClassNotFoundException {
+    public synchronized TreePart getTreePart(final IClassProvider classProvider, String className) throws ClassNotFoundException {
         className = dot(className);
-        synchronized (this.tree) {
-            if (this.tree.containsKey(className)) return this.tree.get(className);
+        if (this.tree.containsKey(className)) return this.tree.get(className);
 
-            byte[] bytecode = classProvider.getClass(className);
-            if (this.transformerManager != null) {
-                byte[] transformed = this.transformerManager.transform(className, bytecode, false);
-                if (transformed != null) bytecode = transformed;
-            }
-            ClassNode node = ASMUtils.fromBytes(bytecode);
-            TreePart part = new TreePart(node);
-            this.tree.put(className, part);
-
-            int oldSize;
-            do {
-                oldSize = part.superClasses.size();
-                for (String superClass : part.superClasses.toArray(new String[0])) {
-                    TreePart superTree = this.getTreePart(classProvider, superClass);
-                    part.superClasses.addAll(superTree.superClasses);
-                }
-            } while (oldSize != part.superClasses.size());
-
-            return part;
+        byte[] bytecode = classProvider.getClass(className);
+        if (this.transformerManager != null) {
+            byte[] transformed = this.transformerManager.transform(className, bytecode, false);
+            if (transformed != null) bytecode = transformed;
         }
+        ClassNode node = ASMUtils.fromBytes(bytecode);
+        TreePart part = new TreePart(node);
+        this.tree.put(className, part);
+
+        int oldSize;
+        do {
+            oldSize = part.superClasses.size();
+            for (String superClass : part.superClasses.toArray(new String[0])) {
+                TreePart superTree = this.getTreePart(classProvider, superClass);
+                part.superClasses.addAll(superTree.superClasses);
+            }
+        } while (oldSize != part.superClasses.size());
+
+        return part;
     }
 
 
