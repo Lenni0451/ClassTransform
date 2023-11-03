@@ -2,10 +2,14 @@ package net.lenni0451.classtransform.mappings.impl;
 
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
+import net.lenni0451.classtransform.utils.IOSupplier;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.WillClose;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,13 +21,20 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class TinyV2Mapper extends AMapper {
 
-    private final File mappingFile;
+    private final IOSupplier<InputStream> mappingsSupplier;
     private final String from;
     private final String to;
 
-    public TinyV2Mapper(final MapperConfig config, final File mappingFile, final String from, final String to) {
+    public TinyV2Mapper(final MapperConfig config, @WillClose final InputStream mappingsStream, final String from, final String to) {
         super(config);
-        this.mappingFile = mappingFile;
+        this.mappingsSupplier = () -> mappingsStream;
+        this.from = from;
+        this.to = to;
+    }
+
+    public TinyV2Mapper(final MapperConfig config, final File mappingsFile, final String from, final String to) {
+        super(config);
+        this.mappingsSupplier = () -> new FileInputStream(mappingsFile);
         this.from = from;
         this.to = to;
     }
@@ -32,7 +43,7 @@ public class TinyV2Mapper extends AMapper {
     protected void init() throws Throwable {
         MapRemapper descriptorRemapper = new MapRemapper();
         List<TempMapping> tempMappings = new ArrayList<>();
-        List<String> lines = this.readLines(this.mappingFile);
+        List<String> lines = this.readLines(this.mappingsSupplier.get());
 
         int fromIndex = -1;
         int toIndex = -1;

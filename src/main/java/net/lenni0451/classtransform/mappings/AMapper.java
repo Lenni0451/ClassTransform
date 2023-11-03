@@ -20,13 +20,12 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
@@ -41,6 +40,7 @@ public abstract class AMapper {
 
     private final MapperConfig config;
     protected final MapRemapper remapper;
+    private boolean initialized = false;
 
     public AMapper(final MapperConfig config) {
         this.config = config;
@@ -48,13 +48,16 @@ public abstract class AMapper {
     }
 
     /**
-     * Load all mappings from the overridden {@link #init()} method.
+     * Load all mappings from the overridden {@link #init()} method.<br>
+     * Will do nothing if the mappings are already loaded.
      *
      * @throws RuntimeException If the {@link #init()} method throws an exception
      */
-    public final void load() {
+    public synchronized final void load() {
+        if (this.initialized) return;
         try {
             this.init();
+            this.initialized = true;
         } catch (Throwable t) {
             throw new RuntimeException("Unable to initialize mappings", t);
         }
@@ -139,12 +142,14 @@ public abstract class AMapper {
     protected abstract void init() throws Throwable;
 
 
-    protected List<String> readLines(final File f) throws FileNotFoundException {
-        List<String> out = new ArrayList<>();
-        try (Scanner s = new Scanner(f)) {
-            while (s.hasNextLine()) out.add(s.nextLine());
+    protected List<String> readLines(final File f) throws IOException {
+        return this.readLines(new FileInputStream(f));
+    }
+
+    protected List<String> readLines(final InputStream is) throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            return br.lines().collect(Collectors.toList());
         }
-        return out;
     }
 
 

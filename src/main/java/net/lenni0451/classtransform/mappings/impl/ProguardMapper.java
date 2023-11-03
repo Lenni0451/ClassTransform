@@ -2,9 +2,13 @@ package net.lenni0451.classtransform.mappings.impl;
 
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
+import net.lenni0451.classtransform.utils.IOSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.WillClose;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,17 +24,22 @@ public class ProguardMapper extends AMapper {
     private static final String METHOD_LINE = "^ {4}(\\d+:|)+([^ ]+) ([^ ()]+)(\\([^ ()]*\\))(:\\d+|)+ ?-> ?(.+)$";
     private static final String FIELD_LINE = "^ {4}([^ ]+) ([^ (]+) ?-> ?(.+)$";
 
-    private final File mappingFile;
+    private final IOSupplier<InputStream> mappingsSupplier;
 
-    public ProguardMapper(final MapperConfig config, final File mappingFile) {
+    public ProguardMapper(final MapperConfig config, @WillClose final InputStream mappingsStream) {
         super(config);
-        this.mappingFile = mappingFile;
+        this.mappingsSupplier = () -> mappingsStream;
+    }
+
+    public ProguardMapper(final MapperConfig config, final File mappingsFile) {
+        super(config);
+        this.mappingsSupplier = () -> new FileInputStream(mappingsFile);
     }
 
     @Override
     protected void init() throws Throwable {
         String currentClass = null;
-        for (String line : this.readLines(this.mappingFile)) {
+        for (String line : this.readLines(this.mappingsSupplier.get())) {
             if (line.trim().isEmpty() || line.startsWith("#")) continue;
 
             String error = null;

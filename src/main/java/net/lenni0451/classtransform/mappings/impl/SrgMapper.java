@@ -2,9 +2,13 @@ package net.lenni0451.classtransform.mappings.impl;
 
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.MapperConfig;
+import net.lenni0451.classtransform.utils.IOSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.WillClose;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,17 +22,21 @@ public class SrgMapper extends AMapper {
     private static final String FIELD_LINE = "^FD: (\\S+)/(\\S+) (\\S+)/(\\S+)$";
     private static final String METHOD_LINE = "^MD: (\\S+)/(\\S+) (\\(\\S*\\)\\S+) (\\S+)/(\\S+) (\\(\\S*\\)\\S+)$";
 
-    private final File mappingFile;
+    private final IOSupplier<InputStream> mappingsSupplier;
 
-    public SrgMapper(final MapperConfig config, final File mappingFile) {
+    public SrgMapper(final MapperConfig config, @WillClose final InputStream mappingsStream) {
         super(config);
+        this.mappingsSupplier = () -> mappingsStream;
+    }
 
-        this.mappingFile = mappingFile;
+    public SrgMapper(final MapperConfig config, final File mappingsFile) {
+        super(config);
+        this.mappingsSupplier = () -> new FileInputStream(mappingsFile);
     }
 
     @Override
     protected void init() throws Throwable {
-        for (String line : this.readLines(this.mappingFile)) {
+        for (String line : this.readLines(this.mappingsSupplier.get())) {
             if (line.trim().isEmpty()) continue;
 
             String error = null;
