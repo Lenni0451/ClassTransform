@@ -56,6 +56,7 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
 
     private void copyField(final ClassNode transformer, final ClassNode transformedClass, final FieldNode field) {
         if (ASMUtils.getField(transformedClass, field.name, field.desc) != null) throw TransformerException.alreadyExists(field, transformer, transformedClass);
+        this.prepareForCopy(transformer, field);
         Remapper.remapAndAdd(transformer, transformedClass, field);
     }
 

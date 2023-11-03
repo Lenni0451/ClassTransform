@@ -104,6 +104,22 @@ public abstract class AnnotationHandler {
     }
 
     /**
+     * Add the {@link InjectionInfo} annotation to the given field.
+     *
+     * @param transformer The transformer class node
+     * @param field       The field node
+     */
+    protected void prepareForCopy(final ClassNode transformer, final FieldNode field) {
+        AnnotationNode injectionInfo = new AnnotationNode(typeDescriptor(InjectionInfo.class));
+        injectionInfo.values = Arrays.asList(
+                "transformer", transformer.name,
+                "originalName", field.name + ":" + field.desc
+        );
+        if (field.invisibleAnnotations == null) field.invisibleAnnotations = new ArrayList<>();
+        field.invisibleAnnotations.add(injectionInfo);
+    }
+
+    /**
      * Add the {@link InjectionInfo} annotation to the given method.
      *
      * @param transformer The transformer class node
