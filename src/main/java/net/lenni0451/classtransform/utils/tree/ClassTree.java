@@ -34,6 +34,7 @@ public class ClassTree {
      * @param classProvider The class provider to get the bytecode from
      * @param className     The name of the class
      * @return The tree part
+     * @throws ClassNotFoundException If the class could not be found
      */
     @Nonnull
     public TreePart getTreePart(final IClassProvider classProvider, String className) throws ClassNotFoundException {
@@ -106,6 +107,7 @@ public class ClassTree {
          *
          * @param classProvider The class provider to get the bytecode from
          * @return The class node of the super class
+         * @throws ClassNotFoundException If the class could not be found
          */
         @Nullable
         public TreePart parseSuperClass(final IClassProvider classProvider) throws ClassNotFoundException {
@@ -127,6 +129,7 @@ public class ClassTree {
          * @param classProvider The class provider to get the bytecode from
          * @param includeSelf   Add the current class to the set
          * @return A set of all super classes and their super classes including interfaces
+         * @throws ClassNotFoundException If any of the classes could not be found
          */
         public Set<TreePart> getParsedSuperClasses(final IClassProvider classProvider, final boolean includeSelf) throws ClassNotFoundException {
             Set<TreePart> out = new HashSet<>();

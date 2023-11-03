@@ -56,6 +56,7 @@ public class ASMUtils {
      *
      * @param node               The class node
      * @param transformerManager The transformer manager
+     * @return The bytecode of the class
      */
     public static byte[] toBytes(final ClassNode node, final TransformerManager transformerManager) {
         return toBytes(node, transformerManager.getClassTree(), transformerManager.getClassProvider());
@@ -81,6 +82,7 @@ public class ASMUtils {
      * @param node               The class node
      * @param transformerManager The transformer manager
      * @param flags              The flags to use for the class writer
+     * @return The bytecode of the class
      */
     public static byte[] toBytes(final ClassNode node, final TransformerManager transformerManager, final int flags) {
         return toBytes(node, transformerManager.getClassTree(), transformerManager.getClassProvider(), flags);

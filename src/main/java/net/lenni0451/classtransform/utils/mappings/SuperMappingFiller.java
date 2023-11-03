@@ -33,6 +33,7 @@ public class SuperMappingFiller {
      * @param remapper      The remapper to use
      * @param classTree     The class tree to use
      * @param classProvider The class provider to use
+     * @throws ClassNotFoundException If a class could not be found
      */
     public static void fillTransformerSuperMembers(final ClassNode transformer, final MapRemapper remapper, final ClassTree classTree, final IClassProvider classProvider) throws ClassNotFoundException {
         List<Object> annotation = AnnotationUtils.findAnnotation(transformer, CTransformer.class).map(a -> a.values).orElseThrow(() -> new IllegalStateException("Transformer does not have CTransformer annotation"));

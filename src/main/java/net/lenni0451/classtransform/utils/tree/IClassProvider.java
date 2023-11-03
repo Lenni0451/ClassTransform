@@ -17,6 +17,7 @@ public interface IClassProvider {
      *
      * @param name The name of the class
      * @return The bytecode of the class
+     * @throws ClassNotFoundException If the class could not be found
      */
     @Nonnull
     byte[] getClass(final String name) throws ClassNotFoundException;
