@@ -97,7 +97,8 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
             boolean nameSet = parsedAnnotation.wasSet("name");
             boolean indexSet = parsedAnnotation.wasSet("index");
             Integer variableIndex = null;
-            if (nameSet) {
+            if (nameSet || (!indexSet && parameter.getName() != null)) {
+                String name = nameSet ? annotation.name() : parameter.getName(); //Use the given name or the original parameter name
                 if (methodNode.localVariables == null) {
                     //If no local variable table is present, we can't get the index by name
                     //Only throw an exception if the index was not set manually
@@ -105,7 +106,7 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
                 } else {
                     //Try to get the index by name
                     for (LocalVariableNode localVariable : methodNode.localVariables) {
-                        if (localVariable.name.equals(annotation.name())) {
+                        if (localVariable.name.equals(name)) {
                             //Found the local variable
                             variableIndex = localVariable.index;
                             break;
