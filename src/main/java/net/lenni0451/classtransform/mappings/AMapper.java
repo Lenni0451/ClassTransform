@@ -84,26 +84,7 @@ public abstract class AMapper {
      * @return The remapped transformer class node
      */
     public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
-        if (this.config.fillSuperMappings) {
-            try {
-                ClassTree usedClassTree = classTree;
-                if (usedClassTree.canTransform()) {
-                    //Filling super mappings requires the unmodified class
-                    //The mappings were generated using the original class and not the transformed one
-                    if (this.superMappingsTree == null) this.superMappingsTree = new ClassTree();
-                    usedClassTree = this.superMappingsTree;
-                }
-                SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, usedClassTree, classProvider);
-            } catch (Throwable t) {
-                if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
-                    Logger.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
-                } else if (FailStrategy.CANCEL.equals(this.config.superMappingsFailStrategy)) {
-                    throw new RuntimeException("Unable to fill super mappings for class '" + transformer.name + "'", t);
-                } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
-                    System.exit(-1);
-                }
-            }
-        }
+        this.fillTransformerSuperMappings(classTree, classProvider, transformer);
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();
         this.checkAnnotations(transformer, transformer.visibleAnnotations, annotationsToRemap);
         this.checkAnnotations(transformer, transformer.invisibleAnnotations, annotationsToRemap);
@@ -126,7 +107,7 @@ public abstract class AMapper {
             }
             try {
                 Map<String, Object> annotationMap = AnnotationUtils.listToMap(annotation.annotation.values);
-                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, target, transformer);
+                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, classTree, classProvider, target, transformer);
                 annotation.annotation.values = AnnotationUtils.mapToList(annotationMap);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Unable to remap annotation '" + annotation.annotation.desc + "' from transformer '" + transformer.name + "'", e);
@@ -160,7 +141,43 @@ public abstract class AMapper {
     }
 
 
-    private void mapAnnotation(final Object holder, final Class<?> annotation, final Map<String, Object> values, final ClassNode target, final ClassNode transformer) throws ClassNotFoundException {
+    private ClassTree getSuperMappingsTree(final ClassTree classTree) {
+        if (!classTree.canTransform()) return classTree;
+        if (this.superMappingsTree == null) this.superMappingsTree = new ClassTree();
+        return this.superMappingsTree;
+    }
+
+    private void fillTransformerSuperMappings(final ClassTree classTree, final IClassProvider classProvider, final ClassNode transformer) {
+        if (!this.config.fillSuperMappings) return;
+        try {
+            SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, this.getSuperMappingsTree(classTree), classProvider);
+        } catch (Throwable t) {
+            if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
+                Logger.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
+            } else if (FailStrategy.CANCEL.equals(this.config.superMappingsFailStrategy)) {
+                throw new RuntimeException("Unable to fill super mappings for class '" + transformer.name + "'", t);
+            } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
+                System.exit(-1);
+            }
+        }
+    }
+
+    private void fillSuperMembers(final String className, final ClassTree classTree, final IClassProvider classProvider) {
+        if (!this.config.fillSuperMappings) return;
+        try {
+            SuperMappingFiller.fillSuperMembers(className, this.remapper, this.getSuperMappingsTree(classTree), classProvider);
+        } catch (Throwable t) {
+            if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
+                Logger.warn("Unable to fill super mappings for class '{}'. Trying without", className, t);
+            } else if (FailStrategy.CANCEL.equals(this.config.superMappingsFailStrategy)) {
+                throw new RuntimeException("Unable to fill super mappings for class '" + className + "'", t);
+            } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
+                System.exit(-1);
+            }
+        }
+    }
+
+    private void mapAnnotation(final Object holder, final Class<?> annotation, final Map<String, Object> values, final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) throws ClassNotFoundException {
         for (Method method : annotation.getDeclaredMethods()) {
             AnnotationRemap remap = method.getDeclaredAnnotation(AnnotationRemap.class);
             if (remap == null) continue;
@@ -175,14 +192,14 @@ public abstract class AMapper {
                     AnnotationNode node = (AnnotationNode) value;
                     Type type = Type.getType(node.desc);
                     Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                    this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
+                    this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, classTree, classProvider, target, transformer);
                     node.values = AnnotationUtils.mapToList(nodeMap);
                 } else if (value instanceof AnnotationNode[]) {
                     AnnotationNode[] nodes = (AnnotationNode[]) value;
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
                         Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
+                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, classTree, classProvider, target, transformer);
                         node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else if (value instanceof List) {
@@ -190,7 +207,7 @@ public abstract class AMapper {
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
                         Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, target, transformer);
+                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, classTree, classProvider, target, transformer);
                         node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else {
@@ -199,13 +216,13 @@ public abstract class AMapper {
             } else {
                 if (value instanceof String) {
                     String s = (String) value;
-                    values.put(method.getName(), this.remap(remap.value(), s));
+                    values.put(method.getName(), this.remap(remap.value(), s, classTree, classProvider));
                 } else if (value instanceof String[]) {
                     String[] strings = (String[]) value;
-                    for (int i = 0; i < strings.length; i++) strings[i] = this.remap(remap.value(), strings[i]);
+                    for (int i = 0; i < strings.length; i++) strings[i] = this.remap(remap.value(), strings[i], classTree, classProvider);
                 } else if (value instanceof List) {
                     List<String> list = (List<String>) value;
-                    list.replaceAll(s -> this.remap(remap.value(), s));
+                    list.replaceAll(s -> this.remap(remap.value(), s, classTree, classProvider));
                 } else {
                     throw new IllegalStateException("Unexpected value type '" + value.getClass().getName() + "' for annotation '" + annotation.getName() + "' value '" + annotation.getName() + "'");
                 }
@@ -213,7 +230,7 @@ public abstract class AMapper {
         }
     }
 
-    private String remap(final RemapType type, String s) {
+    private String remap(final RemapType type, String s, final ClassTree classTree, final IClassProvider classProvider) {
         switch (type) {
             case SHORT_MEMBER:
                 //See InfoFiller for remapping of short members
@@ -222,6 +239,7 @@ public abstract class AMapper {
             case MEMBER:
                 MemberDeclaration member = ASMUtils.splitMemberDeclaration(s);
                 if (member == null) throw new IllegalStateException("Invalid member declaration '" + s + "'");
+                this.fillSuperMembers(member.getOwner(), classTree, classProvider);
                 String owner = this.remapper.mapType(member.getOwner());
                 String name;
                 String desc;

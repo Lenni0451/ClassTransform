@@ -43,20 +43,29 @@ public class SuperMappingFiller {
 
             if (key.equals("value")) {
                 List<Type> classesList = (List<Type>) value;
-                for (Type type : classesList) {
-                    ClassTree.TreePart treePart = classTree.getTreePart(classProvider, remapper.mapSafe(type.getInternalName()));
-                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
-                    fillSuperMembers(treePart.getNode(), superClasses, remapper);
-                }
+                for (Type type : classesList) fillSuperMembers(type.getInternalName(), remapper, classTree, classProvider);
             } else if (key.equals("name")) {
                 List<String> classesList = (List<String>) value;
-                for (String className : classesList) {
-                    ClassTree.TreePart treePart = classTree.getTreePart(classProvider, remapper.mapSafe(slash(className)));
-                    Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
-                    fillSuperMembers(treePart.getNode(), superClasses, remapper);
-                }
+                for (String className : classesList) fillSuperMembers(slash(className), remapper, classTree, classProvider);
             }
         }
+    }
+
+    /**
+     * Fill all super mappings for the given class by name.<br>
+     * The class name <b>must</b> be separated by slashes.<br>
+     * Missing mappings are added to the given remapper.
+     *
+     * @param className     The name of the class (not descriptor)
+     * @param remapper      The remapper to use
+     * @param classTree     The class tree to use
+     * @param classProvider The class provider to use
+     * @throws ClassNotFoundException If a class could not be found
+     */
+    public static void fillSuperMembers(final String className, final MapRemapper remapper, final ClassTree classTree, final IClassProvider classProvider) throws ClassNotFoundException {
+        ClassTree.TreePart treePart = classTree.getTreePart(classProvider, remapper.mapSafe(className));
+        Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
+        fillSuperMembers(treePart.getNode(), superClasses, remapper);
     }
 
     /**
