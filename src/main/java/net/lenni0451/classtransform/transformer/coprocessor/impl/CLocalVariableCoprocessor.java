@@ -73,7 +73,7 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
                     after.add(new VarInsnNode(Opcodes.ALOAD, targetArrayIndex)); //Load the array
                     after.add(ASMUtils.intPush(i)); //Push the array index
                     after.add(new InsnNode(Opcodes.AALOAD)); //Load the variable from the array
-                    InsnList cast = ASMUtils.getCast(localVariable.type);
+                    InsnList cast = ASMUtils.getCast(localVariable.parameter.getType());
                     after.add(cast);
                     after.add(new VarInsnNode(localVariable.type.getOpcode(Opcodes.ISTORE), localVariable.variableIndex)); //Store the variable back
                 }
