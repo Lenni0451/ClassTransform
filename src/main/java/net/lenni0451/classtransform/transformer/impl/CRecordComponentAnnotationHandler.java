@@ -55,7 +55,7 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
     }
 
     private void copyField(final ClassNode transformer, final ClassNode transformedClass, final FieldNode field) {
-        if (ASMUtils.getField(transformedClass, field.name, field.desc) != null) throw TransformerException.alreadyExists(field, transformer, transformedClass);
+        if (ASMUtils.hasField(transformedClass, field.name, field.desc)) throw TransformerException.alreadyExists(field, transformer, transformedClass);
         this.prepareForCopy(transformer, field);
         Remapper.remapAndAdd(transformer, transformedClass, field);
     }
@@ -72,7 +72,7 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
         String newDescriptor = Types.methodDescriptor(void.class, newRecordComponents.stream().map(comp -> comp.descriptor).toArray(Object[]::new));
 
         MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", newDescriptor, null, null);
-        if (ASMUtils.getMethod(transformedClass, constructor.name, constructor.desc) != null) throw TransformerException.alreadyExists(constructor, transformer, transformedClass);
+        if (ASMUtils.hasMethod(transformedClass, constructor.name, constructor.desc)) throw TransformerException.alreadyExists(constructor, transformer, transformedClass);
         constructor.visitVarInsn(Opcodes.ALOAD, 0);
         int varIndex = 1;
         for (RecordComponentNode component : oldRecordComponents) {
@@ -98,7 +98,7 @@ public class CRecordComponentAnnotationHandler extends AnnotationHandler {
             Type type = Types.type(field.desc);
 
             MethodNode getter = new MethodNode(Opcodes.ACC_PUBLIC, field.name, "()" + field.desc, null, null);
-            if (ASMUtils.getMethod(transformedClass, field.name, "()" + field.desc) != null) throw TransformerException.alreadyExists(getter, transformer, transformedClass);
+            if (ASMUtils.hasField(transformedClass, field.name, "()" + field.desc)) throw TransformerException.alreadyExists(getter, transformer, transformedClass);
             getter.visitVarInsn(Opcodes.ALOAD, 0);
             getter.visitFieldInsn(Opcodes.GETFIELD, transformedClass.name, field.name, field.desc);
             getter.visitInsn(type.getOpcode(Opcodes.IRETURN));

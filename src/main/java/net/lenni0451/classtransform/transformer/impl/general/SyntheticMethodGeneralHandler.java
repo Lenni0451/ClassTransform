@@ -30,7 +30,7 @@ public class SyntheticMethodGeneralHandler extends AnnotationHandler {
         String current;
         do {
             current = method.name + "$" + getSimpleName(owner) + id;
-        } while (ASMUtils.getMethod(target, current, method.desc) != null);
+        } while (ASMUtils.hasMethod(target, current, method.desc));
         return current;
     }
 

@@ -63,7 +63,7 @@ public class MemberCopyGeneralHandler extends AnnotationHandler {
         for (MethodNode method : transformer.methods) {
             if (method.name.startsWith("<")) continue;
             if (AnnotationUtils.hasAnnotation(method, CASM.class)) continue; //Special case for CASM bottom handler
-            if (ASMUtils.getMethod(transformedClass, method.name, method.desc) != null) {
+            if (ASMUtils.hasMethod(transformedClass, method.name, method.desc)) {
                 throw new IllegalStateException("Method '" + method.name + method.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "' and does not override it");
             }
             Remapper.remapAndAdd(transformer, transformedClass, method);
@@ -72,7 +72,7 @@ public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     private void mergeFields(final ClassNode transformedClass, final ClassNode transformer) {
         for (FieldNode field : transformer.fields) {
-            if (ASMUtils.getField(transformedClass, field.name, field.desc) != null) {
+            if (ASMUtils.hasField(transformedClass, field.name, field.desc)) {
                 throw new IllegalStateException("Field '" + field.name + field.desc + "' from transformer '" + transformer.name + "' already exists in class '" + transformedClass.name + "'");
             }
             Remapper.remapAndAdd(transformer, transformedClass, field);

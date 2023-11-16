@@ -132,6 +132,18 @@ public class ASMUtils {
     }
 
     /**
+     * Check if a class node has a method with the given name and descriptor.
+     *
+     * @param classNode The class node to search in
+     * @param name      The name of the method
+     * @param desc      The descriptor of the method
+     * @return If the class node has a method with the given name and descriptor
+     */
+    public static boolean hasMethod(final ClassNode classNode, final String name, final String desc) {
+        return getMethod(classNode, name, desc) != null;
+    }
+
+    /**
      * Get a field node from a class node using the name.<br>
      * The descriptor is passed as a parameter but is not used for the search.
      *
@@ -146,6 +158,18 @@ public class ASMUtils {
             if (field.name.equals(name)) return field;
         }
         return null;
+    }
+
+    /**
+     * Check if a class node has a field with the given name and descriptor.
+     *
+     * @param classNode The class node to search in
+     * @param name      The name of the field
+     * @param desc      The descriptor of the field
+     * @return If the class node has a field with the given name and descriptor
+     */
+    public static boolean hasField(final ClassNode classNode, final String name, final String desc) {
+        return getField(classNode, name, desc) != null;
     }
 
     /**
