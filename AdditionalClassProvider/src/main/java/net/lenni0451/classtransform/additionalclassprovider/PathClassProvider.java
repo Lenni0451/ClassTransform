@@ -54,12 +54,10 @@ public class PathClassProvider implements IClassProvider {
     @Override
     @SneakyThrows
     public Map<String, Supplier<byte[]>> getAllClasses() {
-        try (Stream<Path> paths = Files.walk(this.path)) {
+        try (Stream<Path> paths = Files.find(this.path, Integer.MAX_VALUE, (path, basicFileAttributes) -> path.getFileName().toString().endsWith(".class") && basicFileAttributes.isRegularFile())) {
             Map<String, Supplier<byte[]>> classes = paths
-                    .filter(Files::isRegularFile)
-                    .filter(f -> f.getFileName().endsWith(".class"))
                     .collect(HashMap::new, (m, p) -> {
-                        String name = dot(p.getFileName().toString());
+                        String name = dot(this.path.relativize(p).toString());
                         name = name.substring(0, name.length() - 6);
                         m.put(name, sneakySupply(() -> Files.readAllBytes(p)));
                     }, Map::putAll);
