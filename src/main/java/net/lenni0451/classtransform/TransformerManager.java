@@ -32,11 +32,11 @@ import org.objectweb.asm.tree.ClassNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.File;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -486,7 +486,7 @@ public class TransformerManager implements ClassFileTransformer {
             }
             if (this.debugger.isDumpClasses()) {
                 try {
-                    Path path = Paths.get(".", ".classtransform", "dump", name.replace(".", File.separator) + ".class");
+                    Path path = Paths.get(".", ".classtransform", "dump", name.replace(".", FileSystems.getDefault().getSeparator()) + ".class");
                     Files.createDirectories(path.getParent());
                     Files.write(path, transformedBytecode);
                 } catch (Throwable t) {
