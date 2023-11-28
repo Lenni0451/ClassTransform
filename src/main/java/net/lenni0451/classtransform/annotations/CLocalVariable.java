@@ -1,15 +1,17 @@
 package net.lenni0451.classtransform.annotations;
 
-import net.lenni0451.classtransform.annotations.injection.CInject;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Mark the parameter of a {@link CInject} transformer method as a local variable.<br>
- * Local variables have to be at the end of the parameter list.
+ * The priority for identifying the local variable is:<br>
+ * 1. {@link #name()}: The name of the local variable found in the local variable table.<br>
+ * 2. {@link #ordinal()}: The ordinal of the local variable in the local variable table.<br>
+ * 3. {@link #index()}: The variable index of the local variable.<br>
+ * <br>
+ * If none of {@link #name()}, {@link #ordinal()} or {@link #index()} are set, the local variable will be identified by the name of the method parameter.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.PARAMETER)
@@ -18,17 +20,23 @@ public @interface CLocalVariable {
     /**
      * The name of the local variable found in the local variable table.<br>
      * The local variable table is optional in the class file but is required for the name resolution.<br>
-     * Use the index if no local variable table is present.<br>
-     * If neither the {@link #name()} nor the {@link #index()} is set, the parameter name will be used instead (if available).<br>
-     * If {@link #name()} and {@link #index()} are both set, the name will be used if found. Otherwise, the index will be used instead.
+     * Use the index if no local variable table is present.
      *
      * @return The name of the local variable
      */
     String name() default "";
 
     /**
-     * The var index of the local variable to get.<br>
-     * If {@link #name()} and {@link #index()} are both set, the name will be used if found. Otherwise, the index will be used instead.
+     * The ordinal of the local variable to get from the local variable table.<br>
+     * The ordinal is counted for every type of local variable (e.g. I, L, Ljava/lang/String;, ...).<br>
+     * Use the index if no local variable table is present.
+     *
+     * @return The ordinal
+     */
+    int ordinal() default -1;
+
+    /**
+     * The var index of the local variable to get.
      *
      * @return The var index
      */

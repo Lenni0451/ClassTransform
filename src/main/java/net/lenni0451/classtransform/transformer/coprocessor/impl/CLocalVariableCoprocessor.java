@@ -95,14 +95,15 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
             this.isAnyModifiable |= annotation.modifiable();
 
             boolean nameSet = parsedAnnotation.wasSet("name");
+            boolean ordinalSet = parsedAnnotation.wasSet("ordinal");
             boolean indexSet = parsedAnnotation.wasSet("index");
             Integer variableIndex = null;
-            if (nameSet || (!indexSet && parameter.getName() != null)) {
+            if (nameSet || (!ordinalSet && !indexSet && parameter.getName() != null)) {
                 String name = nameSet ? annotation.name() : parameter.getName(); //Use the given name or the original parameter name
                 if (methodNode.localVariables == null) {
                     //If no local variable table is present, we can't get the index by name
                     //Only throw an exception if the index was not set manually
-                    if (!indexSet) throw new IllegalStateException("Local variables are not available");
+                    if (!indexSet) throw new IllegalStateException("Local variables are not available to get the index by name");
                 } else {
                     //Try to get the index by name
                     for (LocalVariableNode localVariable : methodNode.localVariables) {
@@ -114,8 +115,28 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
                     }
                 }
             }
+            if (ordinalSet && variableIndex == null) {
+                if (methodNode.localVariables == null) {
+                    //If no local variable table is present, we can't get the index by ordinal
+                    //Only throw an exception if the index was not set manually
+                    if (!indexSet) throw new IllegalStateException("Local variables are not available to get the index by ordinal");
+                } else {
+                    //Try to get the index by ordinal
+                    int ordinal = annotation.ordinal();
+                    int i = 0;
+                    for (LocalVariableNode localVariable : methodNode.localVariables) {
+                        if (!localVariable.desc.equals(parameter.getType().getDescriptor())) continue;
+                        if (i == ordinal) {
+                            //Found the local variable
+                            variableIndex = localVariable.index;
+                            break;
+                        }
+                        i++;
+                    }
+                }
+            }
             if (indexSet && variableIndex == null) variableIndex = annotation.index(); //The index was set manually (and the name was not found/set)
-            if (variableIndex == null) throw new IllegalArgumentException("No index or name was set for annotated parameter " + parameter.getAnnotationIndex());
+            if (variableIndex == null) throw new IllegalArgumentException("No index, ordinal or name was set for annotated parameter " + parameter.getAnnotationIndex());
 
             Type variableType = null;
             if (parsedAnnotation.wasSet("loadOpcode")) {
