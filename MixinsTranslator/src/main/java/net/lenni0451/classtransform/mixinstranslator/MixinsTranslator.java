@@ -14,11 +14,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 /**
- * Translate annotation from Mixins to ClassTransform<br>
- * Since ClassTransform has some differences to Mixins this is not a 100% perfect translation<br>
+ * Translate annotations from Mixins to ClassTransform.<br>
+ * Since ClassTransform has some differences to Mixins this is not a 100% perfect translation.<br>
  * Some features may not be supported.<br>
- * Some fields which are not supported still got copied over to simplify the copy-paste action<br>
- * You can recognize them by the @Deprecated annotation
+ * Some fields which are not supported still got copied over to simplify the copy-paste action.<br>
+ * You can recognize them by the @Deprecated annotation.
  */
 @ParametersAreNonnullByDefault
 public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
@@ -34,9 +34,16 @@ public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
         for (MethodNode method : node.methods) {
             this.translate(method.visibleAnnotations);
             this.translate(method.invisibleAnnotations);
+            this.translate(method.visibleParameterAnnotations);
+            this.translate(method.invisibleParameterAnnotations);
 
             CallbackRewriter.rewrite(method);
         }
+    }
+
+    private void translate(@Nullable final List<AnnotationNode>[] annotations) {
+        if (annotations == null) return;
+        for (List<AnnotationNode> annotationList : annotations) this.translate(annotationList);
     }
 
     private void translate(@Nullable final List<AnnotationNode> annotations) {

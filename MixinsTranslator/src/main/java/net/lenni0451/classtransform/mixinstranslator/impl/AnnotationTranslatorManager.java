@@ -1,5 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
 import org.objectweb.asm.Type;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -7,6 +9,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,14 +19,20 @@ public class AnnotationTranslatorManager {
     private static final Map<String, IAnnotationTranslator> ANNOTATION_TRANSLATOR = new HashMap<>();
 
     static {
-        ANNOTATION_TRANSLATOR.put(Mixin.class.getName(), new MixinTranslator());
-        ANNOTATION_TRANSLATOR.put(Inject.class.getName(), new InjectTranslator());
-        ANNOTATION_TRANSLATOR.put(Redirect.class.getName(), new RedirectTranslator());
-        ANNOTATION_TRANSLATOR.put(ModifyConstant.class.getName(), new ModifyConstantTranslator());
-        ANNOTATION_TRANSLATOR.put(Overwrite.class.getName(), new OverwriteTranslator());
-        ANNOTATION_TRANSLATOR.put(At.class.getName(), new AtTranslator());
-        ANNOTATION_TRANSLATOR.put(Shadow.class.getName(), new ShadowTranslator());
-        ANNOTATION_TRANSLATOR.put(Slice.class.getName(), new SliceTranslator());
+        register(Mixin.class, new MixinTranslator());
+        register(Inject.class, new InjectTranslator());
+        register(Redirect.class, new RedirectTranslator());
+        register(ModifyConstant.class, new ModifyConstantTranslator());
+        register(Overwrite.class, new OverwriteTranslator());
+        register(At.class, new AtTranslator());
+        register(Shadow.class, new ShadowTranslator());
+        register(Slice.class, new SliceTranslator());
+        register(Share.class, new ShareTranslator());
+        register(Local.class, new LocalTranslator());
+    }
+
+    private static void register(final Class<? extends Annotation> clazz, final IAnnotationTranslator translator) {
+        ANNOTATION_TRANSLATOR.put(clazz.getName(), translator);
     }
 
     public static IAnnotationTranslator getTranslator(final Type type) {
