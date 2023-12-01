@@ -1,8 +1,8 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
-import jdk.internal.org.objectweb.asm.Type;
 import net.lenni0451.classtransform.annotations.CLocalVariable;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
