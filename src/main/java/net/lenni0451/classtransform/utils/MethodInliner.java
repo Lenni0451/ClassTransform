@@ -115,7 +115,7 @@ public class MethodInliner {
             if (!inlinedReturnType.equals(Type.VOID_TYPE)) instructions.add(new VarInsnNode(inlinedReturnType.getOpcode(Opcodes.ISTORE), returnVar));
             for (int i = stackVariables.size() - 1; i >= 0; i--) {
                 StackVariable stackVariable = stackVariables.get(i);
-                instructions.add(new VarInsnNode(stackVariable.getType().getOpcode(Opcodes.ILOAD), stackVariable.getVarIndex()));
+                instructions.add(new VarInsnNode(stackVariable.type.getOpcode(Opcodes.ILOAD), stackVariable.varIndex));
             }
             if (!inlinedReturnType.equals(Type.VOID_TYPE)) instructions.add(new VarInsnNode(inlinedReturnType.getOpcode(Opcodes.ILOAD), returnVar));
         }
@@ -161,17 +161,9 @@ public class MethodInliner {
         private final Type type;
         private final int varIndex;
 
-        StackVariable(final Type type, final int varIndex) {
+        private StackVariable(final Type type, final int varIndex) {
             this.type = type;
             this.varIndex = varIndex;
-        }
-
-        public Type getType() {
-            return this.type;
-        }
-
-        public int getVarIndex() {
-            return this.varIndex;
         }
     }
 
