@@ -32,6 +32,7 @@ public class InjectionClassLoader extends URLClassLoader {
     private final TransformerManager transformerManager;
     private final ClassLoader parent;
     private final Set<String> protectedPackages = new HashSet<>();
+    private final Set<String> protectionExceptions = new HashSet<>();
     private final Map<String, byte[]> runtimeResources = new HashMap<>();
 
     private EnumLoaderPriority priority = EnumLoaderPriority.CUSTOM_FIRST;
@@ -52,6 +53,7 @@ public class InjectionClassLoader extends URLClassLoader {
         this.protectedPackages.add("jdk.");
         this.protectedPackages.add("net.lenni0451.classtransform.");
         this.protectedPackages.add("org.objectweb.asm.");
+        this.protectionExceptions.add("com.sun.jna.");
     }
 
     @Override
@@ -76,11 +78,9 @@ public class InjectionClassLoader extends URLClassLoader {
 
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        for (String protectedPackage : this.protectedPackages) {
-            if (name.startsWith(protectedPackage)) {
-                if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST) && this.parent != null) return this.parent.loadClass(name);
-                throw new ClassNotFoundException(name);
-            }
+        if (this.isProtected(name)) {
+            if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST) && this.parent != null) return this.parent.loadClass(name);
+            throw new ClassNotFoundException(name);
         }
 
         try {
@@ -203,12 +203,39 @@ public class InjectionClassLoader extends URLClassLoader {
 
 
     /**
+     * Check if the given class is protected and should not be transformed/loaded by this class loader.
+     *
+     * @param className The name of the class to check
+     * @return If the class is protected
+     */
+    public boolean isProtected(final String className) {
+        for (String protectedPackage : this.protectedPackages) {
+            if (className.startsWith(protectedPackage)) {
+                for (String protectionException : this.protectionExceptions) {
+                    if (className.startsWith(protectionException)) return false;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Add a protected package to prevent the classes from being transformed.
      *
      * @param protectedPackage The package to protect
      */
     public void addProtectedPackage(final String protectedPackage) {
         this.protectedPackages.add(protectedPackage);
+    }
+
+    /**
+     * Add an exception to the protected packages.
+     *
+     * @param protectionException The package to add
+     */
+    public void addProtectionException(final String protectionException) {
+        this.protectionExceptions.add(protectionException);
     }
 
     /**
