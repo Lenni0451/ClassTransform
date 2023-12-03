@@ -8,7 +8,14 @@ import java.lang.annotation.Target;
 /**
  * Add a field as a record component and add the corresponding getter methods.<br>
  * This also adds a new constructor to the record class with all added record components.<br>
- * The {@link Object#toString}/{@link Object#equals(Object)}/{@link Object#hashCode()} methods get reimplemented with the new components. The methods will be ignored if they are overridden manually.
+ * The {@link Object#toString}/{@link Object#equals(Object)}/{@link Object#hashCode()} methods get reimplemented with the new components.
+ * The methods will be ignored if they are overridden manually.<br>
+ * <br>
+ * Adding a record component:<br>
+ * <pre>
+ * &#64;CRecordComponent
+ * private final String text;
+ * </pre>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)

@@ -11,14 +11,33 @@ import java.lang.annotation.Target;
 
 /**
  * Modify a constant value in a method.<br>
- * Supported types:<br>
- * - {@code null}<br>
- * - {@code int}<br>
- * - {@code long}<br>
- * - {@code float}<br>
- * - {@code double}<br>
- * - {@link String}<br>
- * - {@link Class}
+ * The target constant must exactly match the given value.<br>
+ * If the target is not found an exception will be thrown unless {@link #optional()} is set to {@code true}.<br>
+ * The following types are supported:<br>
+ * <ul>
+ *     <li>{@link #nullValue()}</li>
+ *     <li>{@link #intValue()}</li>
+ *     <li>{@link #longValue()}</li>
+ *     <li>{@link #floatValue()}</li>
+ *     <li>{@link #doubleValue()}</li>
+ *     <li>{@link #stringValue()}</li>
+ *     <li>{@link #typeValue()}</li>
+ * </ul>
+ * The transformer method has to return the same type as the target constant and needs to be static if the target method is static.<br>
+ * The transformer method can optionally take the same type as the target constant as the first argument (except for {@link #nullValue()}).
+ * This argument will be the original value of the constant.<br>
+ * <br>
+ * Modifying a constant in a method:<br>
+ * <pre>
+ * &#64;CModifyConstant(method = "print", stringValue = "test")
+ * public String modifyConstant(String original) {
+ *     //Do something with the original value and return the new value
+ *     return original + "!";
+ * }
+ * </pre>
+ * If your target has to be chosen more precisely you can use a {@link #slice()} to narrow down the search.
+ *
+ * @see CSlice
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
@@ -27,7 +46,7 @@ public @interface CModifyConstant {
     /**
      * The method name and descriptor to inject into.<br>
      * This supports multiple targets and wildcards.<br>
-     * e.g. print(Ljava/lang/String;)V
+     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
      *
      * @return The method name and descriptor
      */
@@ -42,7 +61,7 @@ public @interface CModifyConstant {
     int ordinal() default -1;
 
     /**
-     * The slice of instructions to search for the target.
+     * The slice to narrow down the search for the target.
      *
      * @return The slice
      */
@@ -50,7 +69,8 @@ public @interface CModifyConstant {
     CSlice slice() default @CSlice;
 
     /**
-     * If the target is optional or an exception should be thrown if not found.
+     * Make this injection optional.<br>
+     * If the target is not found an exception will be thrown unless this is set to {@code true}.
      *
      * @return If the target is optional
      */
@@ -58,7 +78,7 @@ public @interface CModifyConstant {
 
 
     /**
-     * Set ACONST_NULL as the target.<br>
+     * Set {@code ACONST_NULL} as the target.<br>
      * The transformer method must return any object and does not take any arguments.<br>
      * The return value type is not verified so make sure to return the correct type.
      *

@@ -23,7 +23,7 @@ public @interface CWrapCatch {
     /**
      * The method name and descriptor to inject into.<br>
      * This supports multiple targets and wildcards.<br>
-     * e.g. print(Ljava/lang/String;)V
+     * e.g. {@code print(Ljava/lang/String;)V}
      *
      * @return The method name and descriptor
      */
@@ -34,7 +34,7 @@ public @interface CWrapCatch {
      * The method owner, name and descriptor of the target instruction to wrap.<br>
      * Only method calls are supported.<br>
      * If this is not specified the entire method will be wrapped.<br>
-     * e.g. Ljava/io/InputStream;close()V
+     * e.g. {@code Ljava/io/InputStream;close()V}
      *
      * @return The method owner, name and descriptor
      */
