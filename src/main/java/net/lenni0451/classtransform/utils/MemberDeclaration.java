@@ -89,4 +89,11 @@ public class MemberDeclaration {
         return !this.desc.startsWith("(");
     }
 
+    /**
+     * @return If this declaration references a method
+     */
+    public boolean isMethodMapping() {
+        return this.desc.startsWith("(");
+    }
+
 }
