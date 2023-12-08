@@ -55,7 +55,7 @@ public @interface CWrapCondition {
      *
      * @return The target
      */
-    @AnnotationRemap(RemapType.ANNOTATION)
+    @AnnotationRemap(RemapType.MEMBER)
     String[] target();
 
     /**
