@@ -105,6 +105,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CInjectAnnotationHandler());
         this.annotationHandler.add(new CRedirectAnnotationHandler());
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
+        this.annotationHandler.add(new CWrapConditionAnnotationHandler());
         //HandlerPosition#POST
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
         this.annotationHandler.add(new MemberCopyGeneralHandler(false)); //Copy all leftover methods to the transformed class
