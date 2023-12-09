@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.annotations.injection;
 
 import net.lenni0451.classtransform.annotations.CSlice;
+import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 
@@ -22,11 +23,12 @@ import java.lang.annotation.Target;
  * <ul>
  *     <li>If the wrapped field is not static, the instance of the field owner should be the first argument.</li>
  *     <li>The second argument should be the new value for the field.</li>
+ *     <li>Only field gets are supported (GETFIELD, GETSTATIC).</li>
  * </ul>
  * <br>
  * <p>Example usage:</p>
  * <pre>
- * &#64;CWrapCondition(method = "print", target = "...")
+ * &#64;CWrapCondition(method = "print", target = &#64;CTarget(value = "INVOKE", target = "..."))
  * public boolean condition(Object instance, String arg) {
  *     // Return true or false based on some condition
  * }
@@ -55,15 +57,8 @@ public @interface CWrapCondition {
      *
      * @return The target
      */
-    @AnnotationRemap(RemapType.MEMBER)
-    String[] target();
-
-    /**
-     * The ordinal of target method call instruction.
-     *
-     * @return The ordinal
-     */
-    int ordinal() default -1;
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CTarget[] target();
 
     /**
      * The slice to narrow down the search for the target.
