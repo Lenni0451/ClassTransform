@@ -20,7 +20,8 @@ public @interface Constant {
 
     String stringValue() default "";
 
-    @Deprecated
     Class<?> classValue() default Object.class;
+
+    int ordinal() default -1;
 
 }

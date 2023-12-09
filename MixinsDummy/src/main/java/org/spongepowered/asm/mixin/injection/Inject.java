@@ -13,7 +13,11 @@ public @interface Inject {
 
     At[] at();
 
-    Slice slice() default @Slice;
+    /**
+     * An array of slices is not supported. Only the first slice will be used.<br>
+     * An exception will be thrown during the translation process if more than one slice is specified.
+     */
+    Slice[] slice() default @Slice;
 
     boolean cancellable() default false;
 
