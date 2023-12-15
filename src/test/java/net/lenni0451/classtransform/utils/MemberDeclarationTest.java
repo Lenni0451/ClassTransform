@@ -27,10 +27,12 @@ class MemberDeclarationTest {
             MethodInsnNode methodInsnNode = new MethodInsnNode(Opcodes.INVOKEVIRTUAL, owner, name, desc);
             assertTrue(memberDeclaration.is(methodInsnNode));
             assertFalse(memberDeclaration.isFieldMapping());
+            assertTrue(memberDeclaration.isMethodMapping());
         } else {
             FieldInsnNode fieldInsnNode = new FieldInsnNode(Opcodes.GETSTATIC, owner, name, desc);
             assertTrue(memberDeclaration.is(fieldInsnNode));
             assertTrue(memberDeclaration.isFieldMapping());
+            assertFalse(memberDeclaration.isMethodMapping());
         }
     }
 

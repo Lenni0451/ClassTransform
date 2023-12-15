@@ -1,20 +1,19 @@
 package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
-import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CWrapCatch;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CTargetImpl;
 import net.lenni0451.classtransform.utils.Codifier;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +76,7 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
             transformerMethodCalls.add(transformerCall);
         } else {
             Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
-            List<AbstractInsnNode> targetInstructions = injectionTargets.get("INVOKE").getTargets(injectionTargets, target, new MethodCTarget(annotation.target(), annotation.ordinal()), annotation.slice());
+            List<AbstractInsnNode> targetInstructions = injectionTargets.get("INVOKE").getTargets(injectionTargets, target, CTargetImpl.invoke(annotation.target(), annotation.ordinal()), annotation.slice());
             for (AbstractInsnNode instruction : targetInstructions) {
                 Type instructionReturnType = returnType(((MethodInsnNode) instruction).desc);
                 if (!ASMUtils.compareType(instructionReturnType, returnType)) {
@@ -114,49 +113,6 @@ public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler
             }
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
-    }
-
-
-    private static class MethodCTarget implements CTarget {
-
-        private final String methodDeclaration;
-        private final int ordinal;
-
-        private MethodCTarget(final String methodDeclaration, final int ordinal) {
-            this.methodDeclaration = methodDeclaration;
-            this.ordinal = ordinal;
-        }
-
-        @Override
-        public String value() {
-            return "INVOKE";
-        }
-
-        @Override
-        public String target() {
-            return this.methodDeclaration;
-        }
-
-        @Override
-        public Shift shift() {
-            return Shift.AFTER;
-        }
-
-        @Override
-        public int ordinal() {
-            return this.ordinal;
-        }
-
-        @Override
-        public boolean optional() {
-            return false;
-        }
-
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return MethodCTarget.class;
-        }
-
     }
 
 }

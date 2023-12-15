@@ -21,8 +21,8 @@ public @interface At {
      * The FIELD target in ClassTransform has too many differences to the FIELD target with opcode in Mixins.<br>
      * Please use the GETFIELD or PUTFIELD targets from ClassTransform instead.<br>
      * The GETFIELD and PUTFIELD targets from ClassTransform include their static counterparts:<br>
-     * GETFIELD -&gt; {@code Opcodes.GETSTATIC} and {@code Opcodes.GETFIELD}<br>
-     * PUTFIELD -&gt; {@code Opcodes.PUTSTATIC} and {@code Opcodes.PUTFIELD}
+     * GETFIELD {@literal ->} {@code Opcodes.GETSTATIC} and {@code Opcodes.GETFIELD}<br>
+     * PUTFIELD {@literal ->} {@code Opcodes.PUTSTATIC} and {@code Opcodes.PUTFIELD}
      */
     @Deprecated
     int opcode() default -1;
