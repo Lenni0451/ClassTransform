@@ -407,6 +407,7 @@ public class TransformerManager implements ClassFileTransformer {
      * @param bytecode The bytecode of the class
      * @return The modified bytecode of the class or null if not changed
      */
+    @Nullable
     public byte[] transform(final String name, byte[] bytecode) {
         return this.transform(name, bytecode, true);
     }
@@ -420,6 +421,7 @@ public class TransformerManager implements ClassFileTransformer {
      * @param calculateStackMapFrames If the stack map frames should be calculated
      * @return The modified bytecode of the class or null if not changed
      */
+    @Nullable
     public byte[] transform(final String name, byte[] bytecode, final boolean calculateStackMapFrames) {
         TransformerTimings timings = new TransformerTimings();
         try {
