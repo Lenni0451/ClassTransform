@@ -24,10 +24,10 @@ public interface IRedirectTarget {
      * @param targetMethod           The transformed method
      * @param transformer            The transformer class
      * @param transformerMethod      The transformer method
-     * @param targetNodes            The instructions to redirect
+     * @param targetNode            The instructions to redirect
      * @param transformerMethodCalls The list of calls to the transformer method
      */
-    void inject(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final List<AbstractInsnNode> targetNodes, final List<MethodInsnNode> transformerMethodCalls);
+    void inject(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final AbstractInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls);
 
     /**
      * Get the load and store opcodes for the given method invocation.

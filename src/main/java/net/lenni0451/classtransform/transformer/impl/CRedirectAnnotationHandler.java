@@ -9,12 +9,9 @@ import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocesso
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectField;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.credirect.CRedirectNew;
-import net.lenni0451.classtransform.transformer.impl.credirect.IRedirectTarget;
 import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
@@ -26,16 +23,14 @@ import java.util.*;
 @ParametersAreNonnullByDefault
 public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<CRedirect> {
 
-    private final Map<String, IRedirectTarget> redirectTargets = new HashMap<>();
+    private static final Collection<String> TARGETS = Arrays.asList("INVOKE", "FIELD", "NEW");
+
+    private final CRedirectInvoke redirectInvoke = new CRedirectInvoke();
+    private final CRedirectField redirectField = new CRedirectField();
+    private final CRedirectNew redirectNew = new CRedirectNew();
 
     public CRedirectAnnotationHandler() {
         super(CRedirect.class, CRedirect::method);
-
-        this.redirectTargets.put("INVOKE", new CRedirectInvoke());
-        this.redirectTargets.put("FIELD", new CRedirectField());
-        this.redirectTargets.put("GETFIELD", new CRedirectField());
-        this.redirectTargets.put("PUTFIELD", new CRedirectField());
-        this.redirectTargets.put("NEW", new CRedirectNew());
     }
 
     @Override
@@ -44,10 +39,6 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
         transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
-        IRedirectTarget iRedirectTarget = this.redirectTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
-        if (iInjectionTarget == null || iRedirectTarget == null) {
-            throw new InvalidTargetException(transformerMethod, transformer, annotation.target().value(), this.redirectTargets.keySet());
-        }
 
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
@@ -65,7 +56,19 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
 
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
-        iRedirectTarget.inject(transformedClass, target, transformer, transformerMethod, injectionInstructions, transformerMethodCalls);
+        for (AbstractInsnNode injectionInstruction : injectionInstructions) {
+            if (injectionInstruction instanceof MethodInsnNode) {
+                if (injectionInstruction.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) injectionInstruction).name.equals("<init>")) {
+                    this.redirectNew.inject(transformedClass, target, transformer, transformerMethod, injectionInstruction, transformerMethodCalls);
+                } else {
+                    this.redirectInvoke.inject(transformedClass, target, transformer, transformerMethod, injectionInstruction, transformerMethodCalls);
+                }
+            } else if (injectionInstruction instanceof FieldInsnNode) {
+                this.redirectField.inject(transformedClass, target, transformer, transformerMethod, injectionInstruction, transformerMethodCalls);
+            } else {
+                throw new InvalidTargetException(transformerMethod, transformer, annotation.target().value(), TARGETS);
+            }
+        }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
     }
 

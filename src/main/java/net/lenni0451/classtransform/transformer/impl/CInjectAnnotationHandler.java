@@ -30,14 +30,8 @@ import static net.lenni0451.classtransform.utils.Types.*;
 @ParametersAreNonnullByDefault
 public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CInject> {
 
-    private final List<String> captureTargets = new ArrayList<>();
-
     public CInjectAnnotationHandler() {
         super(CInject.class, CInject::method);
-
-        this.captureTargets.add("RETURN");
-        this.captureTargets.add("TAIL");
-        this.captureTargets.add("THROW");
     }
 
     @Override
@@ -92,7 +86,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
             for (AbstractInsnNode instruction : targetInstructions) {
                 InsnList instructions;
 
-                if (this.captureTargets.contains(injectTarget.value().toUpperCase(Locale.ROOT))) {
+                if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN || instruction.getOpcode() == Opcodes.ATHROW) {
                     instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), hasArgs, hasCallback, transformerMethodCalls);
                 } else {
                     instructions = this.getCallInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), hasArgs, hasCallback, transformerMethodCalls);

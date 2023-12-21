@@ -20,13 +20,11 @@ import static net.lenni0451.classtransform.utils.Types.*;
 public class CRedirectField implements IRedirectTarget {
 
     @Override
-    public void inject(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, List<AbstractInsnNode> targetNodes, List<MethodInsnNode> transformerMethodCalls) {
-        for (AbstractInsnNode instruction : targetNodes) {
-            if (instruction.getOpcode() == Opcodes.GETSTATIC || instruction.getOpcode() == Opcodes.GETFIELD) {
-                this.redirectGetField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) instruction, transformerMethodCalls);
-            } else if (instruction.getOpcode() == Opcodes.PUTSTATIC || instruction.getOpcode() == Opcodes.PUTFIELD) {
-                this.redirectPutField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) instruction, transformerMethodCalls);
-            }
+    public void inject(ClassNode targetClass, MethodNode targetMethod, ClassNode transformer, MethodNode transformerMethod, AbstractInsnNode targetNode, List<MethodInsnNode> transformerMethodCalls) {
+        if (targetNode.getOpcode() == Opcodes.GETSTATIC || targetNode.getOpcode() == Opcodes.GETFIELD) {
+            this.redirectGetField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) targetNode, transformerMethodCalls);
+        } else if (targetNode.getOpcode() == Opcodes.PUTSTATIC || targetNode.getOpcode() == Opcodes.PUTFIELD) {
+            this.redirectPutField(targetClass, targetMethod, transformer, transformerMethod, (FieldInsnNode) targetNode, transformerMethodCalls);
         }
     }
 
