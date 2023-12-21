@@ -83,6 +83,18 @@ public class MemberDeclaration {
     }
 
     /**
+     * Check if an owner, name and descriptor match this declaration.
+     *
+     * @param owner The owner to check
+     * @param name  The name to check
+     * @param desc  The descriptor to check
+     * @return If the owner, name and descriptor match this declaration
+     */
+    public boolean is(final String owner, final String name, final String desc) {
+        return this.owner.equals(owner) && this.name.equals(name) && this.desc.equals(desc);
+    }
+
+    /**
      * @return If this declaration references a field
      */
     public boolean isFieldMapping() {
