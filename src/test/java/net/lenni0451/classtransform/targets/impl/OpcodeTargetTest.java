@@ -18,25 +18,25 @@ class OpcodeTargetTest extends ATargetTest {
 
     @ParameterizedTest
     @CsvSource({
-            Opcodes.GETSTATIC + ", GETSTATIC",
-            Opcodes.PUTSTATIC + ", PUTSTATIC",
-            Opcodes.GETFIELD + ", GETFIELD",
-            Opcodes.PUTFIELD + ", PUTFIELD",
-            Opcodes.INVOKEINTERFACE + ", INVOKEINTERFACE",
-            Opcodes.INVOKEVIRTUAL + ", INVOKEVIRTUAL",
-            Opcodes.INVOKESPECIAL + ", INVOKESPECIAL",
-            Opcodes.INVOKESTATIC + ", INVOKESTATIC",
-            Opcodes.NEW + ", NEW",
-            Opcodes.ACONST_NULL + ", ACONST_NULL",
-            Opcodes.ATHROW + ", ATHROW",
-            Opcodes.DRETURN + ", DRETURN"
+            Opcodes.GETSTATIC + ", GETSTATIC, 2",
+            Opcodes.PUTSTATIC + ", PUTSTATIC, 2",
+            Opcodes.GETFIELD + ", GETFIELD, 2",
+            Opcodes.PUTFIELD + ", PUTFIELD, 2",
+            Opcodes.INVOKEINTERFACE + ", INVOKEINTERFACE, 2",
+            Opcodes.INVOKEVIRTUAL + ", INVOKEVIRTUAL, 2",
+            Opcodes.INVOKESPECIAL + ", INVOKESPECIAL, 4",
+            Opcodes.INVOKESTATIC + ", INVOKESTATIC, 2",
+            Opcodes.NEW + ", NEW, 2",
+            Opcodes.ACONST_NULL + ", ACONST_NULL, 2",
+            Opcodes.ATHROW + ", ATHROW, 2",
+            Opcodes.DRETURN + ", DRETURN, 2"
     })
     @DisplayName("Get opcode targets")
-    public void getOpcodeTargets(final int opcode, final String name) {
+    public void getOpcodeTargets(final int opcode, final String name, final int count) {
         OpcodeTarget opcodeTarget = new OpcodeTarget();
         List<AbstractInsnNode> insns = opcodeTarget.getTargets(this.injectionTargets, this.method, this.getTarget(String.valueOf(opcode), CTarget.Shift.BEFORE, -1), this.emptySlice);
         insns.addAll(opcodeTarget.getTargets(this.injectionTargets, this.method, this.getTarget(name, CTarget.Shift.BEFORE, -1), this.emptySlice));
-        assertEquals(2, insns.size());
+        assertEquals(count, insns.size());
         assertEquals(insns.get(0).getOpcode(), opcode);
         assertEquals(insns.get(0).getOpcode(), insns.get(1).getOpcode());
     }

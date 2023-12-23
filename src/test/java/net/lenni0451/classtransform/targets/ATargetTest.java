@@ -39,6 +39,7 @@ public abstract class ATargetTest {
         this.method.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "Test", "invokeSpecial", "()Ljava/io/FileInputStream;"));
         this.method.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "Test", "invokeStatic", "(Ljava/lang/Integer;)I"));
         this.method.instructions.add(new TypeInsnNode(Opcodes.NEW, Type.getType(String.class).getInternalName()));
+        this.method.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Type.getType(String.class).getInternalName(), "<init>", "()V"));
         this.method.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
         this.method.instructions.add(new InsnNode(Opcodes.ATHROW));
         this.method.instructions.add(new InsnNode(Opcodes.DRETURN));
