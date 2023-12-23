@@ -106,7 +106,7 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
         InsnList instructions = this.getLoadInstructions(target, hasArgs);
         this.createCallback(instructions, cancellable, hasCallback, callbackVar, Type.VOID_TYPE, 0);
         this.callInjectionMethod(instructions, classNode, target, source, transformerMethodCalls);
-        this.getCancelInstructions(instructions, cancellable, hasCallback, callbackVar, returnType);
+        this.getCancelInstructions(instructions, cancellable, hasCallback, callbackVar, returnType, -1);
         return instructions;
     }
 
@@ -120,10 +120,10 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
         InsnList instructions = this.getLoadInstructions(target, hasArgs);
         this.createCallback(instructions, cancellable, hasCallback, callbackVar, returnType, returnVar);
         this.callInjectionMethod(instructions, classNode, target, source, transformerMethodCalls);
-        this.getCancelInstructions(instructions, cancellable, hasCallback, callbackVar, returnType);
+        this.getCancelInstructions(instructions, cancellable, hasCallback, callbackVar, returnType, returnVar);
         if (!isVoid && hasCallback) {
             instructions.insert(new VarInsnNode(ASMUtils.getStoreOpcode(returnType), returnVar)); //If the method is not a void, store the return value
-            instructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(returnType), returnVar));
+            if (!cancellable) instructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(returnType), returnVar));
         }
         return instructions;
     }
@@ -205,22 +205,50 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
         transformerMethodCalls.add(transformerCall);
     }
 
-    private void getCancelInstructions(final InsnList instructions, final boolean cancellable, final boolean hasCallback, final int callbackVar, final Type returnType) {
+    /*
+     * //returnValue != void
+     * if (injectionCallback.isCancelled()) {
+     *     return (T) injectionCallback.getReturnValue();
+     * }
+     *
+     * //returnValue == void
+     * if (injectionCallback.isCancelled()) {
+     *     return;
+     * }
+     *
+     * //returnValue != void, returnVar
+     * if (injectionCallback.isCancelled()) {
+     *     stack << (T) injectionCallback.getReturnValue();
+     * } else {
+     *     stack << currentReturnValue;
+     * }
+     */
+    private void getCancelInstructions(final InsnList instructions, final boolean cancellable, final boolean hasCallback, final int callbackVar, final Type returnType, final int returnVar) {
         if (!cancellable || !hasCallback) return; //If the method is cancellable, check if the callback has been cancelled
+        boolean willCancel = returnVar >= 0;
+        InsnList cancelInstructions = new InsnList();
         //Check if the callback is cancelled
         LabelNode jump = new LabelNode();
-        instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
-        instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "isCancelled", methodDescriptor(boolean.class)));
-        instructions.add(new JumpInsnNode(Opcodes.IFEQ, jump));
+        LabelNode end = new LabelNode();
+        cancelInstructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+        cancelInstructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "isCancelled", methodDescriptor(boolean.class)));
+        cancelInstructions.add(new JumpInsnNode(Opcodes.IFEQ, jump));
         if (!Type.VOID_TYPE.equals(returnType)) { //If the method has a return value, take the value from the callback
-            instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
-            instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "getReturnValue", methodDescriptor(Object.class)));
-            instructions.add(ASMUtils.getCast(returnType));
-            instructions.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
+            cancelInstructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+            cancelInstructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "getReturnValue", methodDescriptor(Object.class)));
+            cancelInstructions.add(ASMUtils.getCast(returnType));
+            if (willCancel) cancelInstructions.add(new JumpInsnNode(Opcodes.GOTO, end));
+            else cancelInstructions.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
         } else { //If the method is void, simply return
-            instructions.add(new InsnNode(Opcodes.RETURN));
+            if (willCancel) cancelInstructions.clear();
+            else cancelInstructions.add(new InsnNode(Opcodes.RETURN));
         }
-        instructions.add(jump);
+        cancelInstructions.add(jump);
+        if (willCancel && cancelInstructions.size() > 0) {
+            cancelInstructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(returnType), returnVar));
+            cancelInstructions.add(end);
+        }
+        instructions.add(cancelInstructions);
     }
 
 }
