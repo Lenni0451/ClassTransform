@@ -17,4 +17,9 @@ public @interface CShared {
      */
     String value();
 
+    /**
+     * @return If the shared variable should be globally accessible
+     */
+    boolean global() default false;
+
 }

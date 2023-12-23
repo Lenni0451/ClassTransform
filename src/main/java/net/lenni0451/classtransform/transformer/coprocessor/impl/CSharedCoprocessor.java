@@ -42,7 +42,7 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
         ASMUtils.addParameters(transformerMethod, Types.type(Object[].class)); //Add the object array parameter again
 
         SharedVariableAttribute attribute = this.getAttribute(transformedMethod);
-        ParsedSharedVariable[] parsedSharedVariables = this.initializeSharedVariables(transformerManager, attribute, transformedMethod);
+        ParsedSharedVariable[] parsedSharedVariables = this.initializeSharedVariables(transformerManager, transformer, attribute, transformedMethod);
         int targetArrayIndex = ASMUtils.getFreeVarIndex(transformedMethod);
         InsnList before = new InsnList();
         InsnList after = new InsnList();
@@ -112,15 +112,15 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
         return attribute;
     }
 
-    private ParsedSharedVariable[] initializeSharedVariables(final TransformerManager transformerManager, final SharedVariableAttribute attribute, final MethodNode transformedMethod) {
+    private ParsedSharedVariable[] initializeSharedVariables(final TransformerManager transformerManager, final ClassNode transformer, final SharedVariableAttribute attribute, final MethodNode transformedMethod) {
         List<ParsedSharedVariable> parsedSharedVariables = new ArrayList<>();
         for (CoprocessorUtils.AnnotatedParameter parameter : this.parameters) {
             if (parameter == null) continue;
             CShared annotation = AnnotationParser.parse(CShared.class, transformerManager, AnnotationUtils.listToMap(parameter.getAnnotation().values));
-            SharedVariableAttribute.SharedVariable sharedVariable = attribute.getVariableIndex(annotation.value());
+            SharedVariableAttribute.SharedVariable sharedVariable = attribute.getVariableIndex(transformer.name, annotation.value(), annotation.global());
             if (sharedVariable == null) {
                 //The shared variable with this name is not yet initialized
-                sharedVariable = attribute.addVariable(annotation.value(), ASMUtils.getFreeVarIndex(transformedMethod), parameter.getType());
+                sharedVariable = attribute.addVariable(transformer.name, annotation.value(), ASMUtils.getFreeVarIndex(transformedMethod), parameter.getType(), annotation.global());
                 transformedMethod.instructions.insert(this.getDefaultInstructions(parameter.getType(), sharedVariable.getVariableIndex()));
             } else {
                 //The shared variable with this name is already initialized
