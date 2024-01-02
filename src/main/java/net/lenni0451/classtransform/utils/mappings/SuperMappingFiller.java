@@ -100,7 +100,8 @@ public class SuperMappingFiller {
     /**
      * Fill all super mappings for all classes found in the given remapper.<br>
      * If a class could not be found the mappings for it will be skipped.<br>
-     * Missing mappings are added to the given remapper.
+     * Missing mappings are added to the given remapper.<br>
+     * The remapper <b>must</b> map from named to obfuscated. If you need to map from obfuscated to named use {@link MapRemapper#reverse()}.
      *
      * @param remapper      The remapper to use
      * @param classTree     The class tree to use
