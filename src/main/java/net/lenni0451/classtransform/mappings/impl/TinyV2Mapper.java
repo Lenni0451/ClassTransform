@@ -50,7 +50,7 @@ public class TinyV2Mapper extends AMapper {
 
         String currentClass = null;
         for (String line : lines) {
-            String trimmedLine = line.trim();
+            String trimmedLine = line.trim().replaceAll("\\s{2,}", "\t");
             if (trimmedLine.isEmpty()) continue;
 
             String[] parts = trimmedLine.split("\t");
