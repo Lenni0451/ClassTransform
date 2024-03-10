@@ -55,9 +55,17 @@ public class NewTarget implements IInjectionTarget {
         if (targetString == null) return null;
 
         MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(targetString);
-        if (memberDeclaration != null) return RemapType.MEMBER;
-        else if (targetString.startsWith("(")) return RemapType.DESCRIPTOR;
-        else return RemapType.CLASS;
+        if (memberDeclaration != null) {
+            return RemapType.MEMBER;
+        } else if (targetString.startsWith("(")) {
+            return RemapType.DESCRIPTOR;
+        } else {
+            if (targetString.startsWith("L") && targetString.endsWith(";")) {
+                targetString = targetString.substring(1, targetString.length() - 1);
+                values.put("target", targetString);
+            }
+            return RemapType.CLASS;
+        }
     }
 
     private boolean isTarget(final String owner, final String name, final String desc, String target) {
