@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.annotations;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
+import net.lenni0451.classtransform.mappings.dynamic.TargetRemapper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -31,7 +32,7 @@ public @interface CTarget {
      *
      * @return The target of the type
      */
-    @AnnotationRemap(RemapType.MEMBER)
+    @AnnotationRemap(value = RemapType.DYNAMIC, dynamicRemapper = TargetRemapper.class)
     String target() default "";
 
     /**

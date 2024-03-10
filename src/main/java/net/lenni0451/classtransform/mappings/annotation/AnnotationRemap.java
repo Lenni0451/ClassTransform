@@ -1,6 +1,8 @@
 package net.lenni0451.classtransform.mappings.annotation;
 
 import net.lenni0451.classtransform.annotations.injection.CASM;
+import net.lenni0451.classtransform.mappings.dynamic.IDynamicRemapper;
+import net.lenni0451.classtransform.mappings.dynamic.ThrowingRemapper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -38,5 +40,13 @@ public @interface AnnotationRemap {
      * @return If a class prefix should be allowed
      */
     boolean allowClassPrefix() default false;
+
+    /**
+     * The dynamic remapper class to use for remapping value types marked with {@link RemapType#DYNAMIC}.<br>
+     * This class has to implement {@link IDynamicRemapper}.
+     *
+     * @return The dynamic remapper class
+     */
+    Class<? extends IDynamicRemapper> dynamicRemapper() default ThrowingRemapper.class;
 
 }

@@ -1,18 +1,23 @@
 package net.lenni0451.classtransform.targets.impl;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
+import net.lenni0451.classtransform.mappings.AMapper;
+import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +46,26 @@ public class NewTarget implements IInjectionTarget {
             i++;
         }
         return targets;
+    }
+
+    @Nullable
+    @Override
+    public RemapType dynamicRemap(AMapper mapper, Class<?> annotation, Map<String, Object> values, Method remappedMethod, TransformerManager transformerManager, ClassNode target, ClassNode transformer) {
+        String targetString = (String) values.get("target");
+        if (targetString == null) return null;
+
+        MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(targetString);
+        if (memberDeclaration != null) {
+            return RemapType.MEMBER;
+        } else if (targetString.startsWith("(")) {
+            return RemapType.DESCRIPTOR;
+        } else {
+            if (targetString.startsWith("L") && targetString.endsWith(";")) {
+                targetString = targetString.substring(1, targetString.length() - 1);
+                values.put("target", targetString);
+            }
+            return RemapType.CLASS;
+        }
     }
 
     private boolean isTarget(final String owner, final String name, final String desc, String target) {

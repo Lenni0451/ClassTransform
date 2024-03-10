@@ -4,7 +4,6 @@ import net.lenni0451.classtransform.exceptions.FieldNotFoundException;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.FillType;
-import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
@@ -28,7 +27,6 @@ import java.util.Map;
 class InfoFiller {
 
     static void fillInfo(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, final Method method, final Map<String, Object> values, final ClassNode target, final ClassNode transformer) {
-        if (!remap.value().equals(RemapType.SHORT_MEMBER)) return;
         if (remap.fill().equals(FillType.SKIP)) return;
 
         Object value = values.get(method.getName());

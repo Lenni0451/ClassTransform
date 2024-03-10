@@ -15,12 +15,21 @@ public enum RemapType {
      */
     MEMBER,
     /**
+     * A descriptor is just the descriptor part of a method.
+     */
+    DESCRIPTOR,
+    /**
      * A class is the full name of a class separated by dots.
      */
     CLASS,
     /**
      * Mark an annotation value to also be remapped.
      */
-    ANNOTATION
+    ANNOTATION,
+    /**
+     * Mark a member to be remapped dynamically.<br>
+     * The dynamic remapper class has to be set
+     */
+    DYNAMIC
 
 }

@@ -192,6 +192,17 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get an injection target by its name.<br>
+     * The name is case-insensitive.
+     *
+     * @param name The name of the injection target
+     * @return The injection target
+     */
+    public Optional<IInjectionTarget> getInjectionTarget(final String name) {
+        return Optional.ofNullable(this.injectionTargets.get(name.toUpperCase(Locale.ROOT)));
+    }
+
+    /**
      * @return The debugger instance
      */
     public TransformerDebugger getDebugger() {
@@ -396,7 +407,7 @@ public class TransformerManager implements ClassFileTransformer {
      * @param target The injection target
      */
     public void addInjectionTarget(final String name, final IInjectionTarget target) {
-        this.injectionTargets.put(name, target);
+        this.injectionTargets.put(name.toUpperCase(Locale.ROOT), target);
     }
 
     /**

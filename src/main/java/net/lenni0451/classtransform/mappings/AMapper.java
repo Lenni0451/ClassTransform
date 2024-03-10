@@ -1,7 +1,10 @@
 package net.lenni0451.classtransform.mappings;
 
+import lombok.SneakyThrows;
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
+import net.lenni0451.classtransform.mappings.dynamic.IDynamicRemapper;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
@@ -21,6 +24,7 @@ import org.objectweb.asm.tree.MethodNode;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,16 +79,36 @@ public abstract class AMapper {
     }
 
     /**
+     * <b>Use {@link AMapper#mapClass(TransformerManager, ClassNode, ClassNode)}.</b>
+     */
+    @Deprecated
+    @SneakyThrows
+    public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
+        //Some horrible code for backwards compatibility
+        //Remove as soon as possible
+        Field field = ClassTree.class.getDeclaredField("transformerManager");
+        field.setAccessible(true);
+        TransformerManager transformerManager = (TransformerManager) field.get(classTree);
+        if (transformerManager == null) {
+            //The class tree has no transformer manager, so create a new one and replace the class tree
+            transformerManager = new TransformerManager(classProvider);
+            field = TransformerManager.class.getDeclaredField("classTree");
+            field.setAccessible(true);
+            field.set(transformerManager, classTree);
+        }
+        return this.mapClass(transformerManager, target, transformer);
+    }
+
+    /**
      * Remap the given transformer for the given target class.
      *
-     * @param classTree     The class tree
-     * @param classProvider The class provider
-     * @param target        The target class node
-     * @param transformer   The transformer class node
+     * @param transformerManager The transformer manager
+     * @param target             The target class node
+     * @param transformer        The transformer class node
      * @return The remapped transformer class node
      */
-    public final ClassNode mapClass(final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) {
-        this.fillTransformerSuperMappings(classTree, classProvider, transformer);
+    public final ClassNode mapClass(final TransformerManager transformerManager, final ClassNode target, final ClassNode transformer) {
+        this.fillTransformerSuperMappings(transformerManager, transformer);
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();
         this.checkAnnotations(transformer, transformer.visibleAnnotations, annotationsToRemap);
         this.checkAnnotations(transformer, transformer.invisibleAnnotations, annotationsToRemap);
@@ -107,7 +131,7 @@ public abstract class AMapper {
             }
             try {
                 Map<String, Object> annotationMap = AnnotationUtils.listToMap(annotation.annotation.values);
-                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, classTree, classProvider, target, transformer);
+                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, transformerManager, target, transformer);
                 annotation.annotation.values = AnnotationUtils.mapToList(annotationMap);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Unable to remap annotation '" + annotation.annotation.desc + "' from transformer '" + transformer.name + "'", e);
@@ -141,16 +165,16 @@ public abstract class AMapper {
     }
 
 
-    private ClassTree getSuperMappingsTree(final ClassTree classTree) {
-        if (!classTree.canTransform()) return classTree;
+    private ClassTree getSuperMappingsTree(final TransformerManager transformerManager) {
+        if (!transformerManager.getClassTree().canTransform()) return transformerManager.getClassTree();
         if (this.superMappingsTree == null) this.superMappingsTree = new ClassTree();
         return this.superMappingsTree;
     }
 
-    private void fillTransformerSuperMappings(final ClassTree classTree, final IClassProvider classProvider, final ClassNode transformer) {
+    private void fillTransformerSuperMappings(final TransformerManager transformerManager, final ClassNode transformer) {
         if (!this.config.fillSuperMappings) return;
         try {
-            SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, this.getSuperMappingsTree(classTree), classProvider);
+            SuperMappingFiller.fillTransformerSuperMembers(transformer, this.remapper, this.getSuperMappingsTree(transformerManager), transformerManager.getClassProvider());
         } catch (Throwable t) {
             if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
                 Logger.warn("Unable to fill super mappings for class '{}'. Trying without", transformer.name, t);
@@ -162,10 +186,10 @@ public abstract class AMapper {
         }
     }
 
-    private void fillSuperMembers(final String className, final ClassTree classTree, final IClassProvider classProvider) {
+    private void fillSuperMembers(final String className, final TransformerManager transformerManager) {
         if (!this.config.fillSuperMappings) return;
         try {
-            SuperMappingFiller.fillSuperMembers(className, this.remapper, this.getSuperMappingsTree(classTree), classProvider);
+            SuperMappingFiller.fillSuperMembers(className, this.remapper, this.getSuperMappingsTree(transformerManager), transformerManager.getClassProvider());
         } catch (Throwable t) {
             if (FailStrategy.CONTINUE.equals(this.config.superMappingsFailStrategy)) {
                 Logger.warn("Unable to fill super mappings for class '{}'. Trying without", className, t);
@@ -177,29 +201,39 @@ public abstract class AMapper {
         }
     }
 
-    private void mapAnnotation(final Object holder, final Class<?> annotation, final Map<String, Object> values, final ClassTree classTree, final IClassProvider classProvider, final ClassNode target, final ClassNode transformer) throws ClassNotFoundException {
+    private void mapAnnotation(final Object holder, final Class<?> annotation, final Map<String, Object> values, final TransformerManager transformerManager, final ClassNode target, final ClassNode transformer) throws ClassNotFoundException {
         for (Method method : annotation.getDeclaredMethods()) {
             AnnotationRemap remap = method.getDeclaredAnnotation(AnnotationRemap.class);
             if (remap == null) continue;
-            InfoFiller.fillInfo(this.remapper, holder, remap, method, values, target, transformer);
+            RemapType remapType = remap.value();
+            if (remapType.equals(RemapType.DYNAMIC)) {
+                try {
+                    IDynamicRemapper dynamicRemapper = remap.dynamicRemapper().getDeclaredConstructor().newInstance();
+                    remapType = dynamicRemapper.dynamicRemap(this, annotation, values, method, transformerManager, target, transformer);
+                    if (remapType == null || remapType.equals(RemapType.DYNAMIC)) continue;
+                } catch (Throwable t) {
+                    throw new RuntimeException("Unable to create instance of dynamic remapper '" + remap.dynamicRemapper().getName() + "'", t);
+                }
+            }
+            if (remapType.equals(RemapType.SHORT_MEMBER)) InfoFiller.fillInfo(this.remapper, holder, remap, method, values, target, transformer);
             if (this.remapper.isEmpty()) continue;
 
             Object value = values.get(method.getName());
             if (value == null) continue;
 
-            if (remap.value().equals(RemapType.ANNOTATION)) {
+            if (remapType.equals(RemapType.ANNOTATION)) {
                 if (value instanceof AnnotationNode) {
                     AnnotationNode node = (AnnotationNode) value;
                     Type type = Type.getType(node.desc);
                     Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                    this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, classTree, classProvider, target, transformer);
+                    this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer);
                     node.values = AnnotationUtils.mapToList(nodeMap);
                 } else if (value instanceof AnnotationNode[]) {
                     AnnotationNode[] nodes = (AnnotationNode[]) value;
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
                         Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, classTree, classProvider, target, transformer);
+                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer);
                         node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else if (value instanceof List) {
@@ -207,7 +241,7 @@ public abstract class AMapper {
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
                         Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, classTree, classProvider, target, transformer);
+                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer);
                         node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else {
@@ -216,13 +250,14 @@ public abstract class AMapper {
             } else {
                 if (value instanceof String) {
                     String s = (String) value;
-                    values.put(method.getName(), this.remap(remap.value(), s, classTree, classProvider));
+                    values.put(method.getName(), this.remap(remapType, s, transformerManager));
                 } else if (value instanceof String[]) {
                     String[] strings = (String[]) value;
-                    for (int i = 0; i < strings.length; i++) strings[i] = this.remap(remap.value(), strings[i], classTree, classProvider);
+                    for (int i = 0; i < strings.length; i++) strings[i] = this.remap(remapType, strings[i], transformerManager);
                 } else if (value instanceof List) {
+                    final RemapType finalRemapType = remapType;
                     List<String> list = (List<String>) value;
-                    list.replaceAll(s -> this.remap(remap.value(), s, classTree, classProvider));
+                    list.replaceAll(s -> this.remap(finalRemapType, s, transformerManager));
                 } else {
                     throw new IllegalStateException("Unexpected value type '" + value.getClass().getName() + "' for annotation '" + annotation.getName() + "' value '" + annotation.getName() + "'");
                 }
@@ -230,7 +265,7 @@ public abstract class AMapper {
         }
     }
 
-    private String remap(final RemapType type, String s, final ClassTree classTree, final IClassProvider classProvider) {
+    private String remap(final RemapType type, String s, final TransformerManager transformerManager) {
         switch (type) {
             case SHORT_MEMBER:
                 //See InfoFiller for remapping of short members
@@ -239,7 +274,7 @@ public abstract class AMapper {
             case MEMBER:
                 MemberDeclaration member = ASMUtils.splitMemberDeclaration(s);
                 if (member == null) throw new IllegalStateException("Invalid member declaration '" + s + "'");
-                this.fillSuperMembers(member.getOwner(), classTree, classProvider);
+                this.fillSuperMembers(member.getOwner(), transformerManager);
                 String owner = this.remapper.mapType(member.getOwner());
                 String name;
                 String desc;
@@ -251,6 +286,9 @@ public abstract class AMapper {
                     desc = this.remapper.mapMethodDesc(member.getDesc());
                 }
                 return Type.getObjectType(owner).getDescriptor() + name + (member.isFieldMapping() ? ":" : "") + desc;
+
+            case DESCRIPTOR:
+                return this.remapper.mapDesc(s);
 
             case CLASS:
                 return dot(this.remapper.mapType(slash(s)));
