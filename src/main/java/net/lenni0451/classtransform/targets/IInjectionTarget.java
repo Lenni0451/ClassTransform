@@ -1,20 +1,26 @@
 package net.lenni0451.classtransform.targets;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.exceptions.SliceException;
+import net.lenni0451.classtransform.mappings.AMapper;
+import net.lenni0451.classtransform.mappings.annotation.RemapType;
+import net.lenni0451.classtransform.mappings.dynamic.IDynamicRemapper;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
  * The interface which is used to define a target for an injection.
  */
 @ParametersAreNonnullByDefault
-public interface IInjectionTarget {
+public interface IInjectionTarget extends IDynamicRemapper {
 
     /**
      * Get all matching target instructions.
@@ -81,6 +87,12 @@ public interface IInjectionTarget {
         }
 
         return instructions;
+    }
+
+    @Nullable
+    @Override
+    default RemapType dynamicRemap(final AMapper mapper, final Class<?> annotation, final Map<String, Object> values, final Method remappedMethod, final TransformerManager transformerManager, final ClassNode target, final ClassNode transformer) {
+        return RemapType.MEMBER;
     }
 
 }
