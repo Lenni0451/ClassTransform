@@ -288,7 +288,8 @@ public abstract class AMapper {
                 return Type.getObjectType(owner).getDescriptor() + name + (member.isFieldMapping() ? ":" : "") + desc;
 
             case DESCRIPTOR:
-                return this.remapper.mapDesc(s);
+                if (s.startsWith("(")) return this.remapper.mapMethodDesc(s);
+                else return this.remapper.mapDesc(s);
 
             case CLASS:
                 return dot(this.remapper.mapType(slash(s)));

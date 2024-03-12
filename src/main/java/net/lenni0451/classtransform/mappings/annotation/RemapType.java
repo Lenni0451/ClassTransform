@@ -15,7 +15,7 @@ public enum RemapType {
      */
     MEMBER,
     /**
-     * A descriptor is just the descriptor part of a method.
+     * A field or method descriptor.
      */
     DESCRIPTOR,
     /**
