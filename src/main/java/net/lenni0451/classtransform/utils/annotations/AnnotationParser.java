@@ -74,14 +74,6 @@ public class AnnotationParser<T extends Annotation> {
         return AnnotationUtils.mapToList(map);
     }
 
-    /**
-     * <b>Use {@link AnnotationUtils#hasAnnotation(List, String)}.</b>
-     */
-    @Deprecated
-    public static boolean hasAnnotation(@Nullable final List<AnnotationNode> nodes, final String desc) {
-        return AnnotationUtils.hasAnnotation(nodes, desc);
-    }
-
 
     private final Class<T> type;
     private final ClassTree classTree;
