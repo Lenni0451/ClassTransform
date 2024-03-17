@@ -16,6 +16,8 @@ import java.lang.annotation.Target;
  * &#64;CRecordComponent
  * private final String text;
  * </pre>
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CRecordComponent">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)

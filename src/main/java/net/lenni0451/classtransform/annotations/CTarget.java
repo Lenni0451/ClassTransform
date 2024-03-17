@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 /**
  * Specify the target of the transformer method.<br>
  * The targets are specified in the {@link TransformerManager}.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CTarget">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.PARAMETER)

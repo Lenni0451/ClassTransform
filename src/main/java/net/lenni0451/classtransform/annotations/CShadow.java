@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
 /**
  * Create a shadow copy of a method/field/constructor to directly access the original member after injection.<br>
  * When shadowing a method you can simply make the method native to skip the need of a method body.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CShadow">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR})

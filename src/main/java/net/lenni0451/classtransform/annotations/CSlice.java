@@ -10,6 +10,8 @@ import java.lang.annotation.Target;
 
 /**
  * Specify a slice of bytecode to make choosing the injection target easier.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CSlice">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.ANNOTATION_TYPE)

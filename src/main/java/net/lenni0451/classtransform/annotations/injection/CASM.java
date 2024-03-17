@@ -36,6 +36,8 @@ import java.lang.annotation.Target;
  *     //Do something with the method node
  * }
  * </pre>
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CASM">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})

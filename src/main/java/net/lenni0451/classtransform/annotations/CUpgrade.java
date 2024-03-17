@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
  * Upgrade the version of a class to use never java features.<br>
  * This does not upgrade any code, it only changes the version of the class.<br>
  * Downgrading is not possible.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CUpgrade">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})

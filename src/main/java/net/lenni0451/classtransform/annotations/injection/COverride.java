@@ -21,6 +21,8 @@ import java.lang.annotation.Target;
  *     //Do something
  * }
  * </pre>
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/COverride">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})

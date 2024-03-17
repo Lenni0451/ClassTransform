@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * <ul>
  *     <li>If the wrapped field is not static, the instance of the field owner should be the first argument.</li>
  *     <li>The second argument should be the new value for the field.</li>
- *     <li>Only field gets are supported (GETFIELD, GETSTATIC).</li>
+ *     <li>Only field sets are supported (PUTFIELD, PUTSTATIC).</li>
  * </ul>
  * <br>
  * <p>Example usage:</p>
@@ -36,6 +36,7 @@ import java.lang.annotation.Target;
  * If your target has to be chosen more precisely you can use a {@link #slice()} to narrow down the search.
  *
  * @see CSlice
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CWrapCondition">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)

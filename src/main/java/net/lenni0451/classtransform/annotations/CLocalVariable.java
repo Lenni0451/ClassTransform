@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
  * 3. {@link #index()}: The variable index of the local variable.<br>
  * <br>
  * If none of {@link #name()}, {@link #ordinal()} or {@link #index()} are set, the local variable will be identified by the name of the method parameter.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CLocalVariable">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.PARAMETER)

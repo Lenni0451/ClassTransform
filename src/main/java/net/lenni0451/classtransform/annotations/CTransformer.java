@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
 /**
  * Mark a class as a transformer class.<br>
  * If your transformer does not have this annotation, an {@link IllegalStateException} will be thrown when registering it.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CTransformer">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})

@@ -38,6 +38,7 @@ import java.lang.annotation.Target;
  * If your target has to be chosen more precisely you can use a {@link #slice()} to narrow down the search.
  *
  * @see CSlice
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CModifyConstant">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})

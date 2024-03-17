@@ -52,6 +52,7 @@ import java.lang.annotation.Target;
  *
  * @see CTarget
  * @see CSlice
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CRedirect">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
