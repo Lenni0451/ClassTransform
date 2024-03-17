@@ -52,6 +52,8 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 /**
  * The TransformerManager handles all things needed for class transformation.<br>
  * This class implements {@link ClassFileTransformer} so it can be used with an {@link Instrumentation} agent.
+ *
+ * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki">GitHub Wiki</a>
  */
 @ParametersAreNonnullByDefault
 public class TransformerManager implements ClassFileTransformer {
