@@ -23,8 +23,6 @@ import java.util.*;
 @ParametersAreNonnullByDefault
 public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<CRedirect> {
 
-    private static final Collection<String> TARGETS = Arrays.asList("INVOKE", "FIELD", "NEW");
-
     private final CRedirectInvoke redirectInvoke = new CRedirectInvoke();
     private final CRedirectField redirectField = new CRedirectField();
     private final CRedirectNew redirectNew = new CRedirectNew();
@@ -66,7 +64,7 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
             } else if (injectionInstruction instanceof FieldInsnNode) {
                 this.redirectField.inject(transformedClass, target, transformer, transformerMethod, injectionInstruction, transformerMethodCalls);
             } else {
-                throw new InvalidTargetException(transformerMethod, transformer, annotation.target().value(), TARGETS);
+                throw new InvalidTargetException(transformerMethod, transformer, annotation.target().value(), Arrays.asList("INVOKE", "FIELD", "NEW"));
             }
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
