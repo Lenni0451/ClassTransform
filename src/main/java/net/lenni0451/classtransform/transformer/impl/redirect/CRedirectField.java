@@ -1,4 +1,4 @@
-package net.lenni0451.classtransform.transformer.impl.credirect;
+package net.lenni0451.classtransform.transformer.impl.redirect;
 
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
