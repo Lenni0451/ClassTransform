@@ -61,7 +61,7 @@ public interface IInjectionTarget extends IDynamicRemapper {
         if (slice.from().value().isEmpty()) {
             from = 0;
         } else {
-            IInjectionTarget target = injectionTargets.get(slice.from().value());
+            IInjectionTarget target = injectionTargets.get(slice.from().value().toUpperCase(Locale.ROOT));
             if (target == null) throw SliceException.unknown("from", slice.from().value());
             List<AbstractInsnNode> targets = target.getTargets(injectionTargets, method, slice.from(), null);
             if (targets.size() != 1) throw SliceException.count("From", slice.from().value(), targets.size());
@@ -70,7 +70,7 @@ public interface IInjectionTarget extends IDynamicRemapper {
         if (slice.to().value().isEmpty()) {
             to = method.instructions.size();
         } else {
-            IInjectionTarget target = injectionTargets.get(slice.to().value());
+            IInjectionTarget target = injectionTargets.get(slice.to().value().toUpperCase(Locale.ROOT));
             if (target == null) throw SliceException.unknown("to", slice.to().value());
             List<AbstractInsnNode> targets = target.getTargets(injectionTargets, method, slice.to(), null);
             if (targets.size() != 1) throw SliceException.count("To", slice.to().value(), targets.size());
