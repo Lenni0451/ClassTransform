@@ -749,6 +749,31 @@ public class ASMUtils {
     }
 
     /**
+     * Get the bytecode to swap two stack elements.<br>
+     * This also works for long and double types.
+     *
+     * @param top    The type of the top stack element
+     * @param bottom The type of the bottom stack element
+     * @return The bytecode to swap the stack elements
+     */
+    public static InsnList swap(final Type top, final Type bottom) {
+        InsnList insns = new InsnList();
+        if (top.getSize() == 1 && bottom.getSize() == 1) {
+            insns.add(new InsnNode(Opcodes.SWAP));
+        } else if (top.getSize() == 2 && bottom.getSize() == 2) {
+            insns.add(new InsnNode(Opcodes.DUP2_X2));
+            insns.add(new InsnNode(Opcodes.POP2));
+        } else if (top.getSize() == 2) {
+            insns.add(new InsnNode(Opcodes.DUP_X2));
+            insns.add(new InsnNode(Opcodes.POP));
+        } else {
+            insns.add(new InsnNode(Opcodes.DUP2_X1));
+            insns.add(new InsnNode(Opcodes.POP2));
+        }
+        return insns;
+    }
+
+    /**
      * Replace all slashes with dots in the given class/package name.
      *
      * @param s The class/package name

@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.utils;
 
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
@@ -15,6 +16,8 @@ import java.lang.reflect.Method;
 @ParametersAreNonnullByDefault
 public class Types {
 
+    //types
+    public static final Type T_Object = Type.getType(Object.class);
     //internal names
     public static final String IN_Object = internalName(Object.class);
     public static final String IN_String = internalName(String.class);
@@ -100,6 +103,8 @@ public class Types {
      * Supported types:<br>
      * - {@link String} ({@link Type#getReturnType(String)})<br>
      * - {@link Method} ({@link Type#getReturnType(Method)})<br>
+     * - {@link MethodNode} ({@link Type#getReturnType(String)})<br>
+     * - {@link MethodInsnNode} ({@link Type#getReturnType(String)})<br>
      * - {@link Type} ({@code return type})
      *
      * @param ob The object to get the return type from
@@ -110,6 +115,7 @@ public class Types {
         if (ob instanceof String) return Type.getReturnType((String) ob);
         else if (ob instanceof Method) return Type.getReturnType((Method) ob);
         else if (ob instanceof MethodNode) return Type.getReturnType(((MethodNode) ob).desc);
+        else if (ob instanceof MethodInsnNode) return Type.getReturnType(((MethodInsnNode) ob).desc);
         else if (ob instanceof Type) return ((Type) ob).getReturnType();
         throw new IllegalArgumentException("Unable to get return type of " + asString(ob));
     }
@@ -119,6 +125,8 @@ public class Types {
      * Supported types:<br>
      * - {@link String} ({@link Type#getArgumentTypes(String)})<br>
      * - {@link Method} ({@link Type#getArgumentTypes(Method)})
+     * - {@link MethodNode} ({@link Type#getArgumentTypes(String)})<br>
+     * - {@link MethodInsnNode} ({@link Type#getArgumentTypes(String)})<br>
      *
      * @param ob The object to get the argument types from
      * @return The argument types
@@ -128,6 +136,7 @@ public class Types {
         if (ob instanceof String) return Type.getArgumentTypes((String) ob);
         else if (ob instanceof Method) return Type.getArgumentTypes((Method) ob);
         else if (ob instanceof MethodNode) return Type.getArgumentTypes(((MethodNode) ob).desc);
+        else if (ob instanceof MethodInsnNode) return Type.getArgumentTypes(((MethodInsnNode) ob).desc);
         throw new IllegalArgumentException("Unable to get argument types of " + ob);
     }
 

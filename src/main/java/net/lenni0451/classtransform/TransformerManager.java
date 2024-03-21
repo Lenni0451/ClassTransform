@@ -105,6 +105,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new COverrideAnnotationHandler());
         this.annotationHandler.add(new CWrapCatchAnnotationHandler());
         this.annotationHandler.add(new CInjectAnnotationHandler());
+        this.annotationHandler.add(new CModifyExpressionValueAnnotationHandler());
         this.annotationHandler.add(new CRedirectAnnotationHandler());
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
         this.annotationHandler.add(new CWrapConditionAnnotationHandler());
