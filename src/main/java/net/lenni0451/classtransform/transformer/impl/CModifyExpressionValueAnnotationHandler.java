@@ -51,7 +51,7 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
         }
 
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
-        MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
+        MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyExpressionValue");
         for (AbstractInsnNode injectionInstruction : injectionInstructions) {
             if (injectionInstruction instanceof MethodInsnNode) {
                 MethodInsnNode methodInsnNode = (MethodInsnNode) injectionInstruction;
