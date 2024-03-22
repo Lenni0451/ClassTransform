@@ -1,6 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
-import com.llamalad7.mixinextras.injector.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import net.lenni0451.classtransform.annotations.CShadow;
@@ -33,7 +33,9 @@ public class AnnotationTranslatorManager {
         register(Slice.class, new SliceTranslator());
         register(Share.class, CShared.class);
         register(Local.class, new LocalTranslator());
-        register(WrapWithCondition.class, new WrapWithConditionTranslator());
+        register(com.llamalad7.mixinextras.injector.WrapWithCondition.class, new WrapWithConditionTranslator());
+        register(com.llamalad7.mixinextras.injector.v2.WrapWithCondition.class, new WrapWithConditionTranslator());
+        register(ModifyExpressionValue.class, new ModifyExpressionValueTranslator());
     }
 
     private static void register(final Class<? extends Annotation> from, final Class<? extends Annotation> to) {

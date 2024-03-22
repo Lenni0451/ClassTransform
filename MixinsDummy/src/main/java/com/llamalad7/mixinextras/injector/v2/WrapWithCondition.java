@@ -1,4 +1,4 @@
-package com.llamalad7.mixinextras.injector;
+package com.llamalad7.mixinextras.injector.v2;
 
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Slice;
@@ -8,11 +8,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Check the <a href="https://github.com/LlamaLad7/MixinExtras/blob/master/src/main/java/com/llamalad7/mixinextras/injector/WrapWithCondition.java">MixinExtras</a> repository for a reason why this annotation is deprecated.<br>
- * It is recommended to use the {@link com.llamalad7.mixinextras.injector.v2.WrapWithCondition} annotation instead.
- */
-@Deprecated
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WrapWithCondition {
