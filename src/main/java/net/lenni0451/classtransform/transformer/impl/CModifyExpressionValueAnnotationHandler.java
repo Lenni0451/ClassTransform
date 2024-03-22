@@ -34,13 +34,14 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
         AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
         transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
-        IInjectionTarget iInjectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
+        IInjectionTarget injectionTarget = injectionTargets.get(annotation.target().value().toUpperCase(Locale.ROOT));
+        if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, annotation.target().target(), injectionTargets.keySet());
 
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
 
-        List<AbstractInsnNode> injectionInstructions = iInjectionTarget.getTargets(injectionTargets, target, annotation.target(), annotation.slice());
+        List<AbstractInsnNode> injectionInstructions = injectionTarget.getTargets(injectionTargets, target, annotation.target(), annotation.slice());
         if (injectionInstructions == null) {
             throw new TransformerException(transformerMethod, transformer, "has invalid member declaration '" + annotation.target().target() + "'")
                     .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
