@@ -53,7 +53,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                 isolatedMethod.setAccessible(true);
                 isolatedMethod.invoke(instance, transformedClass);
             } catch (Throwable t) {
-                throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (ClassNode)");
+                throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (ClassNode)").setCause(t);
             }
         } else {
             if (args.length != 1 || !type(MethodNode.class).equals(args[0])) throw TransformerException.wrongArguments(transformerMethod, transformer, MethodNode.class);
@@ -69,7 +69,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                         isolatedMethod.setAccessible(true);
                         isolatedMethod.invoke(instance, target);
                     } catch (Throwable t) {
-                        throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (MethodNode)");
+                        throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (MethodNode)").setCause(t);
                     }
                 }
             }

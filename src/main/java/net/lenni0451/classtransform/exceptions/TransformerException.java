@@ -75,6 +75,11 @@ public class TransformerException extends RuntimeException {
         this.state = state;
     }
 
+    public TransformerException setCause(final Throwable cause) {
+        this.initCause(cause);
+        return this;
+    }
+
     public TransformerException help(final Codifier codifier) {
         return this.help(codifier.build());
     }
