@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.utils.loader;
 
 import lombok.SneakyThrows;
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.utils.IOSupplier;
 import net.lenni0451.classtransform.utils.tree.IClassProvider;
 
 import javax.annotation.Nonnull;
@@ -12,10 +13,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -79,7 +84,7 @@ public class InjectionClassLoader extends URLClassLoader {
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
         if (this.isProtected(name)) {
-            if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST) && this.parent != null) return this.parent.loadClass(name);
+            if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) return this.parent.loadClass(name);
             throw new ClassNotFoundException(name);
         }
 
@@ -176,29 +181,57 @@ public class InjectionClassLoader extends URLClassLoader {
     @Override
     @Nullable
     public URL getResource(final String name) {
-        if (this.runtimeResources.containsKey(name)) return this.findResource(name);
-        return super.getResource(name);
+        IOSupplier<URL> parentSupplier = () -> this.parent.getResource(name);
+        IOSupplier<URL> runtimeSupplier = () -> this.runtimeResources.containsKey(name) ? BytesURLStreamHandler.createURL(name, this.runtimeResources.get(name)) : null;
+        IOSupplier<URL> superSupplier = () -> super.getResource(name);
+
+        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+            return this.getFirst(Objects::nonNull, parentSupplier, runtimeSupplier, superSupplier);
+        } else {
+            return this.getFirst(Objects::nonNull, runtimeSupplier, superSupplier, parentSupplier);
+        }
     }
 
     @Override
     @Nullable
     public URL findResource(final String name) {
-        if (this.runtimeResources.containsKey(name)) {
-            try {
-                return new URL("x-buffer", null, -1, name, new BytesURLStreamHandler(this.runtimeResources.get(name)));
-            } catch (MalformedURLException e) {
-                throw new RuntimeException("This should never have happened", e);
-            }
+        IOSupplier<URL> parentSupplier = () -> this.parent.getResource(name);
+        IOSupplier<URL> runtimeSupplier = () -> this.runtimeResources.containsKey(name) ? BytesURLStreamHandler.createURL(name, this.runtimeResources.get(name)) : null;
+        IOSupplier<URL> superSupplier = () -> super.findResource(name);
+
+        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+            return this.getFirst(Objects::nonNull, parentSupplier, runtimeSupplier, superSupplier);
+        } else {
+            return this.getFirst(Objects::nonNull, runtimeSupplier, superSupplier, parentSupplier);
         }
-        return super.findResource(name);
     }
 
     @Override
     @Nonnull
-    public Enumeration<URL> findResources(final String name) throws IOException {
-        URL resource = this.getResource(name);
-        if (resource != null) return new URLEnumeration(resource);
-        return super.findResources(name);
+    public Enumeration<URL> findResources(final String name) {
+        IOSupplier<Enumeration<URL>> parentSupplier = () -> this.parent.getResources(name);
+        IOSupplier<Enumeration<URL>> runtimeSupplier = () -> {
+            if (this.runtimeResources.containsKey(name)) return new URLEnumeration(BytesURLStreamHandler.createURL(name, this.runtimeResources.get(name)));
+            else return Collections.emptyEnumeration();
+        };
+        IOSupplier<Enumeration<URL>> superSupplier = () -> super.findResources(name);
+
+        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+            return this.getFirst(Enumeration::hasMoreElements, parentSupplier, runtimeSupplier, superSupplier);
+        } else {
+            return this.getFirst(Enumeration::hasMoreElements, runtimeSupplier, superSupplier, parentSupplier);
+        }
+    }
+
+    @SafeVarargs
+    @SneakyThrows
+    private final <T> T getFirst(final Predicate<T> predicate, final IOSupplier<T>... suppliers) {
+        T value = null;
+        for (IOSupplier<T> supplier : suppliers) {
+            value = supplier.get();
+            if (predicate.test(value)) return value;
+        }
+        return value;
     }
 
 
@@ -300,9 +333,14 @@ public class InjectionClassLoader extends URLClassLoader {
      * Set the priority of the load class method.
      *
      * @param priority The priority
+     * @throws IllegalArgumentException If the priority is set to {@link EnumLoaderPriority#PARENT_FIRST} and no parent class loader is set
      */
     public void setPriority(final EnumLoaderPriority priority) {
-        this.priority = priority;
+        if (priority.equals(EnumLoaderPriority.PARENT_FIRST) && this.parent == null) {
+            throw new IllegalArgumentException("Can't set the priority to PARENT_FIRST if no parent class loader is set");
+        } else {
+            this.priority = priority;
+        }
     }
 
     /**
