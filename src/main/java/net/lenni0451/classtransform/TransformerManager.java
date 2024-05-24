@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform;
 
+import lombok.SneakyThrows;
 import net.lenni0451.classtransform.annotations.CInline;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
@@ -48,6 +49,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
+import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
 /**
  * The TransformerManager handles all things needed for class transformation.<br>
@@ -246,6 +248,24 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void addBytecodeTransformer(final IBytecodeTransformer bytecodeTransformer) {
         this.bytecodeTransformer.add(bytecodeTransformer);
+    }
+
+    /**
+     * Add a {@link ClassFileTransformer} to the transformer list.<br>
+     * The {@code classLoader} is directly passed to the transformer.
+     *
+     * @param classLoader          The class loader of the class
+     * @param classFileTransformer The class file transformer to add
+     */
+    public void addClassFileTransformer(final ClassLoader classLoader, final ClassFileTransformer classFileTransformer) {
+        //noinspection Convert2Lambda
+        this.addBytecodeTransformer(new IBytecodeTransformer() {
+            @Override
+            @SneakyThrows
+            public byte[] transform(String className, byte[] bytecode, boolean calculateStackMapFrames) {
+                return classFileTransformer.transform(classLoader, slash(className), null, null, bytecode);
+            }
+        });
     }
 
     /**
