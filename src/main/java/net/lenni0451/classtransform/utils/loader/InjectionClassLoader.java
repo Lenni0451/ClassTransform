@@ -185,7 +185,10 @@ public class InjectionClassLoader extends URLClassLoader {
         IOSupplier<URL> runtimeSupplier = () -> this.runtimeResources.containsKey(name) ? BytesURLStreamHandler.createURL(name, this.runtimeResources.get(name)) : null;
         IOSupplier<URL> superSupplier = () -> super.getResource(name);
 
-        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+        if (name.endsWith(".class")) {
+            //Don't ask the parent class loader for classes to prevent loading classes from the parent class loader
+            return this.getFirst(Objects::nonNull, runtimeSupplier, superSupplier);
+        } else if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
             return this.getFirst(Objects::nonNull, parentSupplier, runtimeSupplier, superSupplier);
         } else {
             return this.getFirst(Objects::nonNull, runtimeSupplier, superSupplier, parentSupplier);
@@ -199,7 +202,10 @@ public class InjectionClassLoader extends URLClassLoader {
         IOSupplier<URL> runtimeSupplier = () -> this.runtimeResources.containsKey(name) ? BytesURLStreamHandler.createURL(name, this.runtimeResources.get(name)) : null;
         IOSupplier<URL> superSupplier = () -> super.findResource(name);
 
-        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+        if (name.endsWith(".class")) {
+            //Don't ask the parent class loader for classes to prevent loading classes from the parent class loader
+            return this.getFirst(Objects::nonNull, runtimeSupplier, superSupplier);
+        } else if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
             return this.getFirst(Objects::nonNull, parentSupplier, runtimeSupplier, superSupplier);
         } else {
             return this.getFirst(Objects::nonNull, runtimeSupplier, superSupplier, parentSupplier);
@@ -216,7 +222,10 @@ public class InjectionClassLoader extends URLClassLoader {
         };
         IOSupplier<Enumeration<URL>> superSupplier = () -> super.findResources(name);
 
-        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+        if (name.endsWith(".class")) {
+            //Don't ask the parent class loader for classes to prevent loading classes from the parent class loader
+            return this.getFirst(Enumeration::hasMoreElements, runtimeSupplier, superSupplier);
+        } else if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
             return this.getFirst(Enumeration::hasMoreElements, parentSupplier, runtimeSupplier, superSupplier);
         } else {
             return this.getFirst(Enumeration::hasMoreElements, runtimeSupplier, superSupplier, parentSupplier);
