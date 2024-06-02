@@ -94,7 +94,6 @@ public class AnnotationCoprocessorList {
      */
     public void postprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final List<MethodInsnNode> transformerMethodCalls, final ClassNode transformer, final MethodNode transformerMethod) {
         this.expect(State.USED, State.CLOSED);
-        if (this.coprocessors == null) throw new IllegalStateException("This list is not built");
         for (IAnnotationCoprocessor coprocessor : this.coprocessors) {
             coprocessor.postprocess(transformerManager, transformedClass, transformedMethod, transformerMethodCalls, transformer, transformerMethod);
         }
