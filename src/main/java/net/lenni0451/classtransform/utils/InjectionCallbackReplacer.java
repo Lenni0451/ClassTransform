@@ -28,6 +28,9 @@ public class InjectionCallbackReplacer {
     private static void replaceParameters(final MethodNode methodNode) {
         Type injectionCallback = type(InjectionCallback.class);
         Type objectArray = type(Object[].class);
+        if (methodNode.signature != null && methodNode.signature.contains(injectionCallback.getDescriptor())) {
+            methodNode.signature = methodNode.signature.replace(injectionCallback.getDescriptor(), objectArray.getDescriptor());
+        }
 
         methodNode.desc = replaceParameter(methodNode.desc, injectionCallback, objectArray);
         for (AbstractInsnNode insn : methodNode.instructions) {
