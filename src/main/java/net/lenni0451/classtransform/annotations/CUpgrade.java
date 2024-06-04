@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CUpgrade">GitHub Wiki</a>
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 public @interface CUpgrade {
 
     /**

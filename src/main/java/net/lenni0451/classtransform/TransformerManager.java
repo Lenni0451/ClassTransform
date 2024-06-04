@@ -115,6 +115,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
         this.annotationHandler.add(new MemberCopyGeneralHandler(false)); //Copy all leftover methods to the transformed class
         this.annotationHandler.add(new CInlineAnnotationHandler());
+        this.annotationHandler.add(new CReplaceCallbackAnnotationHandler());
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.BOTTOM));
 
         //Annotation coprocessors
