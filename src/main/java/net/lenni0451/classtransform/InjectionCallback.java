@@ -26,6 +26,13 @@ public class InjectionCallback {
     }
 
     /**
+     * @return If the callback is cancellable
+     */
+    public boolean isCancellable() {
+        return this.cancellable;
+    }
+
+    /**
      * @return If the original method should be cancelled
      */
     public boolean isCancelled() {
@@ -41,13 +48,6 @@ public class InjectionCallback {
     public void setCancelled(final boolean cancelled) {
         if (cancelled && !this.cancellable) throw new IllegalArgumentException("Cannot cancel a non-cancellable callback");
         this.cancelled = cancelled;
-    }
-
-    /**
-     * @return If the callback is cancellable
-     */
-    public boolean isCancellable() {
-        return this.cancellable;
     }
 
     /**
@@ -76,8 +76,8 @@ public class InjectionCallback {
      * @param returnValue The new return value
      */
     public void setReturnValue(@Nullable final Object returnValue) {
-        this.returnValue = returnValue;
         this.setCancelled(true);
+        this.returnValue = returnValue;
         this.returnValueSet = true;
     }
 
