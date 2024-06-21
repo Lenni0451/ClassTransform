@@ -78,7 +78,6 @@ public class InjectionCallbackReplacer {
                     replacement.add(new InsnNode(Opcodes.AASTORE));
 
                     //Mark the return value as not set
-                    replacement.add(new InsnNode(Opcodes.DUP));
                     replacement.add(ASMUtils.intPush(3));
                     replacement.add(new FieldInsnNode(Opcodes.GETSTATIC, internalName(Boolean.class), "FALSE", typeDescriptor(Boolean.class)));
                     replacement.add(new InsnNode(Opcodes.AASTORE));
@@ -111,7 +110,6 @@ public class InjectionCallbackReplacer {
                     replacement.add(new InsnNode(Opcodes.AASTORE));
 
                     //Mark the return value as set
-                    replacement.add(new InsnNode(Opcodes.DUP));
                     replacement.add(ASMUtils.intPush(3));
                     replacement.add(new FieldInsnNode(Opcodes.GETSTATIC, internalName(Boolean.class), "TRUE", typeDescriptor(Boolean.class)));
                     replacement.add(new InsnNode(Opcodes.AASTORE));
