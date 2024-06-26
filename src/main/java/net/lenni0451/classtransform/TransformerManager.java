@@ -536,6 +536,7 @@ public class TransformerManager implements ClassFileTransformer {
             return transformedBytecode;
         } catch (Throwable t) {
             Logger.error("Failed to transform class '{}'", name, t);
+            if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
             throw t;
         } finally {
             this.getDebugger().addTimings(name, timings.getTimings());
