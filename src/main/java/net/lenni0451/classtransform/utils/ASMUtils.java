@@ -595,12 +595,23 @@ public class ASMUtils {
      */
     public static InsnList cloneInsnList(final InsnList insnList) {
         InsnList clonedInsnList = new InsnList();
-        Map<LabelNode, LabelNode> clonedLabels = new HashMap<>();
-        for (AbstractInsnNode insn : insnList) {
-            if (insn instanceof LabelNode) clonedLabels.put((LabelNode) insn, new LabelNode());
-        }
+        Map<LabelNode, LabelNode> clonedLabels = cloneLabels(insnList);
         for (AbstractInsnNode instruction : insnList.toArray()) clonedInsnList.add(instruction.clone(clonedLabels));
         return clonedInsnList;
+    }
+
+    /**
+     * Clone all labels from an insn list.
+     *
+     * @param original The insn list to clone the labels from
+     * @return The original {@literal ->} cloned label map
+     */
+    public static Map<LabelNode, LabelNode> cloneLabels(final InsnList original) {
+        Map<LabelNode, LabelNode> clonedLabels = new HashMap<>();
+        for (AbstractInsnNode instruction : original) {
+            if (instruction instanceof LabelNode) clonedLabels.put((LabelNode) instruction, new LabelNode());
+        }
+        return clonedLabels;
     }
 
     /**
