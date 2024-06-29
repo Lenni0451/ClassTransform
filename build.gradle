@@ -1,17 +1,22 @@
+plugins {
+    id "io.freefair.lombok" version "8.6" apply false
+}
+
 allprojects {
     apply plugin: "java-library"
     apply plugin: "maven-publish"
     apply plugin: "signing"
+    apply plugin: "checkstyle"
+    apply plugin: "io.freefair.lombok"
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(8)
-    compileJava.options.encoding = compileTestJava.options.encoding = javadoc.options.encoding = "UTF-8"
+    base {
+        java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+        compileJava.options.encoding = compileTestJava.options.encoding = javadoc.options.encoding = "UTF-8"
 
-    group = project.maven_group
-    archivesBaseName = project.maven_name
-    version = project.maven_version
-    if (!project.maven_group) group = rootProject.maven_group
-    if (!project.maven_name) archivesBaseName = rootProject.maven_name
-    if (!project.maven_version) version = rootProject.maven_version
+        archivesName = project.maven_name ?: rootProject.maven_name
+        group = project.maven_group ?: rootProject.maven_group
+        version = project.maven_version ?: rootProject.maven_version
+    }
 
     repositories {
         mavenCentral()
@@ -19,14 +24,16 @@ allprojects {
 
     dependencies {
         compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-        compileOnly "org.projectlombok:lombok:1.18.32"
-
-        annotationProcessor "org.projectlombok:lombok:1.18.32"
     }
 
     java {
         withSourcesJar()
         withJavadocJar()
+    }
+
+    sourcesJar {
+        from delombok
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     artifacts {
@@ -60,20 +67,20 @@ allprojects {
         }
         publications {
             maven(MavenPublication) {
-                artifactId = project.maven_name
-                groupId = project.maven_group
-                version = project.maven_version
+                artifactId = project.maven_name ?: rootProject.maven_name
+                groupId = rootProject.maven_group
+                version = rootProject.maven_version
 
                 from components.java
 
                 pom {
                     name = rootProject.name
-                    description = "A lightweight, mixin like injection lib using ASM"
-                    url = "https://github.com/Lenni0451/ClassTransform"
+                    description = rootProject.maven_description
+                    url = "https://github.com/" + rootProject.github_repo
                     licenses {
                         license {
                             name = "MIT License"
-                            url = "https://github.com/Lenni0451/ClassTransform/blob/main/LICENSE"
+                            url = "https://github.com/" + rootProject.github_repo + "/blob/main/LICENSE"
                         }
                     }
                     developers {
@@ -82,16 +89,22 @@ allprojects {
                         }
                     }
                     scm {
-                        connection = "scm:git:git://github.com/Lenni0451/ClassTransform.git"
-                        developerConnection = "scm:git:ssh://github.com/Lenni0451/ClassTransform.git"
-                        url = "github.com/Lenni0451/ClassTransform"
+                        connection = "scm:git:git://github.com/" + rootProject.github_repo + ".git"
+                        developerConnection = "scm:git:ssh://github.com/" + rootProject.github_repo + ".git"
+                        url = "github.com/" + rootProject.github_repo
                     }
                 }
             }
         }
     }
 
+    checkstyle {
+        toolVersion = "9.3" //Latest version for Java 8: 9.3
+        configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    }
+
     signing {
+        setRequired false
         sign configurations.archives
         sign publishing.publications.maven
     }
@@ -99,6 +112,8 @@ allprojects {
     project.tasks.withType(PublishToMavenRepository).forEach {
         it.dependsOn(project.tasks.withType(Sign))
     }
+    build.dependsOn(test)
+    build.dependsOn(check)
 }
 
 dependencies {
@@ -108,11 +123,8 @@ dependencies {
     api "org.ow2.asm:asm-analysis:9.7"
 
     testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
-    testCompileOnly "org.projectlombok:lombok:1.18.32"
     testImplementation platform("org.junit:junit-bom:5.10.2")
     testImplementation "org.junit.jupiter:junit-jupiter"
-
-    testAnnotationProcessor "org.projectlombok:lombok:1.18.32"
 }
 
 test {
@@ -122,5 +134,3 @@ test {
     }
     maxParallelForks Runtime.runtime.availableProcessors()
 }
-
-build.dependsOn(test)
