@@ -63,17 +63,31 @@ public class InjectionClassLoader extends URLClassLoader {
 
     @Override
     protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
-        if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) return super.loadClass(name, resolve);
         synchronized (this.getClassLoadingLock(name)) {
             Class<?> loadedClass = this.findLoadedClass(name);
-            if (loadedClass == null) {
-                try {
-                    loadedClass = this.findClass(name);
-                } catch (ClassNotFoundException t) {
-                    if (this.parent == null) throw t;
-                }
+            if (this.priority.equals(EnumLoaderPriority.PARENT_FIRST)) {
+                //Try loading the class from the parent class loader first
+                //If it is not found there, try to load it from this class loader
+                if (loadedClass == null) {
+                    try {
+                        loadedClass = this.parent.loadClass(name);
+                    } catch (ClassNotFoundException ignored) {
+                    }
 
-                if (loadedClass == null) loadedClass = this.parent.loadClass(name);
+                    if (loadedClass == null) loadedClass = this.findClass(name);
+                }
+            } else {
+                //Try loading the class from this class loader first
+                //If it is not found there, try to load it from the parent class loader
+                if (loadedClass == null) {
+                    try {
+                        loadedClass = this.findClass(name);
+                    } catch (ClassNotFoundException t) {
+                        if (this.parent == null) throw t;
+                    }
+
+                    if (loadedClass == null) loadedClass = this.parent.loadClass(name);
+                }
             }
 
             if (resolve) this.resolveClass(loadedClass);
