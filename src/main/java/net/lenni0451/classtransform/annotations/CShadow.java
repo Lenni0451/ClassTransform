@@ -35,4 +35,11 @@ public @interface CShadow {
      */
     boolean makePublic() default false;
 
+    /**
+     * Make the shadow member mutable.
+     *
+     * @return If the shadow member should be mutable
+     */
+    boolean makeMutable() default false;
+
 }

@@ -46,6 +46,7 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
             if (targets.isEmpty()) throw new FieldNotFoundException(target, transformer, annotation.value());
             for (FieldNode targetField : targets) {
                 if (annotation.makePublic()) targetField.access = ASMUtils.setAccess(targetField.access, Opcodes.ACC_PUBLIC);
+                if (annotation.makeMutable()) targetField.access = ASMUtils.setModifier(targetField.access, Opcodes.ACC_FINAL, false);
                 if (field.name.equals(targetField.name) && field.desc.equals(targetField.desc)) continue;
                 remapper.addFieldMapping(transformer.name, field.name, field.desc, targetField.name);
             }
@@ -64,6 +65,7 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
             if (targets.isEmpty()) throw new MethodNotFoundException(target, transformer, annotation.value());
             for (MethodNode targetMethod : targets) {
                 if (annotation.makePublic()) targetMethod.access = ASMUtils.setAccess(targetMethod.access, Opcodes.ACC_PUBLIC);
+                if (annotation.makeMutable()) targetMethod.access = ASMUtils.setModifier(targetMethod.access, Opcodes.ACC_FINAL, false);
                 if (method.name.equals(targetMethod.name) && method.desc.equals(targetMethod.desc)) continue;
                 remapper.addMethodMapping(transformer.name, method.name, method.desc, targetMethod.name);
             }

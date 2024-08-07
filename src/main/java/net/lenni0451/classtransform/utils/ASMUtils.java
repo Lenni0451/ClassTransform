@@ -296,6 +296,18 @@ public class ASMUtils {
     }
 
     /**
+     * Set a modifier to a given access mask.
+     *
+     * @param currentAccess The current access mask
+     * @param modifier      The modifier to set
+     * @param value         The value to set the modifier to
+     * @return The new access mask
+     */
+    public static int setModifier(final int currentAccess, final int modifier, final boolean value) {
+        return value ? (currentAccess | modifier) : (currentAccess & ~modifier);
+    }
+
+    /**
      * Get the needed return opcode for the given type.
      *
      * @param returnType The return type of a method
