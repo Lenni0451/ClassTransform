@@ -67,6 +67,19 @@ public class TransformerDebugger {
         return this.dumpClasses;
     }
 
+    /**
+     * Clear all transformers and transformed classes.<br>
+     * Transformer preprocessors will not be cleared.
+     */
+    public void clearTransformerManager() {
+        this.transformerManager.bytecodeTransformer.clear();
+        this.transformerManager.rawTransformer.clear();
+        this.transformerManager.transformer.clear();
+        this.transformerManager.postTransformer.clear();
+        this.transformerManager.registeredTransformer.clear();
+        this.transformerManager.transformedClasses.clear();
+    }
+
 
     void addTimings(final String className, final Map<TimedTransformer, Integer> timings) {
         if (!timings.isEmpty()) this.timings.put(className, timings);

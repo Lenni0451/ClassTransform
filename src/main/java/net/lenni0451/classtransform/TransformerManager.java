@@ -72,13 +72,13 @@ public class TransformerManager implements ClassFileTransformer {
     private HotswapClassLoader hotswapClassLoader;
 
     private final List<IAnnotationHandlerPreprocessor> annotationHandlerPreprocessor = new ArrayList<>();
-    private final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
-    private final Map<String, List<IRawTransformer>> rawTransformer = new HashMap<>();
-    private final Map<String, List<ClassNode>> transformer = new HashMap<>();
-    private final List<IPostTransformer> postTransformer = new ArrayList<>();
+    final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
+    final Map<String, List<IRawTransformer>> rawTransformer = new HashMap<>();
+    final Map<String, List<ClassNode>> transformer = new HashMap<>();
+    final List<IPostTransformer> postTransformer = new ArrayList<>();
 
-    private final Set<String> registeredTransformer = new HashSet<>();
-    private final Set<String> transformedClasses = new HashSet<>();
+    final Set<String> registeredTransformer = new HashSet<>();
+    final Set<String> transformedClasses = new HashSet<>();
 
     /**
      * @param classProvider The class provider used to get the class bytecode
