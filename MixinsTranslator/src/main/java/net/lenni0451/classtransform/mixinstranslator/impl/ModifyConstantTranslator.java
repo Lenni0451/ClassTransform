@@ -12,9 +12,8 @@ import java.util.Map;
 class ModifyConstantTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CModifyConstant.class);
-        Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
         if (values.containsKey("slice")) {
             AnnotationNode slice = this.getSingleAnnotation("slice", values, "CModifyConstant");
             if (slice != null) this.dynamicTranslate(slice);
@@ -33,7 +32,6 @@ class ModifyConstantTranslator implements IAnnotationTranslator {
                 if (constantValues.containsKey("ordinal")) values.put("ordinal", constantValues.get("ordinal"));
             }
         }
-        annotation.values = AnnotationUtils.mapToList(values);
     }
 
 }

@@ -1,7 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.injection.CRedirect;
-import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -12,9 +11,8 @@ import java.util.Map;
 class RedirectTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CRedirect.class);
-        Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
         Boolean optional = null;
         if (values.containsKey("require")) optional = ((int) values.get("require")) <= 0;
         if (values.containsKey("at")) values.put("target", values.remove("at"));
@@ -27,7 +25,6 @@ class RedirectTranslator implements IAnnotationTranslator {
             }
         }
         if (values.containsKey("slice")) this.dynamicTranslate((AnnotationNode) values.get("slice"));
-        annotation.values = AnnotationUtils.mapToList(values);
     }
 
 }

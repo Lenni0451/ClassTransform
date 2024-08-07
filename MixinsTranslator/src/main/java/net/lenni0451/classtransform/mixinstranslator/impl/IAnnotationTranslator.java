@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -10,11 +11,15 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 public interface IAnnotationTranslator {
 
-    void translate(final AnnotationNode annotation);
+    void translate(final AnnotationNode annotation, final Map<String, Object> values);
 
     default void dynamicTranslate(final AnnotationNode annotation) {
         IAnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
-        if (translator != null) translator.translate(annotation);
+        if (translator != null) {
+            Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
+            translator.translate(annotation, values);
+            annotation.values = AnnotationUtils.mapToList(values);
+        }
     }
 
     default AnnotationNode getSingleAnnotation(final String name, final Map<String, Object> values, final String annotationName) {

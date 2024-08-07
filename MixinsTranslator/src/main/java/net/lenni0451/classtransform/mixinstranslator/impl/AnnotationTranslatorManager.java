@@ -39,7 +39,7 @@ public class AnnotationTranslatorManager {
     }
 
     private static void register(final Class<? extends Annotation> from, final Class<? extends Annotation> to) {
-        register(from, annotation -> annotation.desc = Type.getDescriptor(to));
+        register(from, (annotation, values) -> annotation.desc = Type.getDescriptor(to));
     }
 
     private static void register(final Class<? extends Annotation> clazz, final IAnnotationTranslator translator) {

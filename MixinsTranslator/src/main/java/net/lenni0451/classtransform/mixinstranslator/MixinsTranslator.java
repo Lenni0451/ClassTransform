@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.mixinstranslator;
 import net.lenni0451.classtransform.mixinstranslator.impl.AnnotationTranslatorManager;
 import net.lenni0451.classtransform.mixinstranslator.impl.IAnnotationTranslator;
 import net.lenni0451.classtransform.transformer.IAnnotationHandlerPreprocessor;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -12,6 +13,7 @@ import org.objectweb.asm.tree.MethodNode;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Translate annotations from Mixins to ClassTransform.<br>
@@ -50,7 +52,11 @@ public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
         if (annotations == null) return;
         for (AnnotationNode annotation : annotations) {
             IAnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
-            if (translator != null) translator.translate(annotation);
+            if (translator != null) {
+                Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
+                translator.translate(annotation, values);
+                annotation.values = AnnotationUtils.mapToList(values);
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.CTransformer;
-import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -12,11 +11,9 @@ import java.util.Map;
 class MixinTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CTransformer.class);
-        Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
         if (values.containsKey("targets")) values.put("name", values.remove("targets"));
-        annotation.values = AnnotationUtils.mapToList(values);
     }
 
 }

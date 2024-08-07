@@ -1,7 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.injection.CWrapCondition;
-import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -13,9 +12,8 @@ import java.util.Map;
 public class WrapWithConditionTranslator implements IAnnotationTranslator {
 
     @Override
-    public void translate(AnnotationNode annotation) {
+    public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CWrapCondition.class);
-        Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
         if (values.containsKey("at")) values.put("target", values.remove("at"));
         if (values.containsKey("target")) {
             List<AnnotationNode> targets = (List<AnnotationNode>) values.get("target");
@@ -25,7 +23,6 @@ public class WrapWithConditionTranslator implements IAnnotationTranslator {
             AnnotationNode slice = this.getSingleAnnotation("slice", values, "CWrapCondition");
             if (slice != null) this.dynamicTranslate(slice);
         }
-        annotation.values = AnnotationUtils.mapToList(values);
     }
 
 }
