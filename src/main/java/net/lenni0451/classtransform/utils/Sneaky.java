@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.utils;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Sneaky {
@@ -19,10 +20,26 @@ public class Sneaky {
         };
     }
 
+    public static <T, R> Function<T, R> sneakyFunction(final ThrowingFunction<T, R> function) {
+        return (t) -> {
+            try {
+                return function.apply(t);
+            } catch (Throwable e) {
+                sneakyThrow(e);
+                return null;
+            }
+        };
+    }
+
 
     @FunctionalInterface
     public interface ThrowingSupplier<T> {
         T get() throws Throwable;
+    }
+
+    @FunctionalInterface
+    public interface ThrowingFunction<T, R> {
+        R apply(T t) throws Throwable;
     }
 
 }
