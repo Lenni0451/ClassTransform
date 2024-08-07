@@ -1,13 +1,8 @@
-plugins {
-    id "io.freefair.lombok" version "8.6" apply false
-}
-
 allprojects {
     apply plugin: "java-library"
     apply plugin: "maven-publish"
     apply plugin: "signing"
     apply plugin: "checkstyle"
-    apply plugin: "io.freefair.lombok"
 
     base {
         java.toolchain.languageVersion = JavaLanguageVersion.of(8)
@@ -24,6 +19,13 @@ allprojects {
 
     dependencies {
         compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+        compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.34"))
+
+        testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
+        testImplementation(platform("org.junit:junit-bom:5.10.3"))
+        testImplementation "org.junit.jupiter:junit-jupiter"
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+        testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.34"))
     }
 
     java {
@@ -31,13 +33,16 @@ allprojects {
         withJavadocJar()
     }
 
-    sourcesJar {
-        from delombok
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
-
     artifacts {
         archives javadocJar, sourcesJar
+    }
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+        maxParallelForks Runtime.runtime.availableProcessors()
     }
 
     publishing {
@@ -121,17 +126,4 @@ dependencies {
     api "org.ow2.asm:asm-commons:9.7"
     api "org.ow2.asm:asm-tree:9.7"
     api "org.ow2.asm:asm-analysis:9.7"
-
-    testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
-    testImplementation platform("org.junit:junit-bom:5.10.3")
-    testImplementation "org.junit.jupiter:junit-jupiter"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-}
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-    maxParallelForks Runtime.runtime.availableProcessors()
 }
