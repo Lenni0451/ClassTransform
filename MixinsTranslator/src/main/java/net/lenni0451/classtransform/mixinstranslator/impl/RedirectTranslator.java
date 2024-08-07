@@ -15,7 +15,7 @@ class RedirectTranslator implements IAnnotationTranslator {
         annotation.desc = Type.getDescriptor(CRedirect.class);
         Boolean optional = null;
         if (values.containsKey("require")) optional = ((int) values.get("require")) <= 0;
-        if (values.containsKey("at")) values.put("target", values.remove("at"));
+        this.move(values, "at", "target");
         if (values.containsKey("target")) {
             AnnotationNode target = (AnnotationNode) values.get("target");
             this.dynamicTranslate(target);

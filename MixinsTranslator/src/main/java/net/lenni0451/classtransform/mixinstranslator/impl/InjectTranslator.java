@@ -16,7 +16,7 @@ class InjectTranslator implements IAnnotationTranslator {
         annotation.desc = Type.getDescriptor(CInject.class);
         Boolean optional = null;
         if (values.containsKey("require")) optional = ((int) values.get("require")) <= 0;
-        if (values.containsKey("at")) values.put("target", values.remove("at"));
+        this.move(values, "at", "target");
         if (values.containsKey("target")) {
             List<AnnotationNode> targets = (List<AnnotationNode>) values.get("target");
             for (AnnotationNode target : targets) {

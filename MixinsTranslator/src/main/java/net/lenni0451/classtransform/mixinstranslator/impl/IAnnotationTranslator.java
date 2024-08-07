@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.AnnotationNode;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @ParametersAreNonnullByDefault
 public interface IAnnotationTranslator {
@@ -40,6 +41,18 @@ public interface IAnnotationTranslator {
         } else {
             throw new IllegalStateException("Unknown type for " + name + " in @" + annotationName + " annotation");
         }
+    }
+
+    default void move(final Map<String, Object> values, final String from, final String to) {
+        if (values.containsKey(from)) values.put(to, values.remove(from));
+    }
+
+    default <F, T> void map(final Map<String, Object> values, final String from, final String to, final Function<F, T> mapper) {
+        if (values.containsKey(from)) values.put(to, mapper.apply((F) values.remove(from)));
+    }
+
+    default void move(final Map<String, Object> from, final Map<String, Object> to, final String key) {
+        if (from.containsKey(key)) to.put(key, from.remove(key));
     }
 
 }

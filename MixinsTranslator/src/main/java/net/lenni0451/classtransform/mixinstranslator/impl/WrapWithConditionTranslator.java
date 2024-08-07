@@ -14,7 +14,7 @@ public class WrapWithConditionTranslator implements IAnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CWrapCondition.class);
-        if (values.containsKey("at")) values.put("target", values.remove("at"));
+        this.move(values, "at", "target");
         if (values.containsKey("target")) {
             List<AnnotationNode> targets = (List<AnnotationNode>) values.get("target");
             for (AnnotationNode target : targets) this.dynamicTranslate(target);

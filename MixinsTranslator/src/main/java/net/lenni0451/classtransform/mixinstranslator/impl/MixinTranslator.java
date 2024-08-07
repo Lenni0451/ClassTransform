@@ -13,7 +13,7 @@ class MixinTranslator implements IAnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CTransformer.class);
-        if (values.containsKey("targets")) values.put("name", values.remove("targets"));
+        this.move(values, "targets", "name");
     }
 
 }
