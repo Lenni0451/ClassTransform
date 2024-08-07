@@ -5,4 +5,5 @@
 
 <suppressions>
     <suppress files="TransformerException\.java" checks="MutableException"/>
+    <suppress files="AnnotationTranslatorTest\.java" checks="InnerTypeLast"/>
 </suppressions>

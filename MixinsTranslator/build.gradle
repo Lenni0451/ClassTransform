@@ -1,4 +1,6 @@
 dependencies {
     api project(":")
-    implementation project(":MixinsDummy")
+    compileOnly project(":MixinsDummy")
+
+    testImplementation project(":MixinsDummy")
 }

@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.MethodNode;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
@@ -88,6 +89,8 @@ public class Types {
             }
         } else if (ob instanceof Class) {
             return Type.getType((Class<?>) ob);
+        } else if (ob instanceof Field) {
+            return Type.getType(((Field) ob).getType());
         } else if (ob instanceof Method) {
             return Type.getType((Method) ob);
         } else if (ob instanceof Constructor) {
