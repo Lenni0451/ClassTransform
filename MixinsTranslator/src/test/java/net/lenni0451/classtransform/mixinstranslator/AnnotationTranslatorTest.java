@@ -23,7 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.function.Function;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
@@ -77,12 +76,12 @@ public class AnnotationTranslatorTest {
     private native void injectTest();
 
     @WrapWithCondition(method = {"method1", "method2"}, at = {@At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), @At(value = "test2", target = "target2", shift = At.Shift.BEFORE, ordinal = 20)}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
-    @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10, optional = true), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BEFORE, ordinal = 20, optional = true)}, slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BEFORE, ordinal = 20)}, slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
     @TestMarker(from = WrapWithCondition.class, to = CWrapCondition.class)
     private native void wrapWithConditionTest();
 
     @ModifyExpressionValue(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
-    @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10, optional = true), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
     @TestMarker(from = ModifyExpressionValue.class, to = CModifyExpressionValue.class)
     private native void modifyExpressionValueTest();
 
@@ -96,7 +95,10 @@ public class AnnotationTranslatorTest {
         if (clazz.getDeclaredAnnotation(TestMarker.class) != null) {
             TestMarker testMarker = clazz.getDeclaredAnnotation(TestMarker.class);
             System.out.println("Testing class: " + clazz.getName() + " From: " + Arrays.toString(testMarker.from()) + " To: " + Arrays.toString(testMarker.to()));
-            this.runTranslator(annotation -> AnnotationUtils.findAnnotation(classNode, annotation).orElseThrow(() -> new AssertionError("Annotation not found: " + annotation.getName())), testMarker);
+            this.runTranslator(annotation -> {
+                AnnotationNode annotationNode = AnnotationUtils.findAnnotation(classNode, annotation).orElseThrow(() -> new AssertionError("Annotation not found: " + annotation.getName()));
+                return AnnotationUtils.clone(annotationNode);
+            }, testMarker);
         }
         for (Field field : clazz.getDeclaredFields()) {
             TestMarker testMarker = field.getDeclaredAnnotation(TestMarker.class);
@@ -105,7 +107,10 @@ public class AnnotationTranslatorTest {
             System.out.println("Testing field: " + field.getName() + " From: " + Arrays.toString(testMarker.from()) + " To: " + Arrays.toString(testMarker.to()));
             FieldNode fieldNode = ASMUtils.getField(classNode, field.getName(), typeDescriptor(field));
             assertNotNull(fieldNode, "Field not found: " + field.getName());
-            this.runTranslator(annotation -> AnnotationUtils.findAnnotation(fieldNode, annotation).orElseThrow(() -> new AssertionError("Annotation not found: " + annotation.getName())), testMarker);
+            this.runTranslator(annotation -> {
+                AnnotationNode annotationNode = AnnotationUtils.findAnnotation(fieldNode, annotation).orElseThrow(() -> new AssertionError("Annotation not found: " + annotation.getName()));
+                return AnnotationUtils.clone(annotationNode);
+            }, testMarker);
         }
         for (Method method : clazz.getDeclaredMethods()) {
             TestMarker testMarker = method.getDeclaredAnnotation(TestMarker.class);
@@ -114,7 +119,10 @@ public class AnnotationTranslatorTest {
             System.out.println("Testing method: " + method.getName() + " From: " + Arrays.toString(testMarker.from()) + " To: " + Arrays.toString(testMarker.to()));
             MethodNode methodNode = ASMUtils.getMethod(classNode, method.getName(), typeDescriptor(method));
             assertNotNull(methodNode, "Method not found: " + method.getName());
-            this.runTranslator(annotation -> AnnotationUtils.findAnnotation(methodNode, annotation).orElseThrow(() -> new AssertionError("Annotation not found: " + annotation.getName())), testMarker);
+            this.runTranslator(annotation -> {
+                AnnotationNode annotationNode = AnnotationUtils.findAnnotation(methodNode, annotation).orElseThrow(() -> new AssertionError("Annotation not found: " + annotation.getName()));
+                return AnnotationUtils.clone(annotationNode);
+            }, testMarker);
         }
         for (Class<?> declaredClass : clazz.getDeclaredClasses()) {
             this.iterate(declaredClass);
@@ -129,24 +137,7 @@ public class AnnotationTranslatorTest {
         assertEquals(testMarker.to().length, dummyNode.visibleAnnotations.size());
         for (Class<? extends Annotation> to : testMarker.to()) {
             AnnotationNode out = AnnotationUtils.findAnnotation(dummyNode, to).orElseThrow(() -> new AssertionError("Annotation not found after processing: " + to.getName()));
-            this.check(out, annotationProvider.apply(to));
-        }
-    }
-
-    private void check(final AnnotationNode annotation, final AnnotationNode expected) {
-        Map<String, Object> annotationValues = AnnotationUtils.listToMap(annotation.values);
-        Map<String, Object> expectedValues = AnnotationUtils.listToMap(expected.values);
-        for (Map.Entry<String, Object> entry : expectedValues.entrySet()) {
-            Object value = annotationValues.get(entry.getKey());
-            Object expectedValue = entry.getValue();
-            if (value == null && expectedValue == null) continue;
-            if (value == null || expectedValue == null) throw new AssertionError("Values do not match: " + entry.getKey() + " - " + value + " != " + expectedValue);
-            assertEquals(expectedValue.getClass(), value.getClass());
-            if (expectedValue instanceof AnnotationNode) {
-                this.check((AnnotationNode) value, (AnnotationNode) expectedValue);
-            } else {
-                assertEquals(expectedValue, value);
-            }
+            TestUtils.compareAnnotations(out, annotationProvider.apply(to));
         }
     }
 
