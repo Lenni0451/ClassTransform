@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -48,6 +49,40 @@ public class AnnotationUtils {
             }
         }
         return list;
+    }
+
+    /**
+     * Clone an annotation node and all its values.
+     *
+     * @param node The annotation node to clone
+     * @return The cloned annotation node
+     */
+    public static AnnotationNode clone(final AnnotationNode node) {
+        AnnotationNode clone = new AnnotationNode(node.desc);
+        if (node.values != null) {
+            clone.values = new ArrayList<>(node.values);
+            List<Object> values = clone.values;
+            values.replaceAll(AnnotationUtils::cloneObject);
+        }
+        return clone;
+    }
+
+    private static Object cloneObject(final Object object) {
+        if (object == null) return null;
+        if (object instanceof AnnotationNode) {
+            return clone((AnnotationNode) object);
+        } else if (object.getClass().isArray()) {
+            Object clone = Array.newInstance(object.getClass().getComponentType(), Array.getLength(object));
+            for (int i = 0; i < Array.getLength(object); i++) Array.set(clone, i, cloneObject(Array.get(object, i)));
+            return clone;
+        } else if (object instanceof List) {
+            List<?> list = (List<?>) object;
+            List<Object> clone = new ArrayList<>(list.size());
+            for (Object value : list) clone.add(cloneObject(value));
+            return clone;
+        } else {
+            return object;
+        }
     }
 
 
