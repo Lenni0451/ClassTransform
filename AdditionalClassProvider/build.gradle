@@ -1,5 +1,5 @@
 dependencies {
-    implementation "com.google.guava:guava:33.2.1-jre"
+    implementation "com.google.guava:guava:33.3.0-jre"
 
     api project(":")
 }
