@@ -3,7 +3,6 @@ package net.lenni0451.classtransform.transformer.impl.general.membercopy;
 import net.lenni0451.classtransform.utils.ASMComparator;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -82,7 +81,17 @@ public class InitializerMerger {
         AbstractInsnNode firstInstruction;
         if (initializer.name.equals(MN_Init)) firstInstruction = ASMUtils.getFirstConstructorInstruction(target.superName, initializer);
         else firstInstruction = initializer.instructions.getFirst();
-        if (firstInstruction == null) return;
+        if (firstInstruction == null) {
+            firstInstruction = new InsnNode(Opcodes.RETURN);
+            initializer.instructions.add(firstInstruction);
+        }
+        if (firstInstruction.getOpcode() >= Opcodes.IRETURN && firstInstruction.getOpcode() <= Opcodes.RETURN) {
+            //If the first instruction is a return instruction, add a new instruction before it
+            //This is required to keep the following code simple and the field initializers in the correct order
+            AbstractInsnNode newFirstInstruction = new InsnNode(Opcodes.NOP);
+            initializer.instructions.insertBefore(firstInstruction, newFirstInstruction);
+            firstInstruction = newFirstInstruction;
+        }
 
         for (AbstractInsnNode instruction : initializer.instructions.toArray()) {
             if (instruction instanceof FieldInsnNode && (instruction.getOpcode() == Opcodes.PUTFIELD || instruction.getOpcode() == Opcodes.PUTSTATIC)) {
@@ -111,17 +120,15 @@ public class InitializerMerger {
         return tempClassHolder.methods.get(0).instructions;
     }
 
-    private static MethodNode getOrCreateClinit(final ClassNode transformedClass) {
-        for (MethodNode method : transformedClass.methods) {
+    private static MethodNode getOrCreateClinit(final ClassNode classNode) {
+        for (MethodNode method : classNode.methods) {
             if (method.name.equals(MN_Clinit)) return method;
         }
 
-        MethodVisitor staticBlock = transformedClass.visitMethod(Opcodes.ACC_STATIC, MN_Clinit, MD_Void, null, null);
-        staticBlock.visitCode();
-        staticBlock.visitInsn(Opcodes.RETURN);
-        staticBlock.visitEnd();
-
-        return (MethodNode) staticBlock;
+        MethodNode staticBlock = new MethodNode(Opcodes.ACC_STATIC, MN_Clinit, MD_Void, null, null);
+        staticBlock.instructions.add(new InsnNode(Opcodes.RETURN));
+        classNode.methods.add(staticBlock);
+        return staticBlock;
     }
 
     private static Set<String> diff(final Set<String> set1, final Set<String> set2) {
