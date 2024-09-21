@@ -107,9 +107,18 @@ public class Codifier {
         }
 
         String className = this.stripPackage(parameter.getClassName());
-        if (this.isJavaKeyword(className)) className += " " + className.charAt(0);
-        else className += " " + className.substring(0, 1).toLowerCase() + className.substring(1);
-        this.parameters.add(className);
+        if (this.isJavaKeyword(className)) {
+            className += " " + className.charAt(0);
+        } else {
+            String varName = className.substring(0, 1).toLowerCase() + className.substring(1);
+            varName = varName.replace("[]", "Array");
+            className += " " + varName;
+        }
+
+        int index = 2;
+        String parameterName = className;
+        while (this.parameters.contains(parameterName)) parameterName = className + index++;
+        this.parameters.add(parameterName);
         return this;
     }
 
