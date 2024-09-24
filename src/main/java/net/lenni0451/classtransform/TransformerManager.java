@@ -521,7 +521,8 @@ public class TransformerManager implements ClassFileTransformer {
             else transformedBytecode = ASMUtils.toStacklessBytes(clazz);
             for (IPostTransformer postTransformer : this.postTransformer) {
                 timings.start(TimedGroup.POST_TRANSFORMER, postTransformer.getClass().getName());
-                postTransformer.transform(name, transformedBytecode);
+                byte[] replacementBytecode = postTransformer.replace(name, transformedBytecode);
+                if (replacementBytecode != null) transformedBytecode = replacementBytecode;
                 timings.end();
             }
             if (this.debugger.isDumpClasses()) {
