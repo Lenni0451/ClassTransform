@@ -103,30 +103,24 @@ public class ProguardMapper extends AMapper {
         }
 
         switch (type) {
-            case "int":
-                return arrayCount + "I";
-
-            case "float":
-                return arrayCount + "F";
-
-            case "double":
-                return arrayCount + "D";
-
-            case "long":
-                return arrayCount + "J";
-
-            case "boolean":
-                return arrayCount + "Z";
-
-            case "short":
-                return arrayCount + "S";
-
-            case "byte":
-                return arrayCount + "B";
-
             case "void":
                 return arrayCount + "V";
-
+            case "boolean":
+                return arrayCount + "Z";
+            case "byte":
+                return arrayCount + "B";
+            case "short":
+                return arrayCount + "S";
+            case "char":
+                return arrayCount + "C";
+            case "int":
+                return arrayCount + "I";
+            case "long":
+                return arrayCount + "J";
+            case "float":
+                return arrayCount + "F";
+            case "double":
+                return arrayCount + "D";
             default:
                 return arrayCount + "L" + slash(type) + ";";
         }
