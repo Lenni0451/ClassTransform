@@ -22,7 +22,7 @@ allprojects {
         compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.34"))
 
         testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
-        testImplementation(platform("org.junit:junit-bom:5.11.1"))
+        testImplementation(platform("org.junit:junit-bom:5.11.2"))
         testImplementation "org.junit.jupiter:junit-jupiter"
         testRuntimeOnly "org.junit.platform:junit-platform-launcher"
         testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.34"))
@@ -122,8 +122,8 @@ allprojects {
 }
 
 dependencies {
-    api "org.ow2.asm:asm:9.7"
-    api "org.ow2.asm:asm-commons:9.7"
-    api "org.ow2.asm:asm-tree:9.7"
-    api "org.ow2.asm:asm-analysis:9.7"
+    api "org.ow2.asm:asm:9.7.1"
+    api "org.ow2.asm:asm-commons:9.7.1"
+    api "org.ow2.asm:asm-tree:9.7.1"
+    api "org.ow2.asm:asm-analysis:9.7.1"
 }
