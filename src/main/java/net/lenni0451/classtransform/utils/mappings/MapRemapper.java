@@ -1,11 +1,14 @@
 package net.lenni0451.classtransform.utils.mappings;
 
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+
+import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
  * An asm remapper implementation using a map to store the mappings.
@@ -229,6 +232,44 @@ public class MapRemapper extends Remapper {
         return this.mappings.getOrDefault(key, key);
     }
 
+
+    /**
+     * Get a list of all classes that are mentioned in the mappings.<br>
+     * This includes classes which are not directly mapped but are part of a field or method mapping.
+     *
+     * @return All mentioned classes
+     */
+    @Nonnull
+    public Set<String> getMentionedClasses() {
+        Set<String> classes = new HashSet<>();
+        Set<Type> types = new HashSet<>();
+        for (String mapping : this.mappings.keySet()) {
+            if (mapping.contains(".")) {
+                if (mapping.contains(":")) { //Field
+                    String owner = mapping.substring(0, mapping.indexOf("."));
+                    String desc = mapping.substring(mapping.indexOf(":") + 1);
+
+                    classes.add(owner);
+                    types.add(type(desc));
+                } else { //Method
+                    String owner = mapping.substring(0, mapping.indexOf("."));
+                    String desc = mapping.substring(mapping.indexOf("("));
+
+                    classes.add(owner);
+                    Type[] args = argumentTypes(desc);
+                    types.addAll(Arrays.asList(args));
+                    types.add(returnType(desc));
+                }
+            } else { //Class
+                classes.add(mapping);
+            }
+        }
+        for (Type type : types) {
+            if (type.getSort() == Type.ARRAY) type = type.getElementType();
+            if (type.getSort() == Type.OBJECT) classes.add(type.getInternalName());
+        }
+        return classes;
+    }
 
     /**
      * Reverse the mappings of this remapper.

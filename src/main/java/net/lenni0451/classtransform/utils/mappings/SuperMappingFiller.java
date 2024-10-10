@@ -9,11 +9,11 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,15 +81,14 @@ public class SuperMappingFiller {
         MapRemapper reverseRemapper = remapper.reverse();
         for (ClassNode superClass : superClasses) {
             for (FieldNode field : superClass.fields) {
-                if (Modifier.isStatic(field.access)) continue;
                 if (Modifier.isPrivate(field.access)) continue;
                 String mappedName = reverseRemapper.mapFieldName(superClass.name, field.name, field.desc);
                 if (field.name.equals(mappedName)) continue;
                 remapper.addFieldMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapDesc(field.desc), field.name, true);
             }
             for (MethodNode method : superClass.methods) {
-                if (Modifier.isStatic(method.access)) continue;
                 if (Modifier.isPrivate(method.access)) continue;
+                if (method.name.startsWith("<")) continue;
                 String mappedName = reverseRemapper.mapMethodName(superClass.name, method.name, method.desc);
                 if (method.name.equals(mappedName)) continue;
                 remapper.addMethodMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapMethodDesc(method.desc), method.name, true);
@@ -108,15 +107,45 @@ public class SuperMappingFiller {
      * @param classProvider The class provider to use
      */
     public static void fillAllSuperMembers(final MapRemapper remapper, final ClassTree classTree, final IClassProvider classProvider) {
-        for (Map.Entry<String, String> entry : new HashMap<>(remapper.getMappings()).entrySet()) {
-            if (entry.getKey().contains(".")) continue;
-            String obfClass = entry.getValue();
+        CachedMapRemapper cachedRemapper = new CachedMapRemapper(remapper);
+        for (String clazz : remapper.getMentionedClasses()) {
+            String obfClass = remapper.mapSafe(clazz);
             try {
                 ClassTree.TreePart treePart = classTree.getTreePart(classProvider, obfClass);
                 Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
-                SuperMappingFiller.fillSuperMembers(treePart.getNode(), superClasses, remapper);
+                SuperMappingFiller.fillSuperMembers(treePart.getNode(), superClasses, cachedRemapper);
             } catch (Throwable ignored) {
             }
+        }
+    }
+
+
+    private static class CachedMapRemapper extends MapRemapper {
+        private final MapRemapper remapper;
+        private final MapRemapper reverse;
+
+        public CachedMapRemapper(final MapRemapper remapper) {
+            super(Collections.emptyMap());
+            this.remapper = remapper;
+            this.reverse = new MapRemapper(remapper.reverse().getMappings());
+        }
+
+        @Override
+        public void addFieldMapping(String owner, String name, String desc, String target, boolean skipIfExists) {
+            this.remapper.addFieldMapping(owner, name, desc, target, skipIfExists);
+        }
+
+        @Override
+        public void addMethodMapping(String owner, String name, String desc, String target, boolean skipIfExists) {
+            this.remapper.addMethodMapping(owner, name, desc, target, skipIfExists);
+        }
+
+        @Nonnull
+        @Override
+        public MapRemapper reverse() {
+            //Reversing the mapper causes a lot of overhead
+            //For filling the super mappings it is sufficient to just cache the reverse mapper
+            return this.reverse;
         }
     }
 
