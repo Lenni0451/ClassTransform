@@ -137,7 +137,7 @@ public class ClassTree {
          * @throws ClassNotFoundException If any of the classes could not be found
          */
         public Set<TreePart> getParsedSuperClasses(final IClassProvider classProvider, final boolean includeSelf) throws ClassNotFoundException {
-            Set<TreePart> out = new HashSet<>();
+            Set<TreePart> out = new LinkedHashSet<>();
             if (includeSelf) out.add(this);
             for (String superClass : this.superClasses) out.add(ClassTree.this.getTreePart(classProvider, superClass));
             return out;

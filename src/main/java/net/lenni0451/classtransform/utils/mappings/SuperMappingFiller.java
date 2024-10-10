@@ -12,9 +12,7 @@ import org.objectweb.asm.tree.MethodNode;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
@@ -79,19 +77,31 @@ public class SuperMappingFiller {
      */
     public static void fillSuperMembers(final ClassNode node, final Set<ClassNode> superClasses, final MapRemapper remapper) {
         MapRemapper reverseRemapper = remapper.reverse();
+        Set<String> mappedFields = new HashSet<>();
+        Set<String> mappedMethods = new HashSet<>();
         for (ClassNode superClass : superClasses) {
             for (FieldNode field : superClass.fields) {
                 if (Modifier.isPrivate(field.access)) continue;
                 String mappedName = reverseRemapper.mapFieldName(superClass.name, field.name, field.desc);
                 if (field.name.equals(mappedName)) continue;
-                remapper.addFieldMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapDesc(field.desc), field.name, true);
+
+                String mappedOwner = reverseRemapper.mapSafe(node.name);
+                String mappedDesc = reverseRemapper.mapDesc(field.desc);
+                if (mappedFields.add(field.name + field.desc)) {
+                    remapper.addFieldMapping(mappedOwner, mappedName, mappedDesc, field.name, true);
+                }
             }
             for (MethodNode method : superClass.methods) {
                 if (Modifier.isPrivate(method.access)) continue;
                 if (method.name.startsWith("<")) continue;
                 String mappedName = reverseRemapper.mapMethodName(superClass.name, method.name, method.desc);
                 if (method.name.equals(mappedName)) continue;
-                remapper.addMethodMapping(reverseRemapper.mapSafe(node.name), mappedName, reverseRemapper.mapMethodDesc(method.desc), method.name, true);
+
+                String mappedOwner = reverseRemapper.mapSafe(node.name);
+                String mappedDesc = reverseRemapper.mapMethodDesc(method.desc);
+                if (mappedMethods.add(method.name + method.desc)) {
+                    remapper.addMethodMapping(mappedOwner, mappedName, mappedDesc, method.name, true);
+                }
             }
         }
     }
@@ -112,7 +122,9 @@ public class SuperMappingFiller {
             String obfClass = remapper.mapSafe(clazz);
             try {
                 ClassTree.TreePart treePart = classTree.getTreePart(classProvider, obfClass);
-                Set<ClassNode> superClasses = treePart.getParsedSuperClasses(classProvider, false).stream().map(ClassTree.TreePart::getNode).collect(Collectors.toSet());
+                Set<ClassTree.TreePart> superClassParts = treePart.getParsedSuperClasses(classProvider, false);
+                Set<ClassNode> superClasses = new LinkedHashSet<>();
+                for (ClassTree.TreePart part : superClassParts) superClasses.add(part.getNode());
                 SuperMappingFiller.fillSuperMembers(treePart.getNode(), superClasses, cachedRemapper);
             } catch (Throwable ignored) {
             }
