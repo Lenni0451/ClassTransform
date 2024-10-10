@@ -83,7 +83,7 @@ public class ClassTree {
             this.node = node;
             this.name = dot(node.name);
             this.superClass = node.superName;
-            this.superClasses = new HashSet<>();
+            this.superClasses = new LinkedHashSet<>();
             if (this.superClass != null) this.superClasses.add(dot(this.superClass));
             if (node.interfaces != null) {
                 for (String inter : node.interfaces) this.superClasses.add(dot(inter));
