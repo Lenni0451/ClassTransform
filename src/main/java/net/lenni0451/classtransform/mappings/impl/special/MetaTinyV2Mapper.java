@@ -35,6 +35,12 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
         super(config, mappingsFile, from, to);
     }
 
+    /**
+     * Get the parsed metadata.<br>
+     * All class/field/method names and descriptors are in the 'to' namespace.
+     *
+     * @return The parsed metadata
+     */
     public List<ClassMetadata> getMetadata() {
         return this.metadata;
     }
@@ -99,7 +105,7 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
 
         List<ClassMetadata> remappedMetadata = new ArrayList<>();
         for (ClassMetadata classMetadata : this.metadata) {
-            classMetadata = classMetadata.withClassName(this.remapper.mapSafe(classMetadata.getClassName()));
+            classMetadata = classMetadata.withName(this.remapper.mapSafe(classMetadata.getName()));
             remappedMetadata.add(classMetadata);
 
             List<FieldMetadata> remappedFields = new ArrayList<>();
@@ -170,7 +176,7 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     @Data
     @With
     public static class ClassMetadata {
-        private final String className;
+        private final String name;
         @Nullable
         private final String comment;
         private final List<FieldMetadata> fields;
@@ -184,7 +190,7 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     @Data
     @With
     public static class FieldMetadata {
-        private final String fieldName;
+        private final String name;
         private final String descriptor;
         @Nullable
         private final String comment;
@@ -197,7 +203,7 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     @Data
     @With
     public static class MethodMetadata {
-        private final String methodName;
+        private final String name;
         private final String descriptor;
         @Nullable
         private final String comment;
