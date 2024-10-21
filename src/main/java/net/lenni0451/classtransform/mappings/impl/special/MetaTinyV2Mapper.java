@@ -164,7 +164,7 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
                     this.currentMethodMetadata = null;
                     break;
                 case PARAMETER:
-                    if (this.currentParameterMetadata != null && !this.currentParameterMetadata.isEmpty()) {
+                    if (this.currentParameterMetadata != null) {
                         this.currentMethodMetadata.getParameters().add(this.currentParameterMetadata);
                     }
                     this.currentParameterMetadata = null;
@@ -211,7 +211,7 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
         private final List<ParameterMetadata> parameters;
 
         public boolean isEmpty() {
-            return this.comment == null && this.parameters.stream().allMatch(ParameterMetadata::isEmpty);
+            return this.comment == null && this.parameters.isEmpty();
         }
     }
 
@@ -222,10 +222,6 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
         private final String name;
         @Nullable
         private final String comment;
-
-        public boolean isEmpty() {
-            return this.comment == null;
-        }
     }
 
     private enum UpdateLevel {
