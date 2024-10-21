@@ -71,7 +71,7 @@ public class TinyV2Mapper extends AMapper {
 
                 descriptorRemapper.addClassMapping(baseName, currentClass);
                 this.remapper.addClassMapping(currentClass, toName);
-                this.classParsed(currentClass, baseName, toName);
+                this.classParsed(baseName, currentClass, toName);
             } else if (line.startsWith("\tf\t")) {
                 if (currentClass == null) throw new IllegalStateException("Field mapping without class mapping");
                 String descriptor = parts[1];
@@ -115,7 +115,7 @@ public class TinyV2Mapper extends AMapper {
         if (parts.length < 5) throw new IllegalStateException("Invalid tiny header (missing columns)");
     }
 
-    protected void classParsed(@Nullable final String currentClass, final String fromName, final String toName) {
+    protected void classParsed(final String baseName, final String fromName, final String toName) {
     }
 
     protected void fieldParsed(@Nullable final String currentClass, final String fromName, final String toName, final String descriptor) {

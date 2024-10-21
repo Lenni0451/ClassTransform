@@ -21,6 +21,7 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class MetaTinyV2Mapper extends TinyV2Mapper {
 
+    private final MapRemapper descriptorMapper = new MapRemapper();
     private final List<ClassMetadata> metadata = new ArrayList<>();
     private ClassMetadata currentClassMetadata = null;
     private FieldMetadata currentFieldMetadata = null;
@@ -46,17 +47,17 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     }
 
     @Override
-    protected void classParsed(@Nullable String currentClass, String fromName, String toName) {
-        if (currentClass == null) throw new IllegalStateException("Class mapping without class name");
+    protected void classParsed(String baseName, String fromName, String toName) {
+        this.descriptorMapper.addClassMapping(baseName, toName);
         this.updateMetadata(UpdateLevel.CLASS);
-        this.currentClassMetadata = new ClassMetadata(currentClass, null, new ArrayList<>(), new ArrayList<>());
+        this.currentClassMetadata = new ClassMetadata(toName, null, new ArrayList<>(), new ArrayList<>());
     }
 
     @Override
     protected void fieldParsed(@Nullable String currentClass, String fromName, String toName, String descriptor) {
         if (this.currentClassMetadata == null) throw new IllegalStateException("Field mapping without class mapping");
         this.updateMetadata(UpdateLevel.FIELD);
-        this.currentFieldMetadata = new FieldMetadata(fromName, descriptor, null);
+        this.currentFieldMetadata = new FieldMetadata(toName, descriptor, null);
     }
 
     @Override
@@ -110,14 +111,14 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
 
             List<FieldMetadata> remappedFields = new ArrayList<>();
             for (FieldMetadata field : classMetadata.fields) {
-                remappedFields.add(field.withDescriptor(descriptorRemapper.mapDesc(field.getDescriptor())));
+                remappedFields.add(field.withDescriptor(this.descriptorMapper.mapDesc(field.getDescriptor())));
             }
             classMetadata.fields.clear();
             classMetadata.fields.addAll(remappedFields);
 
             List<MethodMetadata> remappedMethods = new ArrayList<>();
             for (MethodMetadata method : classMetadata.methods) {
-                remappedMethods.add(method.withDescriptor(descriptorRemapper.mapMethodDesc(method.getDescriptor())));
+                remappedMethods.add(method.withDescriptor(this.descriptorMapper.mapMethodDesc(method.getDescriptor())));
             }
             classMetadata.methods.clear();
             classMetadata.methods.addAll(remappedMethods);
