@@ -232,6 +232,14 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * @return The instrumentation instance if hooked
+     */
+    @Nullable
+    public Instrumentation getInstrumentation() {
+        return this.instrumentation;
+    }
+
+    /**
      * Add an annotation handler preprocessor to the preprocessor list.<br>
      * You can modify class transform annotations before they get parsed.
      *
