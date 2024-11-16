@@ -19,13 +19,13 @@ allprojects {
 
     dependencies {
         compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-        compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.34"))
+        compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.36"))
 
         testCompileOnly "com.google.code.findbugs:jsr305:3.0.2"
-        testImplementation(platform("org.junit:junit-bom:5.11.2"))
+        testImplementation(platform("org.junit:junit-bom:5.11.3"))
         testImplementation "org.junit.jupiter:junit-jupiter"
         testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-        testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.34"))
+        testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.36"))
     }
 
     java {
