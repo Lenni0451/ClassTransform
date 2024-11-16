@@ -27,6 +27,7 @@ public class InstrumentationClassProvider implements IClassProvider, ClassFileTr
     private final Set<ClassLoader> classLoaders = Collections.newSetFromMap(new WeakHashMap<>());
 
     public InstrumentationClassProvider(final Instrumentation instrumentation) {
+        this.classLoaders.add(ClassLoader.getSystemClassLoader());
         instrumentation.addTransformer(this);
     }
 
