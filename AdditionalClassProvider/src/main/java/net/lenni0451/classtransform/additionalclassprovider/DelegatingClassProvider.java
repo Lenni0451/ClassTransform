@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.utils.tree.IClassProvider;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -33,8 +34,13 @@ public class DelegatingClassProvider implements IClassProvider {
     @Nonnull
     @Override
     public Map<String, Supplier<byte[]>> getAllClasses() {
-        Map<String, Supplier<byte[]>> classes = this.delegates[0].getAllClasses();
-        for (int i = 1; i < this.delegates.length; i++) classes.putAll(this.delegates[i].getAllClasses());
+        Map<String, Supplier<byte[]>> classes = new HashMap<>();
+        for (IClassProvider delegate : this.delegates) {
+            try {
+                classes.putAll(delegate.getAllClasses());
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
         return classes;
     }
 
