@@ -98,6 +98,7 @@ public class TransformerManager implements ClassFileTransformer {
 
         //Annotation handler
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.TOP));
+        this.annotationHandler.add(new CStubAnnotationHandler());
         this.annotationHandler.add(new InnerClassGeneralHandler()); //Make inner classes public to allow access from the transformed class
         this.annotationHandler.add(new SyntheticMethodGeneralHandler()); //Rename synthetic members to be unique
         this.annotationHandler.add(new CShadowAnnotationHandler());
