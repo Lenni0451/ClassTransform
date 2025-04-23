@@ -31,6 +31,9 @@ public class CStubAnnotationHandler extends RemovingAnnotationHandler<CStub> {
         Type stubReturn = Type.getReturnType(transformerMethod.desc);
 
         MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(annotation.value());
+        if (memberDeclaration == null) {
+            throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, annotation.value());
+        }
         ClassNode stubOwner = null;
         if (annotation.memberValidation()) {
             try {

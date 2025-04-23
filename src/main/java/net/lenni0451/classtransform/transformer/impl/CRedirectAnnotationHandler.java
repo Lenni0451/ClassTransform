@@ -45,8 +45,7 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
 
         List<AbstractInsnNode> injectionInstructions = injectionTarget.getTargets(injectionTargets, target, annotation.target(), annotation.slice());
         if (injectionInstructions == null) {
-            throw new TransformerException(transformerMethod, transformer, "has invalid member declaration '" + annotation.target().target() + "'")
-                    .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
+            throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, annotation.target().target());
         }
         if (injectionInstructions.isEmpty() && !annotation.target().optional()) {
             throw new TransformerException(transformerMethod, transformer, "target '" + annotation.target().target() + "' could not be found")

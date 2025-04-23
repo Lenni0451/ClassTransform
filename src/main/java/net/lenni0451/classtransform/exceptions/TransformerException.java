@@ -41,7 +41,7 @@ public class TransformerException extends RuntimeException {
             expectedArgs += "the following argument";
             if (expected.length != 1) expectedArgs += "s";
         }
-        throw new TransformerException(transformerMethod, transformer, expectedArgs)
+        return new TransformerException(transformerMethod, transformer, expectedArgs)
                 .help(Codifier.of(transformerMethod).param(null).params(expected));
     }
 
@@ -51,6 +51,11 @@ public class TransformerException extends RuntimeException {
 
     public static TransformerException alreadyExists(final FieldNode field, final ClassNode transformer, final ClassNode transformedClass) {
         return new TransformerException(field, transformer, "already exists in class '" + transformedClass.name + "'");
+    }
+
+    public static TransformerException invalidMemberDeclaration(final MethodNode transformerMethod, final ClassNode transformer, final String invalidMemberDeclaration) {
+        return new TransformerException(transformerMethod, transformer, "has invalid member declaration '" + invalidMemberDeclaration + "'")
+                .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
     }
 
 
