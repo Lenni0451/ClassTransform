@@ -1,0 +1,9 @@
+plugins {
+    id "net.lenni0451.template-processor"
+}
+
+templateProcessor {
+    templateDir = project.file("src/main/templates")
+    outputDir = layout.buildDirectory.dir("generated/templates/main/java")
+    markAsSource(project.sourceSets.main)
+}

@@ -1,0 +1,52 @@
+plugins {
+    id "maven-publish"
+    id "signing"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = project.maven_name
+            groupId = project.maven_group
+            version = project.maven_version
+
+            from components.java
+
+            pom {
+                name = project.name
+                description = project.maven_description
+                url = "https://github.com/" + project.github_repo
+                licenses {
+                    license {
+                        name = project.license
+                        url = "https://github.com/" + project.github_repo + "/blob/main/LICENSE"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "Lenni0451"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git://github.com/" + project.github_repo + ".git"
+                    developerConnection = "scm:git:ssh://github.com/" + project.github_repo + ".git"
+                    url = "github.com/" + project.github_repo
+                }
+            }
+        }
+    }
+}
+
+signing {
+    setRequired(false)
+    sign(publishing.publications.maven)
+}
+
+tasks.withType(PublishToMavenRepository).configureEach {
+    it.dependsOn(tasks.withType(Sign))
+}

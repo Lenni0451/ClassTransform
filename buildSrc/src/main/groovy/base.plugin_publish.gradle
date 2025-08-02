@@ -1,0 +1,51 @@
+plugins {
+    id "com.gradle.plugin-publish"
+    id "signing"
+}
+
+gradlePlugin {
+    website = "https://github.com/" + rootProject.github_repo
+    vcsUrl = "https://github.com/" + rootProject.github_repo
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        pluginMaven(MavenPublication) {
+            pom {
+                name = project.name
+                description = project.maven_description
+                url = "https://github.com/" + project.github_repo
+                licenses {
+                    license {
+                        name = project.license
+                        url = "https://github.com/" + project.github_repo + "/blob/main/LICENSE"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "Lenni0451"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git://github.com/" + project.github_repo + ".git"
+                    developerConnection = "scm:git:ssh://github.com/" + project.github_repo + ".git"
+                    url = "github.com/" + project.github_repo
+                }
+            }
+        }
+    }
+}
+
+signing {
+    setRequired(false)
+    sign(publishing.publications.pluginMaven)
+}
+
+tasks.withType(PublishToMavenRepository).configureEach {
+    it.dependsOn(tasks.withType(Sign))
+}

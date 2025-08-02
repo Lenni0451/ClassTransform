@@ -1,0 +1,9 @@
+plugins {
+    id "checkstyle"
+}
+
+checkstyle {
+    toolVersion = project.checkstyle_version
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+}
+build.dependsOn(check)

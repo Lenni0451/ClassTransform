@@ -1,0 +1,15 @@
+publishing {
+    repositories {
+        maven {
+            name = "ossrh"
+            def releasesUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = project.maven_version.endsWith("SNAPSHOT") ? snapshotsUrl : releasesUrl
+
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}

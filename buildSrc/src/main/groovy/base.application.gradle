@@ -1,0 +1,13 @@
+plugins {
+    id "configuration.include"
+}
+
+jar {
+    manifest {
+        attributes(
+                "Main-Class": project.main_class,
+                "Multi-Release": "true",
+                "Enable-Native-Access": "ALL-UNNAMED"
+        )
+    }
+}

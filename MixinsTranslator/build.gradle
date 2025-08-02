@@ -1,3 +1,7 @@
+plugins {
+    id "project.defaults"
+}
+
 dependencies {
     api project(":")
     compileOnly project(":MixinsDummy")

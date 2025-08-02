@@ -1,0 +1,15 @@
+publishing {
+    repositories {
+        maven {
+            name = "reposilite"
+            def releasesUrl = "https://maven.lenni0451.net/releases"
+            def snapshotsUrl = "https://maven.lenni0451.net/snapshots"
+            url = project.maven_version.endsWith("SNAPSHOT") ? snapshotsUrl : releasesUrl
+
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}
