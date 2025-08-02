@@ -8,15 +8,3 @@ updates:
     package-ecosystem: "gradle"
     schedule:
       interval: "daily"
-  - directory: "/MixinsTranslator"
-    package-ecosystem: "gradle"
-    schedule:
-      interval: "daily"
-  - directory: "/MixinsDummy"
-    package-ecosystem: "gradle"
-    schedule:
-      interval: "daily"
-  - directory: "/AdditionalClassProvider"
-    package-ecosystem: "gradle"
-    schedule:
-      interval: "daily"
