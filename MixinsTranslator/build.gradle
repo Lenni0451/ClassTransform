@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     api project(":")
-    compileOnly project(":MixinsDummy")
 
     testImplementation project(":MixinsDummy")
 }

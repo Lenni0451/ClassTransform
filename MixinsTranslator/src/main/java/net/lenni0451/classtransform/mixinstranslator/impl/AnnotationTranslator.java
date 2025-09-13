@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 @ParametersAreNonnullByDefault
-public interface IAnnotationTranslator {
+public interface AnnotationTranslator {
 
     void translate(final AnnotationNode annotation, final Map<String, Object> values);
 
     default void dynamicTranslate(final AnnotationNode annotation) {
-        IAnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
+        AnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
         if (translator != null) {
             Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
             translator.translate(annotation, values);

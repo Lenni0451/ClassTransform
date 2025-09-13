@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
-class InjectTranslator implements IAnnotationTranslator {
+class InjectTranslator implements AnnotationTranslator {
 
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {

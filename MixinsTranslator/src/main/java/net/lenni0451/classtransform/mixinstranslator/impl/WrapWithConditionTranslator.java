@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
-public class WrapWithConditionTranslator implements IAnnotationTranslator {
+public class WrapWithConditionTranslator implements AnnotationTranslator {
 
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {

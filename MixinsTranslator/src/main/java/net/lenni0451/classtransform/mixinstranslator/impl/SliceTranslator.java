@@ -8,7 +8,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
-class SliceTranslator implements IAnnotationTranslator {
+class SliceTranslator implements AnnotationTranslator {
 
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {

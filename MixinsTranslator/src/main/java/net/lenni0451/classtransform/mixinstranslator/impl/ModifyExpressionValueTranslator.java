@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.AnnotationNode;
 
 import java.util.Map;
 
-public class ModifyExpressionValueTranslator implements IAnnotationTranslator {
+public class ModifyExpressionValueTranslator implements AnnotationTranslator {
 
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {

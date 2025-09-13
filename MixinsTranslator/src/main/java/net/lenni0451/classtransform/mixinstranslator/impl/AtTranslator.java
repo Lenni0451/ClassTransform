@@ -10,7 +10,7 @@ import java.util.Map;
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
 @ParametersAreNonnullByDefault
-class AtTranslator implements IAnnotationTranslator {
+class AtTranslator implements AnnotationTranslator {
 
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {

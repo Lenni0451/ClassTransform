@@ -1,7 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
+import net.lenni0451.classtransform.mixinstranslator.impl.AnnotationTranslator;
 import net.lenni0451.classtransform.mixinstranslator.impl.AnnotationTranslatorManager;
-import net.lenni0451.classtransform.mixinstranslator.impl.IAnnotationTranslator;
 import net.lenni0451.classtransform.transformer.IAnnotationHandlerPreprocessor;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
@@ -51,7 +51,7 @@ public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
     private void translate(@Nullable final List<AnnotationNode> annotations) {
         if (annotations == null) return;
         for (AnnotationNode annotation : annotations) {
-            IAnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
+            AnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
             if (translator != null) {
                 Map<String, Object> values = AnnotationUtils.listToMap(annotation.values);
                 translator.translate(annotation, values);

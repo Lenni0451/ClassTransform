@@ -1,53 +1,45 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.Share;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CShared;
 import net.lenni0451.classtransform.annotations.injection.COverride;
 import org.objectweb.asm.Type;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
 public class AnnotationTranslatorManager {
 
-    private static final Map<String, IAnnotationTranslator> ANNOTATION_TRANSLATOR = new HashMap<>();
+    private static final Map<Type, AnnotationTranslator> ANNOTATION_TRANSLATOR = new HashMap<>();
 
     static {
-        register(Mixin.class, new MixinTranslator());
-        register(Inject.class, new InjectTranslator());
-        register(Redirect.class, new RedirectTranslator());
-        register(ModifyConstant.class, new ModifyConstantTranslator());
-        register(Overwrite.class, COverride.class);
-        register(At.class, new AtTranslator());
-        register(Shadow.class, CShadow.class);
-        register(Slice.class, new SliceTranslator());
-        register(Share.class, CShared.class);
-        register(Local.class, new LocalTranslator());
-        register(com.llamalad7.mixinextras.injector.WrapWithCondition.class, new WrapWithConditionTranslator());
-        register(com.llamalad7.mixinextras.injector.v2.WrapWithCondition.class, new WrapWithConditionTranslator());
-        register(ModifyExpressionValue.class, new ModifyExpressionValueTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/Mixin;"), new MixinTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Inject;"), new InjectTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Redirect;"), new RedirectTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyConstant;"), new ModifyConstantTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/Overwrite;"), Type.getType(COverride.class));
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/At;"), new AtTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/Shadow;"), Type.getType(CShadow.class));
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Slice;"), new SliceTranslator());
+        register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Share;"), Type.getType(CShared.class));
+        register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Local;"), new LocalTranslator());
+        register(Type.getType("Lcom/llamalad7/mixinextras/injector/WrapWithCondition;"), new WrapWithConditionTranslator());
+        register(Type.getType("Lcom/llamalad7/mixinextras/injector/v2/WrapWithCondition;"), new WrapWithConditionTranslator());
+        register(Type.getType("Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;"), new ModifyExpressionValueTranslator());
     }
 
-    private static void register(final Class<? extends Annotation> from, final Class<? extends Annotation> to) {
-        register(from, (annotation, values) -> annotation.desc = Type.getDescriptor(to));
+    private static void register(final Type from, final Type to) {
+        register(from, (annotation, values) -> annotation.desc = to.getDescriptor());
     }
 
-    private static void register(final Class<? extends Annotation> clazz, final IAnnotationTranslator translator) {
-        ANNOTATION_TRANSLATOR.put(clazz.getName(), translator);
+    private static void register(final Type type, final AnnotationTranslator translator) {
+        ANNOTATION_TRANSLATOR.put(type, translator);
     }
 
-    public static IAnnotationTranslator getTranslator(final Type type) {
-        return ANNOTATION_TRANSLATOR.get(type.getClassName());
+    public static AnnotationTranslator getTranslator(final Type type) {
+        return ANNOTATION_TRANSLATOR.get(type);
     }
 
 }

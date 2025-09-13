@@ -7,16 +7,14 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 class CallbackRewriter {
 
-    private static final Type CALLBACK_INFO = Type.getType(CallbackInfo.class);
-    private static final Type CALLBACK_INFO_RETURNABLE = Type.getType(CallbackInfoReturnable.class);
+    private static final Type CALLBACK_INFO = Type.getType("Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;");
+    private static final Type CALLBACK_INFO_RETURNABLE = Type.getType("Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;");
     private static final Type INJECTION_CALLBACK = Type.getType(InjectionCallback.class);
 
     static void rewrite(final MethodNode methodNode) {
