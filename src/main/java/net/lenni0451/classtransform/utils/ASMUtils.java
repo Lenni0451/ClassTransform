@@ -25,8 +25,10 @@ import static net.lenni0451.classtransform.utils.Types.*;
 @ParametersAreNonnullByDefault
 public class ASMUtils {
 
-    public static final String METHOD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
-    public static final String FIELD_DECLARATION_PATTERN = "^(?>L([^;]+);|([^.]+)\\.)([^(]+):(.+)$";
+    public static final String METHOD_DECLARATION_REGEX = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
+    public static final String FIELD_DECLARATION_REGEX = "^(?>L([^;]+);|([^.]+)\\.)([^(]+):(.+)$";
+    public static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile(METHOD_DECLARATION_REGEX);
+    public static final Pattern FIELD_DECLARATION_PATTERN = Pattern.compile(FIELD_DECLARATION_REGEX);
 
     /**
      * Get a class node from the raw bytecode of a class.
@@ -192,8 +194,9 @@ public class ASMUtils {
             if (method != null) methods.add(method);
         } else {
             String regex = combiToRegex(combi);
+            Pattern pattern = Pattern.compile(regex);
             for (MethodNode method : classNode.methods) {
-                if (method.name.matches(regex)) methods.add(method);
+                if (pattern.matcher(method.name).matches()) methods.add(method);
             }
             if (methods.size() > 1 && methods.stream().anyMatch(method -> (method.access & Opcodes.ACC_SYNTHETIC) == 0)) {
                 methods.removeIf(method -> (method.access & Opcodes.ACC_SYNTHETIC) != 0);
@@ -221,8 +224,9 @@ public class ASMUtils {
             if (field != null) fields.add(field);
         } else {
             String regex = combiToRegex(combi);
+            Pattern pattern = Pattern.compile(regex);
             for (FieldNode field : classNode.fields) {
-                if (field.name.matches(regex)) fields.add(field);
+                if (pattern.matcher(field.name).matches()) fields.add(field);
             }
         }
         return fields;
@@ -467,12 +471,14 @@ public class ASMUtils {
      */
     @Nullable
     public static MemberDeclaration splitMemberDeclaration(final String memberDeclaration) {
-        if (memberDeclaration.matches(METHOD_DECLARATION_PATTERN)) {
-            Matcher matcher = Pattern.compile(METHOD_DECLARATION_PATTERN).matcher(memberDeclaration);
-            if (matcher.find()) return new MemberDeclaration(matcher.group(1) == null ? matcher.group(2) : matcher.group(1), matcher.group(3), matcher.group(4));
-        } else if (memberDeclaration.matches(FIELD_DECLARATION_PATTERN)) {
-            Matcher matcher = Pattern.compile(FIELD_DECLARATION_PATTERN).matcher(memberDeclaration);
-            if (matcher.find()) return new MemberDeclaration(matcher.group(1) == null ? matcher.group(2) : matcher.group(1), matcher.group(3), matcher.group(4));
+        Matcher methodMatcher = METHOD_DECLARATION_PATTERN.matcher(memberDeclaration);
+        if (methodMatcher.matches()) {
+            if (methodMatcher.reset().find()) return new MemberDeclaration(methodMatcher.group(1) == null ? methodMatcher.group(2) : methodMatcher.group(1), methodMatcher.group(3), methodMatcher.group(4));
+        } else {
+            Matcher fieldMatcher =  FIELD_DECLARATION_PATTERN.matcher(memberDeclaration);
+            if (fieldMatcher.matches()) {
+                if (fieldMatcher.reset().find()) return new MemberDeclaration(fieldMatcher.group(1) == null ? fieldMatcher.group(2) : fieldMatcher.group(1), fieldMatcher.group(3), fieldMatcher.group(4));
+            }
         }
         return null;
     }

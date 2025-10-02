@@ -35,7 +35,7 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
     public final void transform(T annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         for (String targetCombi : this.targetCombis.apply(annotation)) {
             if (targetCombi.isEmpty()) throw new TransformerException(transformerMethod, transformer, "Target is empty");
-            if (targetCombi.matches(ASMUtils.METHOD_DECLARATION_PATTERN)) {
+            if (ASMUtils.METHOD_DECLARATION_PATTERN.matcher(targetCombi).matches()) {
                 MemberDeclaration declaration = ASMUtils.splitMemberDeclaration(targetCombi);
                 if (declaration == null) throw new TransformerException(transformerMethod, transformer, "Target is not a valid method declaration");
                 if (!transformedClass.name.equals(declaration.getOwner())) continue;
