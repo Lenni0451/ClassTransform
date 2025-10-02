@@ -473,11 +473,15 @@ public class ASMUtils {
     public static MemberDeclaration splitMemberDeclaration(final String memberDeclaration) {
         Matcher methodMatcher = METHOD_DECLARATION_PATTERN.matcher(memberDeclaration);
         if (methodMatcher.matches()) {
-            if (methodMatcher.reset().find()) return new MemberDeclaration(methodMatcher.group(1) == null ? methodMatcher.group(2) : methodMatcher.group(1), methodMatcher.group(3), methodMatcher.group(4));
+            if (methodMatcher.reset().find()) {
+                return new MemberDeclaration(methodMatcher.group(1) == null ? methodMatcher.group(2) : methodMatcher.group(1), methodMatcher.group(3), methodMatcher.group(4));
+            }
         } else {
-            Matcher fieldMatcher =  FIELD_DECLARATION_PATTERN.matcher(memberDeclaration);
+            Matcher fieldMatcher = FIELD_DECLARATION_PATTERN.matcher(memberDeclaration);
             if (fieldMatcher.matches()) {
-                if (fieldMatcher.reset().find()) return new MemberDeclaration(fieldMatcher.group(1) == null ? fieldMatcher.group(2) : fieldMatcher.group(1), fieldMatcher.group(3), fieldMatcher.group(4));
+                if (fieldMatcher.reset().find()) {
+                    return new MemberDeclaration(fieldMatcher.group(1) == null ? fieldMatcher.group(2) : fieldMatcher.group(1), fieldMatcher.group(3), fieldMatcher.group(4));
+                }
             }
         }
         return null;
