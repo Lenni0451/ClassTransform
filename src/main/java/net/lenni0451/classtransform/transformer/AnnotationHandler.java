@@ -16,6 +16,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
@@ -24,6 +25,8 @@ import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
  */
 @ParametersAreNonnullByDefault
 public abstract class AnnotationHandler {
+
+    private static final Pattern ANGLE_BRACKET = Pattern.compile("[<>]");
 
     /**
      * Handle all annotations in the transformer class.
@@ -148,7 +151,8 @@ public abstract class AnnotationHandler {
     protected MethodNode renameAndCopy(final MethodNode injectionMethod, final MethodNode targetMethod, final ClassNode transformer, final ClassNode transformedClass, final String extra) {
         this.prepareForCopy(transformer, injectionMethod);
         int i = 0;
-        String baseName = injectionMethod.name + "$" + targetMethod.name.replaceAll("[<>]", "") + "$" + extra;
+        String targetName = ANGLE_BRACKET.matcher(targetMethod.name).replaceAll(""); // Make sure method name is valid when targeting <init> and <clinit>
+        String baseName = injectionMethod.name + "$" + targetName + "$" + extra;
         do {
             injectionMethod.name = baseName + i++;
         } while (this.hasMethod(transformedClass, injectionMethod.name));
