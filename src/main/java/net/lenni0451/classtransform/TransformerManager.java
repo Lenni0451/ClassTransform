@@ -342,7 +342,7 @@ public class TransformerManager implements ClassFileTransformer {
             try {
                 ClassNode classNode = ASMUtils.fromBytes(bytecode);
                 name = classNode.name;
-                Set<String> transformedClasses = this.addTransformer(classNode, !wildcard);
+                Set<String> transformedClasses = this.addTransformer(classNode, !wildcard, false);
                 if (!transformedClasses.isEmpty()) this.retransformClasses(transformedClasses);
                 else if (!wildcard) Logger.warn("Transformer '{}' does not transform any classes", name);
             } catch (Throwable e) {
@@ -374,6 +374,20 @@ public class TransformerManager implements ClassFileTransformer {
      * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation and {@code requireAnnotation} is {@code true}
      */
     public Set<String> addTransformer(ClassNode classNode, final boolean requireAnnotation) {
+        return this.addTransformer(classNode, requireAnnotation, false);
+    }
+
+    /**
+     * Add a {@link ClassNode} directly to the transformer list.<br>
+     * The class must still be annotated with {@link CTransformer}.
+     *
+     * @param classNode          The class node to add
+     * @param requireAnnotation  If an exception should be thrown if the class is missing the {@link CTransformer} annotation
+     * @param retransformClasses Whether to retransform classes after adding the transformer (if instrumentation is hooked)
+     * @return A set of all transformed classes
+     * @throws IllegalStateException If the class is missing the {@link CTransformer} annotation and {@code requireAnnotation} is {@code true}
+     */
+    public Set<String> addTransformer(ClassNode classNode, final boolean requireAnnotation, final boolean retransformClasses) {
         for (IAnnotationHandlerPreprocessor preprocessor : this.annotationHandlerPreprocessor) {
             preprocessor.process(classNode);
             classNode = preprocessor.replace(classNode);
@@ -402,6 +416,7 @@ public class TransformerManager implements ClassFileTransformer {
         String name = dot(classNode.name);
         this.registeredTransformer.add(name);
         if (this.hotswapClassLoader != null) this.hotswapClassLoader.defineHotswapClass(name);
+        if (!transformedClasses.isEmpty() && retransformClasses) this.retransformClasses(transformedClasses);
         return transformedClasses;
     }
 
