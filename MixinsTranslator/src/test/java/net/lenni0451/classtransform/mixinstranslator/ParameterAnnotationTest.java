@@ -5,8 +5,10 @@ import com.llamalad7.mixinextras.sugar.Share;
 import net.lenni0451.classtransform.annotations.CLocalVariable;
 import net.lenni0451.classtransform.annotations.CShared;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
+import net.lenni0451.classtransform.utils.tree.ClassTree;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static net.lenni0451.classtransform.utils.Types.methodDescriptor;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ParameterAnnotationTest {
@@ -62,6 +65,8 @@ public class ParameterAnnotationTest {
                 for (Class<? extends Annotation> to : testMarker.to()) {
                     AnnotationNode annotation = AnnotationUtils.findAnnotation(dummyClass, to).orElseThrow(() -> new AssertionError("Annotation not found after processing: " + to.getName()));
                     AnnotationNode expected = TestUtils.findParameterAnnotationNode(methodNode, i, to);
+                    assertDoesNotThrow(() -> AnnotationParser.parse(to, new ClassTree(), new BasicClassProvider(), AnnotationUtils.listToMap(annotation.values)));
+                    assertDoesNotThrow(() -> AnnotationParser.parse(to, new ClassTree(), new BasicClassProvider(), AnnotationUtils.listToMap(expected.values)));
                     TestUtils.compareAnnotations(annotation, expected);
                 }
             }

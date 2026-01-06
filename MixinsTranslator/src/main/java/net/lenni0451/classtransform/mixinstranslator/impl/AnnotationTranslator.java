@@ -44,15 +44,24 @@ public interface AnnotationTranslator {
     }
 
     default void move(final Map<String, Object> values, final String from, final String to) {
-        if (values.containsKey(from)) values.put(to, values.remove(from));
+        if (values.containsKey(from)) {
+            values.put(to, values.remove(from));
+        }
     }
 
     default <F, T> void map(final Map<String, Object> values, final String from, final String to, final Function<F, T> mapper) {
-        if (values.containsKey(from)) values.put(to, mapper.apply((F) values.remove(from)));
+        if (values.containsKey(from)) {
+            T mappedValue = mapper.apply((F) values.remove(from));
+            if (mappedValue != null) {
+                values.put(to, mappedValue);
+            }
+        }
     }
 
     default void move(final Map<String, Object> from, final Map<String, Object> to, final String key) {
-        if (from.containsKey(key)) to.put(key, from.remove(key));
+        if (from.containsKey(key)) {
+            to.put(key, from.remove(key));
+        }
     }
 
 }
