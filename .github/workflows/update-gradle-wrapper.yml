@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      
+        with:
+          persist-credentials: false
+
       - name: Make Gradle Wrapper Executable
         run: chmod +x gradlew
 
