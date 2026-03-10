@@ -16,6 +16,10 @@ public enum FailStrategy {
     /**
      * Exit the JVM.
      */
-    EXIT
+    EXIT,
+    /**
+     * Throw the error to the caller.
+     */
+    THROW
 
 }

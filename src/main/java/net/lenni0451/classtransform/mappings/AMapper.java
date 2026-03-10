@@ -8,6 +8,7 @@ import net.lenni0451.classtransform.mappings.dynamic.IDynamicRemapper;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
+import net.lenni0451.classtransform.utils.Sneaky;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.log.Logger;
 import net.lenni0451.classtransform.utils.mappings.MapRemapper;
@@ -182,6 +183,8 @@ public abstract class AMapper {
                 throw new RuntimeException("Unable to fill super mappings for class '" + transformer.name + "'", t);
             } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
                 System.exit(-1);
+            } else if (FailStrategy.THROW.equals(this.config.superMappingsFailStrategy)) {
+                Sneaky.sneakyThrow(t);
             }
         }
     }
@@ -197,6 +200,8 @@ public abstract class AMapper {
                 throw new RuntimeException("Unable to fill super mappings for class '" + className + "'", t);
             } else if (FailStrategy.EXIT.equals(this.config.superMappingsFailStrategy)) {
                 System.exit(-1);
+            } else if (FailStrategy.THROW.equals(this.config.superMappingsFailStrategy)) {
+                Sneaky.sneakyThrow(t);
             }
         }
     }

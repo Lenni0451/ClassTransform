@@ -2,7 +2,12 @@ publishing {
     repositories {
         maven {
             name = "AggregatingPublisher"
-            url = "http://127.0.0.1:8080/aggregate/maven"
+            url = "https://aggregatingpublisher.local.lenni0451.net/aggregate/maven"
+
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
+            }
         }
     }
 }

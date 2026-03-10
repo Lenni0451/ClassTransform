@@ -23,6 +23,7 @@ import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGene
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
+import net.lenni0451.classtransform.utils.Sneaky;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.log.Logger;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
@@ -519,6 +520,7 @@ public class TransformerManager implements ClassFileTransformer {
                         Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                         else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+                        else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
                     }
                     timings.end();
 
@@ -530,6 +532,7 @@ public class TransformerManager implements ClassFileTransformer {
                             Logger.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                             if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                             else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+                            else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
                         }
                         timings.end();
                     }
@@ -561,7 +564,9 @@ public class TransformerManager implements ClassFileTransformer {
             return transformedBytecode;
         } catch (Throwable t) {
             Logger.error("Failed to transform class '{}'", name, t);
-            if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+            if (FailStrategy.CONTINUE.equals(this.failStrategy)) return null;
+            else if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
+            else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
             throw t;
         } finally {
             this.getDebugger().addTimings(name, timings.getTimings());
@@ -616,6 +621,7 @@ public class TransformerManager implements ClassFileTransformer {
                 } catch (Throwable t) {
                     Logger.error("Failed to retransform classes '{}'", classes.stream().map(Class::getName).collect(Collectors.joining(", ")), t);
                     if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+                    else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
                 }
             }
         }
@@ -660,6 +666,7 @@ public class TransformerManager implements ClassFileTransformer {
         } catch (Throwable t) {
             Logger.error("Failed to transform class '{}'", className, t);
             if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+            else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
         }
         return null;
     }
