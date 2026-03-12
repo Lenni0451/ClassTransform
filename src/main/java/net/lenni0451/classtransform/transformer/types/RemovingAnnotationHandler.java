@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.transformer.types;
 
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.AnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.tree.ClassNode;
@@ -35,7 +36,13 @@ public abstract class RemovingAnnotationHandler<T extends Annotation> extends An
             if (!this.shouldExecute(annotation)) continue;
             it.remove();
 
-            this.transform(annotation, transformerManager, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod));
+            try {
+                this.transform(annotation, transformerManager, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod));
+            } catch (TransformerException e) {
+                throw e.targetClass(transformedClass.name);
+            } catch (Throwable t) {
+                throw new TransformerException(transformerMethod, transformer, "failed when targeting class '" + transformedClass.name + "'").cause(t);
+            }
         }
     }
 

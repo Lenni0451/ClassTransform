@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.coprocessor.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CLocalVariable;
+import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.CoprocessorUtils;
@@ -43,7 +44,7 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
         if (this.parameters == null) return;
         ASMUtils.addParameters(transformerMethod, Types.type(Object[].class)); //Add the object array parameter again
 
-        LocalVariable[] localVariables = this.getLocalVariables(transformerManager, transformedMethod);
+        LocalVariable[] localVariables = this.getLocalVariables(transformerManager, transformer, transformerMethod, transformedMethod);
         int targetArrayIndex = ASMUtils.getFreeVarIndex(transformedMethod);
         InsnList before = new InsnList();
         InsnList after = new InsnList();
@@ -87,7 +88,7 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
         }
     }
 
-    private LocalVariable[] getLocalVariables(final TransformerManager transformerManager, final MethodNode methodNode) {
+    private LocalVariable[] getLocalVariables(final TransformerManager transformerManager, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode methodNode) {
         List<LocalVariable> localVariables = new ArrayList<>();
         for (CoprocessorUtils.AnnotatedParameter parameter : this.parameters) {
             if (parameter == null) continue;
@@ -102,14 +103,17 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
             if (nameSet || (!ordinalSet && !indexSet && parameter.getName() != null)) {
                 String name = nameSet ? annotation.name() : parameter.getName(); //Use the given name or the original parameter name
                 if (methodNode.localVariables == null) {
-                    //If no local variable table is present, we can't get the index by name
-                    //Only throw an exception if the index was not set manually
-                    if (!indexSet) throw new IllegalStateException("Local variables are not available to get the index by name");
+                    // If no local variable table is present, we can't get the index by name
+                    // Only throw an exception if the index was not set manually
+                    if (!indexSet) {
+                        throw new TransformerException(transformerMethod, transformer, "can not get the local variable index by name because no local variable table is present")
+                                .help("Compile the target class with debug information or specify the index/ordinal manually");
+                    }
                 } else {
-                    //Try to get the index by name
+                    // Try to get the index by name
                     for (LocalVariableNode localVariable : methodNode.localVariables) {
                         if (localVariable.name.equals(name)) {
-                            //Found the local variable
+                            // Found the local variable
                             variableIndex = localVariable.index;
                             break;
                         }
@@ -118,11 +122,14 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
             }
             if (ordinalSet && variableIndex == null) {
                 if (methodNode.localVariables == null) {
-                    //If no local variable table is present, we can't get the index by ordinal
-                    //Only throw an exception if the index was not set manually
-                    if (!indexSet) throw new IllegalStateException("Local variables are not available to get the index by ordinal");
+                    // If no local variable table is present, we can't get the index by ordinal
+                    // Only throw an exception if the index was not set manually
+                    if (!indexSet) {
+                        throw new TransformerException(transformerMethod, transformer, "can not get the local variable index by ordinal because no local variable table is present")
+                                .help("Compile the target class with debug information or specify the index/ordinal manually");
+                    }
                 } else {
-                    //Try to get the index by ordinal
+                    // Try to get the index by ordinal
                     int ordinal = annotation.ordinal();
                     int i = 0;
                     for (LocalVariableNode localVariable : methodNode.localVariables) {
@@ -136,8 +143,14 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
                     }
                 }
             }
-            if (indexSet && variableIndex == null) variableIndex = annotation.index(); //The index was set manually (and the name was not found/set)
-            if (variableIndex == null) throw new IllegalArgumentException("No index, ordinal or name was set for annotated parameter " + parameter.getAnnotationIndex());
+            if (indexSet && variableIndex == null) {
+                // The index was set manually (and the name was not found/set)
+                variableIndex = annotation.index();
+            }
+            if (variableIndex == null) {
+                throw new TransformerException(transformerMethod, transformer, "does not have an index, ordinal or name set for annotated parameter " + parameter.getAnnotationIndex())
+                        .help("e.g. @CLocalVariable(index = 1)");
+            }
 
             Type variableType = null;
             if (parsedAnnotation.wasSet("loadOpcode")) {
@@ -153,18 +166,23 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
                         if (variableType == null) {
                             variableType = opcodeType;
                         } else if (!opcodeType.equals(variableType)) {
-                            throw new IllegalStateException("Local variable " + variableIndex + " has multiple types. Please specify the correct opcode.");
+                            throw new TransformerException(transformerMethod, transformer, "accesses local variable " + variableIndex + " which has multiple types")
+                                    .help("Specify the load opcode manually, e.g. @CLocalVariable(loadOpcode = Opcodes.ALOAD)");
                         }
                     } else if (instruction instanceof IincInsnNode && ((IincInsnNode) instruction).var == variableIndex) {
                         //IInc instructions are always int
                         if (variableType == null) {
                             variableType = Type.INT_TYPE;
                         } else if (!Type.INT_TYPE.equals(variableType)) {
-                            throw new IllegalStateException("Local variable " + variableIndex + " has multiple types. Please specify the correct opcode.");
+                            throw new TransformerException(transformerMethod, transformer, "accesses local variable " + variableIndex + " which has multiple types")
+                                    .help("Specify the load opcode manually, e.g. @CLocalVariable(loadOpcode = Opcodes.ILOAD)");
                         }
                     }
                 }
-                if (variableType == null) throw new IllegalStateException("Local variable " + variableIndex + " could not be resolved");
+                if (variableType == null) {
+                    throw new TransformerException(transformerMethod, transformer, "accesses local variable " + variableIndex + " but its type could not be found")
+                            .help("Specify the load opcode manually, e.g. @CLocalVariable(loadOpcode = Opcodes.ALOAD)");
+                }
             }
 
             //Index and type have been resolved

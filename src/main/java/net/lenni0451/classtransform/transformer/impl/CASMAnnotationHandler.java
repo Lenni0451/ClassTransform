@@ -53,7 +53,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                 isolatedMethod.setAccessible(true);
                 isolatedMethod.invoke(instance, transformedClass);
             } catch (Throwable t) {
-                throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (ClassNode)").setCause(t);
+                throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (ClassNode)").cause(t);
             }
         } else {
             if (args.length != 1 || !type(MethodNode.class).equals(args[0])) throw TransformerException.wrongArguments(transformerMethod, transformer, MethodNode.class);
@@ -69,7 +69,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                         isolatedMethod.setAccessible(true);
                         isolatedMethod.invoke(instance, target);
                     } catch (Throwable t) {
-                        throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (MethodNode)").setCause(t);
+                        throw new TransformerException(transformerMethod, transformer, "failed to call isolated method (MethodNode)").cause(t);
                     }
                 }
             }
@@ -139,7 +139,7 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
             //No need to calculate stack map frames because the compiler already did that for us
             return ClassDefiner.defineAnonymousClass(ASMUtils.toStacklessBytes(classNode));
         } catch (Throwable t) {
-            throw new IllegalStateException("Failed to isolate method '" + transformerMethod.name + "' of transformer '" + transformer.name + "'", t);
+            throw new TransformerException(transformerMethod, transformer, "failed to isolate method").cause(t);
         }
     }
 

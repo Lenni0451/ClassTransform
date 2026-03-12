@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CASM;
+import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -48,7 +49,7 @@ class CASMAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Throw if using invalid operations")
     public void throwIfUsingInvalidOperations(final String transformerName) {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CASMAnnotationHandlerTest$" + transformerName);
-        assertThrows(IllegalStateException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
+        assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
     }
 
 

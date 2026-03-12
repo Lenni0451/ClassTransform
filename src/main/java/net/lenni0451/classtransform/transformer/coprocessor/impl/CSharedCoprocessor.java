@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.coprocessor.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CShared;
+import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.CoprocessorUtils;
@@ -43,7 +44,7 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
         ASMUtils.addParameters(transformerMethod, Types.type(Object[].class)); //Add the object array parameter again
 
         SharedVariableAttribute attribute = this.getAttribute(transformedMethod);
-        ParsedSharedVariable[] parsedSharedVariables = this.initializeSharedVariables(transformerManager, transformer, attribute, transformedMethod);
+        ParsedSharedVariable[] parsedSharedVariables = this.initializeSharedVariables(transformerManager, transformer, transformerMethod, attribute, transformedMethod);
         int targetArrayIndex = ASMUtils.getFreeVarIndex(transformedMethod);
         InsnList before = new InsnList();
         InsnList after = new InsnList();
@@ -113,7 +114,7 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
         return attribute;
     }
 
-    private ParsedSharedVariable[] initializeSharedVariables(final TransformerManager transformerManager, final ClassNode transformer, final SharedVariableAttribute attribute, final MethodNode transformedMethod) {
+    private ParsedSharedVariable[] initializeSharedVariables(final TransformerManager transformerManager, final ClassNode transformer, final MethodNode transformerMethod, final SharedVariableAttribute attribute, final MethodNode transformedMethod) {
         List<ParsedSharedVariable> parsedSharedVariables = new ArrayList<>();
         for (CoprocessorUtils.AnnotatedParameter parameter : this.parameters) {
             if (parameter == null) continue;
@@ -122,12 +123,12 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
             if (sharedVariable == null) {
                 //The shared variable with this name is not yet initialized
                 sharedVariable = attribute.addVariable(transformer.name, annotation.value(), ASMUtils.getFreeVarIndex(transformedMethod), parameter.getType(), annotation.global());
-                transformedMethod.instructions.insert(this.getDefaultInstructions(parameter.getType(), sharedVariable.getVariableIndex()));
+                transformedMethod.instructions.insert(this.getDefaultInstructions(transformer, transformerMethod, parameter.getType(), sharedVariable.getVariableIndex()));
             } else {
                 //The shared variable with this name is already initialized
                 //Compare the types to ensure that the shared variable is not used with the wrong type
                 if (!ASMUtils.compareType(sharedVariable.getType(), parameter.getType())) {
-                    throw new IllegalArgumentException("Shared variable '" + annotation.value() + "' has the wrong type: " + parameter.getType() + " != " + sharedVariable.getType());
+                    throw new TransformerException(transformerMethod, transformer, "uses shared variable '" + annotation.value() + "' with the wrong type (" + parameter.getType() + " != " + sharedVariable.getType() + ")");
                 }
             }
             parsedSharedVariables.add(new ParsedSharedVariable(parameter, sharedVariable));
@@ -135,7 +136,7 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
         return parsedSharedVariables.toArray(new ParsedSharedVariable[0]);
     }
 
-    private InsnList getDefaultInstructions(final Type type, final int index) {
+    private InsnList getDefaultInstructions(final ClassNode transformer, final MethodNode transformerMethod, final Type type, final int index) {
         InsnList insns = new InsnList();
         switch (type.getSort()) {
             case Type.BOOLEAN:
@@ -158,9 +159,8 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
             case Type.OBJECT:
                 insns.add(new InsnNode(Opcodes.ACONST_NULL));
                 break;
-
             default:
-                throw new IllegalArgumentException("Unknown type: " + type);
+                throw new TransformerException(transformerMethod, transformer, "uses an unknown type: " + type);
         }
         insns.add(new VarInsnNode(type.getOpcode(Opcodes.ISTORE), index));
         return insns;

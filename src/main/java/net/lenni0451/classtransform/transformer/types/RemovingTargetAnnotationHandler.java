@@ -48,7 +48,11 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
                 try {
                     this.transform(annotation, transformerManager, transformedClass, transformer, ASMUtils.cloneMethod(transformerMethod), target);
                 } catch (SliceException e) {
-                    throw new TransformerException(transformerMethod, transformer, "- " + e.getMessage());
+                    throw new TransformerException(transformerMethod, transformer, "- " + e.getMessage()).targetClass(transformedClass.name).targetMethod(target);
+                } catch (TransformerException e) {
+                    throw e.targetClass(transformedClass.name).targetMethod(target);
+                } catch (Throwable t) {
+                    throw new TransformerException(transformerMethod, transformer, "failed").targetClass(transformedClass.name).targetMethod(target).cause(t);
                 }
             }
         }

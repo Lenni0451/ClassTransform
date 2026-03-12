@@ -65,6 +65,8 @@ public class TransformerException extends RuntimeException {
     private final String state;
 
     private String help;
+    private String targetClass;
+    private String targetMember;
 
     public TransformerException(final FieldNode field, final ClassNode transformer, final String state) {
         this.memberType = "Field";
@@ -80,7 +82,7 @@ public class TransformerException extends RuntimeException {
         this.state = state;
     }
 
-    public TransformerException setCause(final Throwable cause) {
+    public TransformerException cause(final Throwable cause) {
         this.initCause(cause);
         return this;
     }
@@ -94,9 +96,28 @@ public class TransformerException extends RuntimeException {
         return this;
     }
 
+    public TransformerException targetClass(final String targetClass) {
+        this.targetClass = targetClass;
+        return this;
+    }
+
+    public TransformerException targetMethod(final MethodNode targetMethod) {
+        this.targetMember = "method '" + targetMethod.name + targetMethod.desc + "'";
+        return this;
+    }
+
+    public TransformerException targetField(final FieldNode targetField) {
+        this.targetMember = "field '" + targetField.name + ":" + targetField.desc + "'";
+        return this;
+    }
+
     @Override
     public String getMessage() {
         String message = this.memberType + " '" + this.memberNameAndDesc + "' in transformer '" + this.transformerName + "' " + this.state;
+        if (this.targetClass != null) {
+            message += " when targeting class '" + this.targetClass + "'";
+            if (this.targetMember != null) message += " and " + this.targetMember;
+        }
         if (this.help != null) message += ": " + this.help;
         return message;
     }
