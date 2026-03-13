@@ -521,7 +521,7 @@ public class TransformerManager implements ClassFileTransformer {
                         Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                         else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
-                        else if (FailStrategy.THROW.equals(this.failStrategy)) throw t;
+                        else if (FailStrategy.THROW.equals(this.failStrategy)) throw new AlreadyLoggedException(t);
                     }
                     timings.end();
 
@@ -534,7 +534,7 @@ public class TransformerManager implements ClassFileTransformer {
                             Logger.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                             if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                             else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
-                            else if (FailStrategy.THROW.equals(this.failStrategy)) throw t;
+                            else if (FailStrategy.THROW.equals(this.failStrategy)) throw new AlreadyLoggedException(t);
                         }
                         timings.end();
                     }
@@ -564,6 +564,9 @@ public class TransformerManager implements ClassFileTransformer {
                 }
             }
             return transformedBytecode;
+        } catch (AlreadyLoggedException e) {
+            Sneaky.sneakyThrow(e.getCause());
+            throw null;
         } catch (Throwable t) {
             this.dumpInputClass(name, bytecode);
             Logger.error("Failed to transform class '{}'", name, t);
@@ -684,6 +687,13 @@ public class TransformerManager implements ClassFileTransformer {
             else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
         }
         return null;
+    }
+
+
+    private static class AlreadyLoggedException extends Exception {
+        public AlreadyLoggedException(final Throwable cause) {
+            super(cause);
+        }
     }
 
 }
