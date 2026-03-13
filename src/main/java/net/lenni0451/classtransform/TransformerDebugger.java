@@ -14,6 +14,7 @@ public class TransformerDebugger {
     private final TransformerManager transformerManager;
     private final Map<String, Map<TimedTransformer, Integer>> timings;
     private boolean dumpClasses = System.getProperty("classtransform.dumpClasses") != null;
+    private boolean dumpClassOnFailure = System.getProperty("classtransform.dumpClassesOnFailure") != null;
 
     TransformerDebugger(final TransformerManager transformerManager) {
         this.transformerManager = transformerManager;
@@ -65,6 +66,23 @@ public class TransformerDebugger {
      */
     public boolean isDumpClasses() {
         return this.dumpClasses;
+    }
+
+    /**
+     * Enable or disable dumping of input classes on failure.<br>
+     * This is enabled by default if the system property {@code classtransform.dumpClassesOnFailure} is set.
+     *
+     * @param dumpClassOnFailure If classes should be dumped on failure
+     */
+    public void setDumpClassOnFailure(final boolean dumpClassOnFailure) {
+        this.dumpClassOnFailure = dumpClassOnFailure;
+    }
+
+    /**
+     * @return If input classes should be dumped on failure
+     */
+    public boolean isDumpClassOnFailure() {
+        return this.dumpClassOnFailure;
     }
 
     /**

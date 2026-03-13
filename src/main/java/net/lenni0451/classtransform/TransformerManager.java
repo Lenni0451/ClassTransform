@@ -517,10 +517,11 @@ public class TransformerManager implements ClassFileTransformer {
                         classNode = ASMUtils.cloneClass(classNode);
                         classNode = this.mapper.mapClass(this.classTree, this.classProvider, clazz, classNode);
                     } catch (Throwable t) {
+                        this.dumpInputClass(name, bytecode);
                         Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
                         if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                         else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
-                        else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
+                        else if (FailStrategy.THROW.equals(this.failStrategy)) throw t;
                     }
                     timings.end();
 
@@ -529,10 +530,11 @@ public class TransformerManager implements ClassFileTransformer {
                         try {
                             annotationHandler.transform(this, clazz, classNode);
                         } catch (Throwable t) {
+                            this.dumpInputClass(name, bytecode);
                             Logger.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
                             if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
                             else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
-                            else if (FailStrategy.THROW.equals(this.failStrategy)) Sneaky.sneakyThrow(t);
+                            else if (FailStrategy.THROW.equals(this.failStrategy)) throw t;
                         }
                         timings.end();
                     }
@@ -563,6 +565,7 @@ public class TransformerManager implements ClassFileTransformer {
             }
             return transformedBytecode;
         } catch (Throwable t) {
+            this.dumpInputClass(name, bytecode);
             Logger.error("Failed to transform class '{}'", name, t);
             if (FailStrategy.CONTINUE.equals(this.failStrategy)) return null;
             else if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
@@ -570,6 +573,18 @@ public class TransformerManager implements ClassFileTransformer {
             throw t;
         } finally {
             this.getDebugger().addTimings(name, timings.getTimings());
+        }
+    }
+
+    private void dumpInputClass(final String name, final byte[] inputClass) {
+        if (this.debugger.isDumpClassOnFailure()) {
+            try {
+                Path path = Paths.get(".", ".classtransform", "input_dump", name.replace(".", FileSystems.getDefault().getSeparator()) + ".class");
+                Files.createDirectories(path.getParent());
+                Files.write(path, inputClass);
+            } catch (Throwable t2) {
+                Logger.error("Failed to dump input class '{}'", name, t2);
+            }
         }
     }
 
