@@ -1,5 +1,5 @@
 [versions]
-asm = "9.9.1"
+asm = "9.10"
 
 [libraries]
 findbugs = { module = "com.google.code.findbugs:jsr305", version = "3.0.2" }
