@@ -132,10 +132,10 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
                     // Try to get the index by ordinal
                     int ordinal = annotation.ordinal();
                     int i = 0;
-                    for (LocalVariableNode localVariable : methodNode.localVariables) {
+                    for (LocalVariableNode localVariable : methodNode.localVariables.stream().sorted(Comparator.comparingInt(o -> o.index)).toArray(LocalVariableNode[]::new)) {
                         if (!localVariable.desc.equals(parameter.getType().getDescriptor())) continue;
                         if (i == ordinal) {
-                            //Found the local variable
+                            // Found the local variable
                             variableIndex = localVariable.index;
                             break;
                         }
