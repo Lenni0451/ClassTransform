@@ -306,7 +306,8 @@ public class MapRemapper extends Remapper {
             }
         }
         reverseRemapper.reverse = this;
-        return this.reverse = reverseRemapper;
+        this.reverse = reverseRemapper;
+        return reverseRemapper;
     }
 
 }

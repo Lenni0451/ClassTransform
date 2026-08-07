@@ -44,7 +44,7 @@ public class TestUtils {
                 compareObject(list.get(i), expectedList.get(i));
             }
         } else {
-//                System.out.println("Checking: " + entry.getKey() + " - " + value + " == " + expectedValue);
+            // System.out.println("Checking: " + entry.getKey() + " - " + value + " == " + expectedValue);
             assertEquals(expected, object);
         }
     }

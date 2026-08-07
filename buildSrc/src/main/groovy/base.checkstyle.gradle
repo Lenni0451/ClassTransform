@@ -3,7 +3,13 @@ plugins {
 }
 
 checkstyle {
-    toolVersion = project.checkstyle_version
+    toolVersion = "13.9.0"
     configFile = rootProject.file("config/checkstyle/checkstyle.xml")
 }
 build.dependsOn(check)
+
+tasks.withType(Checkstyle).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}

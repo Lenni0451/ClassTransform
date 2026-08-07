@@ -115,15 +115,15 @@ public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
                     if (bootstrapMethodHandle.getOwner().equals(internalName(LambdaMetafactory.class))) {
                         throw new IllegalStateException("CASM transformer can not access LambdaMetafactory");
 
-                        //LambdaMetaFactory can not access the anonymous class, so we sadly can't use it here
-//                        Handle handle = (Handle) bootstrapMethodArguments[1];
-//
-//                        if (!handle.getOwner().equals(transformer.name)) {
-//                            throw new IllegalStateException("CASM transformer lambda target class '" + handle.getOwner() + "' must be the same as the transformer class");
-//                        }
-//                        MethodNode method = ASMUtils.getMethod(transformer, handle.getName(), handle.getDesc());
-//                        if (method == null) throw new IllegalStateException("CASM transformer lambda target method '" + handle.getName() + "' not found");
-//                        methodsToCopy.add(method);
+                        // LambdaMetaFactory can not access the anonymous class, so we sadly can't use it here
+                        // Handle handle = (Handle) bootstrapMethodArguments[1];
+                        //
+                        // if (!handle.getOwner().equals(transformer.name)) {
+                        //     throw new IllegalStateException("CASM transformer lambda target class '" + handle.getOwner() + "' must be the same as the transformer class");
+                        // }
+                        // MethodNode method = ASMUtils.getMethod(transformer, handle.getName(), handle.getDesc());
+                        // if (method == null) throw new IllegalStateException("CASM transformer lambda target method '" + handle.getName() + "' not found");
+                        // methodsToCopy.add(method);
                     }
                 }
             };

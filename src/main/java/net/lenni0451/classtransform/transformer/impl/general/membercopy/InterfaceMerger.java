@@ -10,7 +10,10 @@ public class InterfaceMerger {
     public static void mergeInterfaces(final ClassNode transformedClass, final ClassNode transformer) {
         if (transformer.interfaces != null) {
             List<String> interfaces = transformedClass.interfaces;
-            if (interfaces == null) interfaces = transformedClass.interfaces = new ArrayList<>();
+            if (interfaces == null) {
+                interfaces = new ArrayList<>();
+                transformedClass.interfaces = interfaces;
+            }
             for (String anInterface : transformer.interfaces) {
                 if (!interfaces.contains(anInterface)) interfaces.add(anInterface);
             }
