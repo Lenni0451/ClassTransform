@@ -4,7 +4,7 @@ asm = "9.10.1"
 [libraries]
 findbugs = { module = "com.google.code.findbugs:jsr305", version = "3.0.2" }
 jetbrainsAnnotations = { module = "org.jetbrains:annotations", version = "26.1.0" }
-lombok = { module = "org.projectlombok:lombok", version = "1.18.46" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.48" }
 guava = { module = "com.google.guava:guava", version = "33.7.1-jre" }
 
 asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
