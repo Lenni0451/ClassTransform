@@ -17,6 +17,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -343,28 +344,46 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     private void visitArray(final MethodVisitor methodVisitor, final Class<?> arrayType, final Object value) {
+        final List<?> elements;
         if (value instanceof Object[]) {
-            Object[] array = (Object[]) value;
-            methodVisitor.visitIntInsn(Opcodes.BIPUSH, array.length);
-            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, internalName(arrayType));
-            for (int i = 0; i < array.length; i++) {
-                methodVisitor.visitInsn(Opcodes.DUP);
-                methodVisitor.visitLdcInsn(i);
-                this.visit(methodVisitor, arrayType, array[i]);
-                methodVisitor.visitInsn(Opcodes.AASTORE);
-            }
+            elements = Arrays.asList((Object[]) value);
         } else if (value instanceof List) {
-            List<?> array = (List<?>) value;
-            methodVisitor.visitIntInsn(Opcodes.BIPUSH, array.size());
-            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, internalName(arrayType));
-            for (int i = 0; i < array.size(); i++) {
-                methodVisitor.visitInsn(Opcodes.DUP);
-                methodVisitor.visitLdcInsn(i);
-                this.visit(methodVisitor, arrayType, array.get(i));
-                methodVisitor.visitInsn(Opcodes.AASTORE);
-            }
+            elements = (List<?>) value;
         } else {
             throw new IllegalArgumentException("Unexpected value class for type 'Array': " + value.getClass());
+        }
+        //primitive component types need NEWARRAY/<x>ASTORE, not
+        //ANEWARRAY/AASTORE — ASM decodes e.g. int[] members as
+        //List<Integer>, so AASTORE on int elements produced a
+        //VerifyError in the generated AnnotationWrapper
+        methodVisitor.visitIntInsn(Opcodes.BIPUSH, elements.size());
+        if (arrayType.isPrimitive()) {
+            methodVisitor.visitIntInsn(Opcodes.NEWARRAY, newArrayOperand(arrayType));
+        } else {
+            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, internalName(arrayType));
+        }
+        final int astore = type(arrayType).getOpcode(Opcodes.IASTORE);
+        for (int i = 0; i < elements.size(); i++) {
+            methodVisitor.visitInsn(Opcodes.DUP);
+            methodVisitor.visitLdcInsn(i);
+            this.visit(methodVisitor, arrayType, elements.get(i));
+            methodVisitor.visitInsn(astore);
+        }
+    }
+
+    //NEWARRAY operand for a primitive component type — Type.getOpcode
+    //doesn't map NEWARRAY
+    private int newArrayOperand(final Class<?> arrayType) {
+        switch (type(arrayType).getSort()) {
+            case Type.BOOLEAN: return Opcodes.T_BOOLEAN;
+            case Type.CHAR:    return Opcodes.T_CHAR;
+            case Type.BYTE:    return Opcodes.T_BYTE;
+            case Type.SHORT:   return Opcodes.T_SHORT;
+            case Type.INT:     return Opcodes.T_INT;
+            case Type.FLOAT:   return Opcodes.T_FLOAT;
+            case Type.LONG:    return Opcodes.T_LONG;
+            case Type.DOUBLE:  return Opcodes.T_DOUBLE;
+            default: throw new IllegalArgumentException("Not a primitive array component: " + arrayType);
         }
     }
 
