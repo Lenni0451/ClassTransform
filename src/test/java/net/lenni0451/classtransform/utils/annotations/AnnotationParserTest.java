@@ -1,10 +1,9 @@
 package net.lenni0451.classtransform.utils.annotations;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import net.lenni0451.classtransform.utils.tree.ClassTree;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -31,30 +30,17 @@ class AnnotationParserTest {
         assertEquals(true, map.get("test2"));
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    private @interface TestAnnotation {
-        int[] ints() default {};
-
-        long[] longs() default {};
-
-        String[] strings() default {};
-
-        int single() default 0;
-    }
-
     @Test
     @DisplayName("Parse annotation with primitive array members")
     public void parsePrimitiveArrayMembers() {
-        //ASM decodes int[] as List<Integer> — previously VerifyError
-        //in the generated AnnotationWrapper (ANEWARRAY/AASTORE on ints)
         Map<String, Object> values = new HashMap<>();
         values.put("ints", Arrays.asList(1, 2, 3));
         values.put("longs", Arrays.asList(4L, 5L));
         values.put("strings", Arrays.asList("a", "b"));
         values.put("single", 42);
 
-        TestAnnotation annotation = AnnotationParser.parse(
-                TestAnnotation.class,
+        ArrayAnnotation annotation = AnnotationParser.parse(
+                ArrayAnnotation.class,
                 new ClassTree(),
                 new BasicClassProvider(),
                 values);
@@ -77,6 +63,18 @@ class AnnotationParserTest {
         assertTrue(list.contains("test2"));
         assertTrue(list.contains(123));
         assertTrue(list.contains(true));
+    }
+
+
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface ArrayAnnotation {
+        int[] ints() default {};
+
+        long[] longs() default {};
+
+        String[] strings() default {};
+
+        int single() default 0;
     }
 
 }

@@ -16,11 +16,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
@@ -352,13 +348,14 @@ public class AnnotationParser<T extends Annotation> {
         } else {
             throw new IllegalArgumentException("Unexpected value class for type 'Array': " + value.getClass());
         }
-        //primitive component types need NEWARRAY/<x>ASTORE, not
-        //ANEWARRAY/AASTORE — ASM decodes e.g. int[] members as
-        //List<Integer>, so AASTORE on int elements produced a
-        //VerifyError in the generated AnnotationWrapper
+
+        // primitive component types need NEWARRAY/<x>ASTORE, not
+        // ANEWARRAY/AASTORE — ASM decodes e.g. int[] members as
+        // List<Integer>, so AASTORE on int elements produced a
+        // VerifyError in the generated AnnotationWrapper
         methodVisitor.visitIntInsn(Opcodes.BIPUSH, elements.size());
         if (arrayType.isPrimitive()) {
-            methodVisitor.visitIntInsn(Opcodes.NEWARRAY, newArrayOperand(arrayType));
+            methodVisitor.visitIntInsn(Opcodes.NEWARRAY, this.newArrayOperand(arrayType));
         } else {
             methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, internalName(arrayType));
         }
@@ -368,22 +365,6 @@ public class AnnotationParser<T extends Annotation> {
             methodVisitor.visitLdcInsn(i);
             this.visit(methodVisitor, arrayType, elements.get(i));
             methodVisitor.visitInsn(astore);
-        }
-    }
-
-    //NEWARRAY operand for a primitive component type — Type.getOpcode
-    //doesn't map NEWARRAY
-    private int newArrayOperand(final Class<?> arrayType) {
-        switch (type(arrayType).getSort()) {
-            case Type.BOOLEAN: return Opcodes.T_BOOLEAN;
-            case Type.CHAR:    return Opcodes.T_CHAR;
-            case Type.BYTE:    return Opcodes.T_BYTE;
-            case Type.SHORT:   return Opcodes.T_SHORT;
-            case Type.INT:     return Opcodes.T_INT;
-            case Type.FLOAT:   return Opcodes.T_FLOAT;
-            case Type.LONG:    return Opcodes.T_LONG;
-            case Type.DOUBLE:  return Opcodes.T_DOUBLE;
-            default: throw new IllegalArgumentException("Not a primitive array component: " + arrayType);
         }
     }
 
@@ -434,6 +415,29 @@ public class AnnotationParser<T extends Annotation> {
             methodVisitor.visitLdcInsn(typeOrClass);
         } else {
             throw new IllegalArgumentException("Unexpected type or class: " + typeOrClass);
+        }
+    }
+
+    private int newArrayOperand(final Class<?> arrayType) {
+        switch (type(arrayType).getSort()) {
+            case Type.BOOLEAN:
+                return Opcodes.T_BOOLEAN;
+            case Type.CHAR:
+                return Opcodes.T_CHAR;
+            case Type.BYTE:
+                return Opcodes.T_BYTE;
+            case Type.SHORT:
+                return Opcodes.T_SHORT;
+            case Type.INT:
+                return Opcodes.T_INT;
+            case Type.FLOAT:
+                return Opcodes.T_FLOAT;
+            case Type.LONG:
+                return Opcodes.T_LONG;
+            case Type.DOUBLE:
+                return Opcodes.T_DOUBLE;
+            default:
+                throw new IllegalArgumentException("Not a primitive array component: " + arrayType);
         }
     }
 
