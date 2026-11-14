@@ -12,10 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AnnotationNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
 
 import java.util.Arrays;
 
@@ -79,6 +78,42 @@ class CWrapConditionAnnotationHandlerTest {
     }
 
     @Test
+    public void wrapPoppedMethodResult() throws Exception {
+        Class<?> target = this.transform("popCall");
+        target.getField("calls").set(null, 0);
+        target.getMethod("popCall", boolean.class).invoke(null, false);
+        assertEquals(0, target.getField("calls").get(null));
+        assertEquals(1, target.getField("checks").get(null));
+
+        target.getField("calls").set(null, 0);
+        target.getMethod("popCall", boolean.class).invoke(null, true);
+        assertEquals(1, target.getField("calls").get(null));
+    }
+
+    @Test
+    public void wrapPoppedStaticFieldGetter() throws Exception {
+        ClassNode target = this.read(Target.class);
+        this.addFieldPops(target);
+        this.handler.transform(this.transformerManager, target, this.transformer("popField"));
+        Class<?> clazz = TestClassLoader.load(target);
+        assertDoesNotThrow(() -> clazz.getMethod("popField", boolean.class).invoke(null, true));
+        assertDoesNotThrow(() -> clazz.getMethod("popField", boolean.class).invoke(null, false));
+        assertEquals(2, clazz.getField("checks").get(null));
+    }
+
+    @Test
+    public void wrapPoppedInstanceFieldGetter() throws Exception {
+        ClassNode target = this.read(Target.class);
+        this.addFieldPops(target);
+        this.handler.transform(this.transformerManager, target, this.transformer("popInstanceField"));
+        Class<?> clazz = TestClassLoader.load(target);
+        Object instance = clazz.getConstructor().newInstance();
+        assertDoesNotThrow(() -> clazz.getMethod("popInstanceField", boolean.class).invoke(instance, true));
+        assertDoesNotThrow(() -> clazz.getMethod("popInstanceField", boolean.class).invoke(instance, false));
+        assertEquals(2, clazz.getField("checks").get(null));
+    }
+
+    @Test
     public void wrapMultipleTargets() throws Exception {
         Class<?> target = this.transform("multiple");
         assertEquals(2, target.getMethod("multiple").invoke(null));
@@ -138,6 +173,22 @@ class CWrapConditionAnnotationHandlerTest {
         return ASMUtils.fromBytes(this.classProvider.getClass(clazz.getName()));
     }
 
+    private void addFieldPops(final ClassNode target) {
+        String targetClass = TARGET.substring(1, TARGET.length() - 1);
+        MethodNode staticPop = new MethodNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "popField", "(Z)V", null, null);
+        staticPop.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, targetClass, "value", "J"));
+        staticPop.instructions.add(new InsnNode(Opcodes.POP2));
+        staticPop.instructions.add(new InsnNode(Opcodes.RETURN));
+        target.methods.add(staticPop);
+
+        MethodNode instancePop = new MethodNode(Opcodes.ACC_PUBLIC, "popInstanceField", "(Z)V", null, null);
+        instancePop.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        instancePop.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, targetClass, "instanceValue", "J"));
+        instancePop.instructions.add(new InsnNode(Opcodes.POP2));
+        instancePop.instructions.add(new InsnNode(Opcodes.RETURN));
+        target.methods.add(instancePop);
+    }
+
 
     public static class Target {
 
@@ -185,6 +236,15 @@ class CWrapConditionAnnotationHandlerTest {
             hit();
             otherHit();
             return calls;
+        }
+
+        public static void popCall(final boolean enabled) {
+            compute(enabled ? 1 : 0);
+        }
+
+        public static int compute(final int value) {
+            calls++;
+            return value;
         }
 
         public static void hit() {
@@ -281,6 +341,24 @@ class CWrapConditionAnnotationHandlerTest {
         @CWrapCondition(method = "allTypes", target = @CTarget(value = "INVOKE", target = TARGET + "consumeAll(ZBCSIFJDLjava/lang/Object;[I)V"))
         public static boolean allTypes(boolean flag, byte b, char c, short s, int i, float f, long l, double d, Object object, int[] array, boolean enabled) {
             return enabled && flag && b == 2 && c == 'a' && s == 3 && i == 4 && f == 5F && l == 6L && d == 7D && object != null && array[0] == 8;
+        }
+
+        @CWrapCondition(method = "popCall", target = @CTarget(value = "INVOKE", target = TARGET + "compute(I)I"))
+        public static boolean popCall(final int value, final boolean enabled) {
+            Target.checks++;
+            return enabled;
+        }
+
+        @CWrapCondition(method = "popField", target = @CTarget(value = "FIELD", target = TARGET + "value:J"))
+        public static boolean popField(final boolean enabled) {
+            Target.checks++;
+            return enabled;
+        }
+
+        @CWrapCondition(method = "popInstanceField", target = @CTarget(value = "GETFIELD", target = TARGET + "instanceValue:J"))
+        public boolean popInstanceField(final Target receiver, final boolean enabled) {
+            Target.checks++;
+            return receiver != null && enabled;
         }
 
     }

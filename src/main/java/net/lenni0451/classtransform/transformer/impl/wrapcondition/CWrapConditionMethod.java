@@ -16,6 +16,10 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
 
     @Override
     public MethodInsnNode inject(ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target, MethodInsnNode insnNode) {
+        return this.inject(transformedClass, transformer, transformerMethod, target, insnNode, false, Type.VOID_TYPE);
+    }
+
+    public MethodInsnNode inject(final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode target, final MethodInsnNode insnNode, final boolean pushDummy, final Type returnType) {
         boolean hasArgs = argumentTypes(transformerMethod).length > 0;
         Type[] argumentTypes = argumentTypes(insnNode.desc);
         boolean isStatic = insnNode.getOpcode() == Opcodes.INVOKESTATIC;
@@ -55,7 +59,17 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         for (int i = 0; i < argumentTypes.length; i++) insns.add(new VarInsnNode(argumentTypes[i].getOpcode(Opcodes.ILOAD), argIndices[i]));
 
         target.instructions.insertBefore(insnNode, insns);
-        target.instructions.insert(insnNode, end);
+        if (pushDummy) {
+            LabelNode after = new LabelNode();
+            InsnList afterInsns = new InsnList();
+            afterInsns.add(new JumpInsnNode(Opcodes.GOTO, after));
+            afterInsns.add(end);
+            afterInsns.add(ASMUtils.getDefaultValue(returnType));
+            afterInsns.add(after);
+            target.instructions.insert(insnNode, afterInsns);
+        } else {
+            target.instructions.insert(insnNode, end);
+        }
         return transformerCall;
     }
 

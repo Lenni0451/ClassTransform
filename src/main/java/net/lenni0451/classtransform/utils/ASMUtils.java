@@ -505,6 +505,31 @@ public class ASMUtils {
     }
 
     /**
+     * Get an instruction which pushes the default value of the given type.
+     *
+     * @param type The type
+     * @return The instruction
+     */
+    public static AbstractInsnNode getDefaultValue(final Type type) {
+        switch (type.getSort()) {
+            case Type.LONG:
+                return new InsnNode(Opcodes.LCONST_0);
+            case Type.FLOAT:
+                return new InsnNode(Opcodes.FCONST_0);
+            case Type.DOUBLE:
+                return new InsnNode(Opcodes.DCONST_0);
+            case Type.BOOLEAN:
+            case Type.BYTE:
+            case Type.CHAR:
+            case Type.SHORT:
+            case Type.INT:
+                return new InsnNode(Opcodes.ICONST_0);
+            default:
+                return new InsnNode(Opcodes.ACONST_NULL);
+        }
+    }
+
+    /**
      * Get a number from an insn node if it represents one.<br>
      * This also works for constants (e.g. {@link Opcodes#ICONST_0})
      *

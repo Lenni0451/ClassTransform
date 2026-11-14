@@ -8,9 +8,11 @@ import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditionField;
+import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditionFieldRead;
 import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditionMethod;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
+import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -33,6 +35,7 @@ import static net.lenni0451.classtransform.utils.Types.returnType;
 public class CWrapConditionAnnotationHandler extends InjectionAnnotationHandler<CWrapCondition> {
 
     private final CWrapConditionField wrapConditionField = new CWrapConditionField();
+    private final CWrapConditionFieldRead wrapConditionFieldRead = new CWrapConditionFieldRead();
     private final CWrapConditionMethod wrapConditionMethod = new CWrapConditionMethod();
 
     public CWrapConditionAnnotationHandler() {
@@ -62,23 +65,39 @@ public class CWrapConditionAnnotationHandler extends InjectionAnnotationHandler<
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         for (AbstractInsnNode targetInstruction : instructions) {
             if (targetInstruction instanceof FieldInsnNode) {
-                if (targetInstruction.getOpcode() != Opcodes.PUTSTATIC && targetInstruction.getOpcode() != Opcodes.PUTFIELD) {
-                    throw new TransformerException(transformerMethod, transformer, "target must be a field setter");
+                if (targetInstruction.getOpcode() == Opcodes.GETFIELD || targetInstruction.getOpcode() == Opcodes.GETSTATIC) {
+                    if (!this.isPoppedAfter(targetInstruction, Type.getType(((FieldInsnNode) targetInstruction).desc))) {
+                        throw new TransformerException(transformerMethod, transformer, "target field getter value must be immediately popped");
+                    }
+                    transformerMethodCalls.add(this.wrapConditionFieldRead.inject(transformedClass, transformer, copiedTransformerMethod, target, (FieldInsnNode) targetInstruction));
+                } else if (targetInstruction.getOpcode() == Opcodes.PUTSTATIC || targetInstruction.getOpcode() == Opcodes.PUTFIELD) {
+                    transformerMethodCalls.add(this.wrapConditionField.inject(transformedClass, transformer, copiedTransformerMethod, target, (FieldInsnNode) targetInstruction));
+                } else {
+                    throw new TransformerException(transformerMethod, transformer, "target must be a field setter or getter");
                 }
-                transformerMethodCalls.add(this.wrapConditionField.inject(transformedClass, transformer, copiedTransformerMethod, target, (FieldInsnNode) targetInstruction));
             } else if (targetInstruction instanceof MethodInsnNode) {
                 MethodInsnNode methodInsn = (MethodInsnNode) targetInstruction;
                 if (methodInsn.name.equals("<init>")) throw new TransformerException(transformerMethod, transformer, "target must not be a constructor invocation");
-                if (!returnType(methodInsn.desc).equals(Type.VOID_TYPE)) {
-                    throw new TransformerException(transformerMethod, transformer, "target method must have void as return type");
+                Type methodReturnType = returnType(methodInsn.desc);
+                if (!methodReturnType.equals(Type.VOID_TYPE) && !this.isPoppedAfter(targetInstruction, methodReturnType)) {
+                    throw new TransformerException(transformerMethod, transformer, "target method must have void as return type or its value must be immediately popped");
                 }
-                transformerMethodCalls.add(this.wrapConditionMethod.inject(transformedClass, transformer, copiedTransformerMethod, target, methodInsn));
+                transformerMethodCalls.add(this.wrapConditionMethod.inject(transformedClass, transformer, copiedTransformerMethod, target, methodInsn, !methodReturnType.equals(Type.VOID_TYPE), methodReturnType));
             } else {
                 throw new TransformerException(transformerMethod, transformer, "Target is not a valid method/field invocation");
             }
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
         InjectionPlan.record(transformerMethodCalls.size());
+    }
+
+    private boolean isPoppedAfter(final AbstractInsnNode instruction, final Type type) {
+        AbstractInsnNode next = instruction.getNext();
+        while (next != null && next.getOpcode() < 0) next = next.getNext();
+        if (next == null) return false;
+        if (type.getSize() == 1) return next.getOpcode() == Opcodes.POP;
+        if (type.getSize() == 2) return next.getOpcode() == Opcodes.POP2;
+        return false;
     }
 
 }
