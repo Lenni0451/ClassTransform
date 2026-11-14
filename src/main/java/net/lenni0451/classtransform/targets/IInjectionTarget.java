@@ -3,7 +3,6 @@ package net.lenni0451.classtransform.targets;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
-import net.lenni0451.classtransform.exceptions.SliceException;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.mappings.dynamic.IDynamicRemapper;
@@ -61,21 +60,14 @@ public interface IInjectionTarget extends IDynamicRemapper {
         if (slice.from().value().isEmpty()) {
             from = 0;
         } else {
-            IInjectionTarget target = injectionTargets.get(slice.from().value().toUpperCase(Locale.ROOT));
-            if (target == null) throw SliceException.unknown("from", slice.from().value());
-            List<AbstractInsnNode> targets = target.getTargets(injectionTargets, method, slice.from(), null);
-            if (targets.size() != 1) throw SliceException.count("From", slice.from().value(), targets.size());
-            from = method.instructions.indexOf(targets.get(0));
+            from = method.instructions.indexOf(InjectionTargets.boundary(injectionTargets, method, slice.from()));
         }
         if (slice.to().value().isEmpty()) {
             to = method.instructions.size();
         } else {
-            IInjectionTarget target = injectionTargets.get(slice.to().value().toUpperCase(Locale.ROOT));
-            if (target == null) throw SliceException.unknown("to", slice.to().value());
-            List<AbstractInsnNode> targets = target.getTargets(injectionTargets, method, slice.to(), null);
-            if (targets.size() != 1) throw SliceException.count("To", slice.to().value(), targets.size());
-            to = method.instructions.indexOf(targets.get(0));
+            to = method.instructions.indexOf(InjectionTargets.boundary(injectionTargets, method, slice.to()));
         }
+        if (from > to) throw new IllegalArgumentException("Slice start is after its end");
 
         List<AbstractInsnNode> instructions = new ArrayList<>();
         for (AbstractInsnNode instruction : method.instructions) instructions.add(instruction);

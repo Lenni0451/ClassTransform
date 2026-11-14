@@ -20,6 +20,7 @@ import net.lenni0451.classtransform.transformer.impl.*;
 import net.lenni0451.classtransform.transformer.impl.general.InnerClassGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.MemberCopyGeneralHandler;
 import net.lenni0451.classtransform.transformer.impl.general.SyntheticMethodGeneralHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.HotswapClassLoader;
@@ -32,6 +33,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -69,6 +72,8 @@ public class TransformerManager implements ClassFileTransformer {
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
     private final TransformerDebugger debugger = new TransformerDebugger(this);
     private FailStrategy failStrategy = FailStrategy.EXIT;
+    private int defaultRequiredInjections;
+    private boolean checkInjectionCounts = Boolean.getBoolean("mixin.debug.countInjections");
     private Instrumentation instrumentation;
     private HotswapClassLoader hotswapClassLoader;
 
@@ -113,7 +118,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CModifyExpressionValueAnnotationHandler());
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
         this.annotationHandler.add(new CWrapConditionAnnotationHandler());
-        this.annotationHandler.add(new CRedirectAnnotationHandler()); //Should be last because it replaces the method node which prevents other handlers from targeting the method
+        this.annotationHandler.add(new CRedirectAnnotationHandler());
         //HandlerPosition#POST
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
         this.annotationHandler.add(new MemberCopyGeneralHandler(false)); //Copy all leftover methods to the transformed class
@@ -131,6 +136,9 @@ public class TransformerManager implements ClassFileTransformer {
         this.injectionTargets.put("THROW", new ThrowTarget());
         this.injectionTargets.put("TAIL", new TailTarget());
         this.injectionTargets.put("INVOKE", new InvokeTarget());
+        this.injectionTargets.put("INVOKE_STRING", new InvokeStringTarget());
+        this.injectionTargets.put("INVOKE_ASSIGN", new InvokeAssignTarget());
+        this.injectionTargets.put("JUMP", new JumpTarget());
         this.injectionTargets.put("FIELD", new FieldTarget());
         this.injectionTargets.put("GETFIELD", new FieldTarget(Opcodes.GETFIELD, Opcodes.GETSTATIC));
         this.injectionTargets.put("PUTFIELD", new FieldTarget(Opcodes.PUTFIELD, Opcodes.PUTSTATIC));
@@ -151,6 +159,38 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public IClassProvider getClassProvider() {
         return this.classProvider;
+    }
+
+    /**
+     * @return The minimum injection count used when require is negative
+     */
+    public int getDefaultRequiredInjections() {
+        return this.defaultRequiredInjections;
+    }
+
+    /**
+     * @param count The minimum injection count used when require is negative
+     */
+    public void setDefaultRequiredInjections(final int count) {
+        if (count < 0) throw new IllegalArgumentException("Default injection count must not be negative");
+        this.defaultRequiredInjections = count;
+    }
+
+    /**
+     * @return If expected injection counts should be checked
+     */
+    public boolean isCheckInjectionCounts() {
+        return this.checkInjectionCounts;
+    }
+
+    /**
+     * Enable validation of the expect parameter.<br>
+     * By default this follows the {@code mixin.debug.countInjections} system property.
+     *
+     * @param checkInjectionCounts If expected injection counts should be checked
+     */
+    public void setCheckInjectionCounts(final boolean checkInjectionCounts) {
+        this.checkInjectionCounts = checkInjectionCounts;
     }
 
     /**
@@ -451,6 +491,38 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Insert a handler before the first handler of the given class.<br>
+     * A non-injection handler between injection handlers forms an explicit pipeline barrier.
+     *
+     * @param handler The handler to insert
+     * @param anchor  The handler class to insert before
+     */
+    public void addCustomAnnotationHandlerBefore(final AnnotationHandler handler, final Class<? extends AnnotationHandler> anchor) {
+        this.insertAnnotationHandler(handler, anchor, false);
+    }
+
+    /**
+     * Insert a handler after the first handler of the given class.<br>
+     * A non-injection handler between injection handlers forms an explicit pipeline barrier.
+     *
+     * @param handler The handler to insert
+     * @param anchor  The handler class to insert after
+     */
+    public void addCustomAnnotationHandlerAfter(final AnnotationHandler handler, final Class<? extends AnnotationHandler> anchor) {
+        this.insertAnnotationHandler(handler, anchor, true);
+    }
+
+    private void insertAnnotationHandler(final AnnotationHandler handler, final Class<? extends AnnotationHandler> anchor, final boolean after) {
+        for (int i = 0; i < this.annotationHandler.size(); i++) {
+            if (this.annotationHandler.get(i).getClass().equals(anchor)) {
+                this.annotationHandler.add(i + (after ? 1 : 0), handler);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Unable to find annotation handler '" + anchor.getName() + "'");
+    }
+
+    /**
      * Add a new injection target for use with the {@link CTarget} annotation.
      *
      * @param name   The name of the injection target
@@ -512,11 +584,13 @@ public class TransformerManager implements ClassFileTransformer {
             List<ClassNode> transformer = this.transformer.get(name);
             if (transformer != null) {
                 if (clazz == null) clazz = ASMUtils.fromBytes(bytecode);
+                List<ClassNode> prepared = new ArrayList<>();
                 for (ClassNode classNode : transformer) {
                     timings.start(TimedGroup.REMAPPER, classNode.name);
                     try {
                         classNode = ASMUtils.cloneClass(classNode);
-                        classNode = this.mapper.mapClass(this.classTree, this.classProvider, clazz, classNode);
+                        classNode = this.mapper.mapClass(this, clazz, classNode);
+                        prepared.add(classNode);
                     } catch (Throwable t) {
                         this.dumpInputClass(name, bytecode);
                         Logger.error("Failed to remap and fill annotation details of transformer '{}'", classNode.name, t);
@@ -526,20 +600,8 @@ public class TransformerManager implements ClassFileTransformer {
                     }
                     timings.end();
 
-                    for (AnnotationHandler annotationHandler : this.annotationHandler) {
-                        timings.start(TimedGroup.ANNOTATION_HANDLER, annotationHandler.getClass().getName());
-                        try {
-                            annotationHandler.transform(this, clazz, classNode);
-                        } catch (Throwable t) {
-                            this.dumpInputClass(name, bytecode);
-                            Logger.error("Transformer '{}' failed to transform class '{}'", annotationHandler.getClass().getSimpleName(), clazz.name, t);
-                            if (FailStrategy.CANCEL.equals(this.failStrategy)) return null;
-                            else if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
-                            else if (FailStrategy.THROW.equals(this.failStrategy)) throw new AlreadyLoggedException(t);
-                        }
-                        timings.end();
-                    }
                 }
+                if (!this.applyAnnotationHandlers(name, bytecode, clazz, prepared, timings)) return null;
             }
 
             if (clazz == null) {
@@ -578,6 +640,67 @@ public class TransformerManager implements ClassFileTransformer {
         } finally {
             this.getDebugger().addTimings(name, timings.getTimings());
         }
+    }
+
+    private boolean applyAnnotationHandlers(final String name, final byte[] bytecode, final ClassNode target, final List<ClassNode> transformers, final TransformerTimings timings) throws AlreadyLoggedException {
+        Map<AbstractInsnNode, InjectionPlan.Target> registry = new IdentityHashMap<>();
+        for (int i = 0; i < this.annotationHandler.size(); ) {
+            AnnotationHandler handler = this.annotationHandler.get(i);
+            if (handler instanceof InjectionAnnotationHandler) {
+                int end = i;
+                while (end < this.annotationHandler.size() && this.annotationHandler.get(end) instanceof InjectionAnnotationHandler) end++;
+                List<InjectionPlan> plans = new ArrayList<>();
+                for (ClassNode transformer : transformers) {
+                    for (MethodNode method : new ArrayList<>(transformer.methods)) {
+                        for (int index = i; index < end; index++) {
+                            InjectionAnnotationHandler<?> injector = (InjectionAnnotationHandler<?>) this.annotationHandler.get(index);
+                            try {
+                                if (!injector.handles(method, this)) continue;
+                                transformer.methods.remove(method);
+                                plans.add(injector.prepare(this, target, transformer, method, registry));
+                            } catch (Throwable t) {
+                                if (!this.handleAnnotationFailure(name, bytecode, injector.getClass().getName(), t)) return false;
+                            }
+                            break;
+                        }
+                    }
+                }
+                plans.sort(Comparator.comparing(InjectionPlan::getPhase).thenComparingInt(InjectionPlan::getOrder));
+                for (InjectionPlan plan : plans) {
+                    timings.start(TimedGroup.ANNOTATION_HANDLER, InjectionPlan.class.getName());
+                    try {
+                        plan.apply();
+                    } catch (Throwable t) {
+                        if (!this.handleAnnotationFailure(name, bytecode, InjectionPlan.class.getName(), t)) return false;
+                    } finally {
+                        timings.end();
+                    }
+                }
+                i = end;
+            } else {
+                for (ClassNode transformer : transformers) {
+                    timings.start(TimedGroup.ANNOTATION_HANDLER, handler.getClass().getName());
+                    try {
+                        handler.transform(this, target, transformer);
+                    } catch (Throwable t) {
+                        if (!this.handleAnnotationFailure(name, bytecode, handler.getClass().getName(), t)) return false;
+                    } finally {
+                        timings.end();
+                    }
+                }
+                i++;
+            }
+        }
+        return true;
+    }
+
+    private boolean handleAnnotationFailure(final String name, final byte[] bytecode, final String handler, final Throwable cause) throws AlreadyLoggedException {
+        this.dumpInputClass(name, bytecode);
+        Logger.error("Transformer '{}' failed to transform class '{}'", handler, name, cause);
+        if (FailStrategy.CANCEL.equals(this.failStrategy)) return false;
+        if (FailStrategy.EXIT.equals(this.failStrategy)) System.exit(-1);
+        if (FailStrategy.THROW.equals(this.failStrategy)) throw new AlreadyLoggedException(cause);
+        return true;
     }
 
     private void dumpInputClass(final String name, final byte[] inputClass) {

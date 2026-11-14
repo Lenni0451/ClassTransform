@@ -19,13 +19,7 @@ public class ModifyReturnValueTranslator implements AnnotationTranslator {
             List<AnnotationNode> targets = (List<AnnotationNode>) values.get("target");
             for (AnnotationNode target : targets) this.dynamicTranslate(target);
         }
-        if (values.containsKey("slice")) {
-            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CModifyReturnValue");
-            if (slice != null) {
-                this.dynamicTranslate(slice);
-                values.put("slice", slice);
-            }
-        }
+        this.translateInjection(values);
     }
 
 }

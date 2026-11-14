@@ -1,6 +1,9 @@
 package net.lenni0451.classtransform.targets.impl;
 
 import net.lenni0451.classtransform.annotations.CSlice;
+import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.mappings.AMapper;
+import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -9,11 +12,13 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.ClassNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.Function;
+import java.lang.reflect.Method;
 
 /**
  * A target for constants in the bytecode.<br>
@@ -33,6 +38,16 @@ import java.util.function.Function;
  */
 @ParametersAreNonnullByDefault
 public class ConstantTarget implements IInjectionTarget {
+
+    @Nullable
+    @Override
+    public RemapType dynamicRemap(AMapper mapper, Class<?> annotation, Map<String, Object> values, Method remappedMethod, TransformerManager transformerManager, ClassNode target, ClassNode transformer) {
+        String value = (String) values.get("target");
+        if (value != null && value.toLowerCase(Locale.ROOT).startsWith("type ")) {
+            values.put("target", "type " + mapper.getRemapper().mapDesc(value.substring(5)));
+        }
+        return null;
+    }
 
     @Override
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {

@@ -132,7 +132,7 @@ public abstract class AMapper {
             }
             try {
                 Map<String, Object> annotationMap = AnnotationUtils.listToMap(annotation.annotation.values);
-                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, transformerManager, target, transformer);
+                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, transformerManager, target, transformer, true);
                 annotation.annotation.values = AnnotationUtils.mapToList(annotationMap);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Unable to remap annotation '" + annotation.annotation.desc + "' from transformer '" + transformer.name + "'", e);
@@ -206,12 +206,16 @@ public abstract class AMapper {
         }
     }
 
-    private void mapAnnotation(final Object holder, final Class<?> annotation, final Map<String, Object> values, final TransformerManager transformerManager, final ClassNode target, final ClassNode transformer) throws ClassNotFoundException {
+    private void mapAnnotation(final Object holder, final Class<?> annotation, final Map<String, Object> values, final TransformerManager transformerManager, final ClassNode target, final ClassNode transformer, final boolean inheritedRemap) throws ClassNotFoundException {
+        boolean enabled = (boolean) values.getOrDefault("remap", inheritedRemap);
         for (Method method : annotation.getDeclaredMethods()) {
             AnnotationRemap remap = method.getDeclaredAnnotation(AnnotationRemap.class);
             if (remap == null) continue;
             RemapType remapType = remap.value();
+            if (!enabled && remapType != RemapType.ANNOTATION && remapType != RemapType.SHORT_MEMBER) continue;
             if (remapType.equals(RemapType.DYNAMIC)) {
+                Object selector = values.get(method.getName());
+                if (selector == null || selector.equals("")) continue;
                 try {
                     IDynamicRemapper dynamicRemapper = remap.dynamicRemapper().getDeclaredConstructor().newInstance();
                     remapType = dynamicRemapper.dynamicRemap(this, annotation, values, method, transformerManager, target, transformer);
@@ -220,7 +224,7 @@ public abstract class AMapper {
                     throw new RuntimeException("Unable to create instance of dynamic remapper '" + remap.dynamicRemapper().getName() + "'", t);
                 }
             }
-            if (remapType.equals(RemapType.SHORT_MEMBER)) InfoFiller.fillInfo(this.remapper, holder, remap, method, values, target, transformer);
+            if (remapType.equals(RemapType.SHORT_MEMBER)) InfoFiller.fillInfo(enabled ? this.remapper : new MapRemapper(), holder, remap, method, values, target, transformer);
             if (this.remapper.isEmpty()) continue;
 
             Object value = values.get(method.getName());
@@ -231,14 +235,14 @@ public abstract class AMapper {
                     AnnotationNode node = (AnnotationNode) value;
                     Type type = Type.getType(node.desc);
                     Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                    this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer);
+                    this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer, enabled);
                     node.values = AnnotationUtils.mapToList(nodeMap);
                 } else if (value instanceof AnnotationNode[]) {
                     AnnotationNode[] nodes = (AnnotationNode[]) value;
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
                         Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer);
+                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer, enabled);
                         node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else if (value instanceof List) {
@@ -246,14 +250,16 @@ public abstract class AMapper {
                     for (AnnotationNode node : nodes) {
                         Type type = Type.getType(node.desc);
                         Map<String, Object> nodeMap = AnnotationUtils.listToMap(node.values);
-                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer);
+                        this.mapAnnotation(holder, Class.forName(type.getClassName()), nodeMap, transformerManager, target, transformer, enabled);
                         node.values = AnnotationUtils.mapToList(nodeMap);
                     }
                 } else {
                     throw new IllegalStateException("Unexpected value type '" + value.getClass().getName() + "' for annotation '" + annotation.getName() + "' value '" + annotation.getName() + "'");
                 }
             } else {
-                if (value instanceof String) {
+                if (value instanceof Type && remapType.equals(RemapType.DESCRIPTOR)) {
+                    values.put(method.getName(), Type.getType(this.remapper.mapDesc(((Type) value).getDescriptor())));
+                } else if (value instanceof String) {
                     String s = (String) value;
                     values.put(method.getName(), this.remap(remapType, s, transformerManager));
                 } else if (value instanceof String[]) {

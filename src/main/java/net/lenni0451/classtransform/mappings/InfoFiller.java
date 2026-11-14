@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.mappings;
 
 import net.lenni0451.classtransform.exceptions.FieldNotFoundException;
+import net.lenni0451.classtransform.annotations.InjectionType;
 import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.FillType;
@@ -44,7 +45,13 @@ class InfoFiller {
                 if (!remap.fill().equals(FillType.KEEP_EMPTY)) current.addAll(getMethodNames(remapper, holder, remap, null, target, transformer));
             } else {
                 List<String> newValues = new ArrayList<>();
-                for (String name : current) newValues.addAll(getNames(remapper, holder, remap, name, target, transformer));
+                for (String name : current) {
+                    try {
+                        newValues.addAll(getNames(remapper, holder, remap, name, target, transformer));
+                    } catch (MethodNotFoundException e) {
+                        if (!method.getDeclaringClass().isAnnotationPresent(InjectionType.class) || !values.containsKey("require")) throw e;
+                    }
+                }
                 current = newValues;
             }
             values.put(method.getName(), current);

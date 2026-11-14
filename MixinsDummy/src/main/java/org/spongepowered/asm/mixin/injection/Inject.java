@@ -13,22 +13,18 @@ public @interface Inject {
 
     At[] at();
 
-    /**
-     * An array of slices is not supported. Only the first slice will be used.<br>
-     * An exception will be thrown during the translation process if more than one slice is specified.
-     */
     Slice[] slice() default @Slice;
 
     boolean cancellable() default false;
 
-    /**
-     * Require is partially supported as it gets remapped to {@code optional = (require <= 0)}.<br>
-     * It is still marked as deprecated since it is not fully supported
-     */
-    @Deprecated
     int require() default -1;
 
-    @Deprecated
+    int expect() default 1;
+
+    int allow() default -1;
+
+    int order() default 1000;
+
     boolean remap() default true;
 
 }

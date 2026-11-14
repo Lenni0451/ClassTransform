@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.injection.CWrapCondition;
+import net.lenni0451.classtransform.transformer.InjectionPhase;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
@@ -13,19 +14,16 @@ public class WrapWithConditionTranslator implements AnnotationTranslator {
 
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
+        if (annotation.desc.equals("Lcom/llamalad7/mixinextras/injector/WrapWithCondition;")) {
+            values.put("phase", new String[]{Type.getDescriptor(InjectionPhase.class), "REGULAR"});
+        }
         annotation.desc = Type.getDescriptor(CWrapCondition.class);
         this.move(values, "at", "target");
         if (values.containsKey("target")) {
             List<AnnotationNode> targets = (List<AnnotationNode>) values.get("target");
             for (AnnotationNode target : targets) this.dynamicTranslate(target);
         }
-        if (values.containsKey("slice")) {
-            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CWrapCondition");
-            if (slice != null) {
-                this.dynamicTranslate(slice);
-                values.put("slice", slice);
-            }
-        }
+        this.translateInjection(values);
     }
 
 }

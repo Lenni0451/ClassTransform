@@ -9,7 +9,8 @@ import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditionField;
 import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditionMethod;
-import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -29,7 +30,7 @@ import static net.lenni0451.classtransform.utils.Types.returnType;
  * The annotation handler for the {@link CWrapCondition} annotation.
  */
 @ParametersAreNonnullByDefault
-public class CWrapConditionAnnotationHandler extends RemovingTargetAnnotationHandler<CWrapCondition> {
+public class CWrapConditionAnnotationHandler extends InjectionAnnotationHandler<CWrapCondition> {
 
     private final CWrapConditionField wrapConditionField = new CWrapConditionField();
     private final CWrapConditionMethod wrapConditionMethod = new CWrapConditionMethod();
@@ -53,9 +54,8 @@ public class CWrapConditionAnnotationHandler extends RemovingTargetAnnotationHan
         for (CTarget wrapTarget : annotation.target()) {
             IInjectionTarget injectionTarget = injectionTargets.get(wrapTarget.value().toUpperCase(Locale.ROOT));
             if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, wrapTarget.target(), injectionTargets.keySet());
-            List<AbstractInsnNode> targetInstructions = injectionTarget.getTargets(injectionTargets, target, wrapTarget, annotation.slice());
+            List<AbstractInsnNode> targetInstructions = InjectionPlan.select(transformerManager, target, wrapTarget, annotation.slice());
             if (targetInstructions == null) throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, wrapTarget.target());
-            if (targetInstructions.isEmpty() && !wrapTarget.optional()) throw new TransformerException(transformerMethod, transformer, "No valid method/field target found");
             instructions.addAll(targetInstructions);
         }
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CWrapCondition");
@@ -78,6 +78,7 @@ public class CWrapConditionAnnotationHandler extends RemovingTargetAnnotationHan
             }
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
+        InjectionPlan.record(transformerMethodCalls.size());
     }
 
 }

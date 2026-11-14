@@ -16,6 +16,13 @@ class AtTranslator implements AnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CTarget.class);
+        String point = (String) values.get("value");
+        int suffix = point.lastIndexOf(':');
+        if (suffix >= 0) {
+            values.put("selector", point.substring(suffix + 1));
+            point = point.substring(0, suffix);
+            values.put("value", point);
+        }
         if ("CONSTANT".equalsIgnoreCase((String) values.get("value")) && values.containsKey("args")) {
             String discriminator = null;
             for (String argument : (List<String>) values.remove("args")) {
@@ -48,20 +55,16 @@ class AtTranslator implements AnnotationTranslator {
                 else if (target.startsWith("classValue=")) target = "type " + target.substring(11);
                 else throw new IllegalArgumentException("Invalid target: " + target);
                 values.put("target", target);
-            } else if (value.equalsIgnoreCase("JUMP")) {
-                Object opcode = values.get("opcode");
-                if (!(opcode instanceof Integer)) throw new IllegalArgumentException("ClassTransform requires an opcode to be specified");
-                values.put("value", "OPCODE");
-                values.put("target", opcode);
-            } else if (value.equalsIgnoreCase("FIELD")) {
-                if (values.containsKey("opcode")) {
-                    throw new IllegalArgumentException("ClassTransform does not support the FIELD target with opcode. Please refer to the At#opcode javadoc for information");
-                }
             }
         }
         if (values.containsKey("shift")) {
             String[] shift = (String[]) values.get("shift");
             shift[0] = typeDescriptor(CTarget.Shift.class);
+            if ("NONE".equals(shift[1])) shift[1] = "BEFORE";
+            else if ("BEFORE".equals(shift[1]) || "AFTER".equals(shift[1])) {
+                values.put("by", "BEFORE".equals(shift[1]) ? -1 : 1);
+                shift[1] = "BY";
+            }
         } else {
             //Mixins injects before by default most of the time
             values.put("shift", new String[]{typeDescriptor(CTarget.Shift.class), "BEFORE"});

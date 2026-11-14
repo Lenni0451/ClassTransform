@@ -8,7 +8,8 @@ import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
-import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import org.objectweb.asm.Opcodes;
@@ -19,6 +20,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -28,7 +30,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
  * The annotation handler for the {@link CInject} annotation.
  */
 @ParametersAreNonnullByDefault
-public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CInject> {
+public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject> {
 
     public CInjectAnnotationHandler() {
         super(CInject.class, CInject::method);
@@ -69,34 +71,39 @@ public class CInjectAnnotationHandler extends RemovingTargetAnnotationHandler<CI
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CInject");
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
+        Map<AbstractInsnNode, CTarget.Shift> points = new LinkedHashMap<>();
         for (CTarget injectTarget : annotation.target()) {
             IInjectionTarget injectionTarget = injectionTargets.get(injectTarget.value().toUpperCase(Locale.ROOT));
             if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, injectTarget.target(), injectionTargets.keySet());
 
-            List<AbstractInsnNode> targetInstructions = injectionTarget.getTargets(injectionTargets, target, injectTarget, annotation.slice());
-            CTarget.Shift shift = injectionTarget.getShift(injectTarget);
+            List<AbstractInsnNode> targetInstructions = InjectionPlan.select(transformerManager, target, injectTarget, annotation.slice());
+            CTarget.Shift shift = injectTarget.shift() == CTarget.Shift.BY ? CTarget.Shift.BEFORE : injectionTarget.getShift(injectTarget);
             if (targetInstructions == null) {
                 throw new TransformerException(transformerMethod, transformer, "has invalid " + injectTarget.value() + " member declaration")
                         .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
             }
-            if (targetInstructions.isEmpty() && !injectTarget.optional()) {
-                throw new TransformerException(transformerMethod, transformer, "target '" + injectTarget.value() + "' could not be found")
-                        .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
+            for (AbstractInsnNode instruction : targetInstructions) points.putIfAbsent(instruction, shift);
+        }
+        for (Map.Entry<AbstractInsnNode, CTarget.Shift> point : points.entrySet()) {
+            AbstractInsnNode instruction = point.getKey();
+            InsnList instructions;
+
+            if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN || instruction.getOpcode() == Opcodes.ATHROW) {
+                instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), hasArgs, hasCallback, transformerMethodCalls);
+            } else {
+                instructions = this.getCallInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), hasArgs, hasCallback, transformerMethodCalls);
             }
-            for (AbstractInsnNode instruction : targetInstructions) {
-                InsnList instructions;
 
-                if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN || instruction.getOpcode() == Opcodes.ATHROW) {
-                    instructions = this.getReturnInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), hasArgs, hasCallback, transformerMethodCalls);
-                } else {
-                    instructions = this.getCallInstructions(transformedClass, target, transformerMethod, annotation.cancellable(), hasArgs, hasCallback, transformerMethodCalls);
-                }
-
-                if (shift == CTarget.Shift.BEFORE) target.instructions.insertBefore(instruction, instructions);
-                else target.instructions.insert(instruction, instructions);
+            if (point.getValue() == CTarget.Shift.BEFORE) target.instructions.insertBefore(instruction, instructions);
+            else {
+                LabelNode end = new LabelNode();
+                instructions.add(end);
+                target.instructions.insert(InjectionPlan.after(instruction), instructions);
+                InjectionPlan.setAfter(instruction, end);
             }
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
+        InjectionPlan.record(transformerMethodCalls.size());
     }
 
     private InsnList getCallInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final boolean cancellable, final boolean hasArgs, final boolean hasCallback, final List<MethodInsnNode> transformerMethodCalls) {

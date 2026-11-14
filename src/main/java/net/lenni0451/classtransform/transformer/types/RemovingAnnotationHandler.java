@@ -26,6 +26,13 @@ public abstract class RemovingAnnotationHandler<T extends Annotation> extends An
         this.annotationClass = annotationClass;
     }
 
+    /**
+     * @return The annotation handled by this handler
+     */
+    public Class<? extends Annotation> getAnnotationClass() {
+        return this.annotationClass;
+    }
+
     @Override
     public final void transform(TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer) {
         Iterator<MethodNode> it = transformer.methods.iterator();

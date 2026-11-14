@@ -327,10 +327,18 @@ public class AnnotationParser<T extends Annotation> {
             AnnotationNode a = (AnnotationNode) value;
             Map<String, Object> map = AnnotationUtils.listToMap(a.values);
             for (Map.Entry<String, Object> entry : map.entrySet()) {
+                Class<?> valueType = entry.getValue().getClass();
+                if (entry.getValue() instanceof List) {
+                    try {
+                        valueType = Class.forName(annotationType.getClassName()).getDeclaredMethod(entry.getKey()).getReturnType();
+                    } catch (ReflectiveOperationException e) {
+                        throw new IllegalArgumentException("Unable to resolve array member '" + entry.getKey() + "' of " + annotationType.getClassName(), e);
+                    }
+                }
                 methodVisitor.visitInsn(Opcodes.DUP);
                 methodVisitor.visitLdcInsn(entry.getKey());
-                this.visit(methodVisitor, entry.getValue().getClass(), entry.getValue());
-                this.visitPrimitiveWrap(methodVisitor, entry.getValue().getClass());
+                this.visit(methodVisitor, valueType, entry.getValue());
+                this.visitPrimitiveWrap(methodVisitor, valueType);
                 methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, internalName(Map.class), "put", methodDescriptor(Object.class, Object.class, Object.class), true);
                 methodVisitor.visitInsn(Opcodes.POP);
             }

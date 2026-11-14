@@ -2,6 +2,8 @@ package net.lenni0451.classtransform.annotations.injection;
 
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
+import net.lenni0451.classtransform.annotations.InjectionType;
+import net.lenni0451.classtransform.transformer.InjectionPhase;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 
@@ -50,6 +52,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
+@InjectionType(InjectionPhase.EXPRESSION)
 public @interface CModifyExpressionValue {
 
     /**
@@ -88,5 +91,48 @@ public @interface CModifyExpressionValue {
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CSlice slice() default @CSlice;
+
+    /**
+     * @return Additional named slices selected by {@link CTarget#slice()}
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CSlice[] slices() default {};
+
+    /**
+     * The minimum number of successful injections across all selected methods.<br>
+     * An explicitly specified negative value uses the manager default. Zero allows no matches.<br>
+     * If omitted, the existing mandatory-target and optional-target behavior is retained.
+     *
+     * @return The minimum injection count
+     */
+    int require() default -1;
+
+    /**
+     * The expected minimum count, checked only when injection count debugging is enabled.
+     *
+     * @return The expected injection count
+     */
+    int expect() default 1;
+
+    /**
+     * The maximum count. Values below one are ignored.<br>
+     * The effective maximum is never lower than {@link #require()}.
+     *
+     * @return The maximum injection count
+     */
+    int allow() default -1;
+
+    /**
+     * The application order within the injection phase, across all transformers.<br>
+     * Lower values are applied first.
+     *
+     * @return The injection order
+     */
+    int order() default 1000;
+
+    /**
+     * @return If the selectors in this annotation should be remapped
+     */
+    boolean remap() default true;
 
 }

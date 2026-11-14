@@ -19,6 +19,10 @@ public class CTargetImpl {
     }
 
     public static CTarget of(final String value, final String target, final CTarget.Shift shift, final int ordinal, final boolean optional) {
+        return of(value, target, shift, ordinal, optional, new String[0]);
+    }
+
+    public static CTarget of(final String value, final String target, final CTarget.Shift shift, final int ordinal, final boolean optional, final String[] args) {
         return new CTarget() {
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -48,6 +52,41 @@ public class CTargetImpl {
             @Override
             public boolean optional() {
                 return optional;
+            }
+
+            @Override
+            public String slice() {
+                return "";
+            }
+
+            @Override
+            public int opcode() {
+                return -1;
+            }
+
+            @Override
+            public int by() {
+                return 0;
+            }
+
+            @Override
+            public boolean remap() {
+                return true;
+            }
+
+            @Override
+            public String id() {
+                return "";
+            }
+
+            @Override
+            public String selector() {
+                return "ONE";
+            }
+
+            @Override
+            public String[] args() {
+                return args.clone();
             }
         };
     }

@@ -27,10 +27,7 @@ class InjectTranslator implements AnnotationTranslator {
                 }
             }
         }
-        if (values.containsKey("slice")) {
-            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CInject");
-            if (slice != null) this.dynamicTranslate(slice);
-        }
+        this.translateInjection(values);
     }
 
 }

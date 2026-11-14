@@ -14,6 +14,23 @@ public interface AnnotationTranslator {
 
     void translate(final AnnotationNode annotation, final Map<String, Object> values);
 
+    /**
+     * Translate common injector settings and preserve Mixin's default count semantics.
+     *
+     * @param values The injector annotation values
+     */
+    default void translateInjection(final Map<String, Object> values) {
+        values.putIfAbsent("require", -1);
+        Object slices = values.remove("slice");
+        if (slices instanceof AnnotationNode) {
+            this.dynamicTranslate((AnnotationNode) slices);
+            values.put("slice", slices);
+        } else if (slices instanceof List) {
+            for (AnnotationNode slice : (List<AnnotationNode>) slices) this.dynamicTranslate(slice);
+            values.put("slices", slices);
+        }
+    }
+
     default void dynamicTranslate(final AnnotationNode annotation) {
         AnnotationTranslator translator = AnnotationTranslatorManager.getTranslator(Type.getType(annotation.desc));
         if (translator != null) {

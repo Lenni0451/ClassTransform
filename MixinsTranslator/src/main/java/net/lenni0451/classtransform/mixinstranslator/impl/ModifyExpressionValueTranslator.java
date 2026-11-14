@@ -18,13 +18,7 @@ public class ModifyExpressionValueTranslator implements AnnotationTranslator {
             if (targets.size() == 1) values.put("target", targets.get(0));
             else values.put("targets", targets);
         }
-        if (values.containsKey("slice")) {
-            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CModifyExpressionValue");
-            if (slice != null) {
-                this.dynamicTranslate(slice);
-                values.put("slice", slice);
-            }
-        }
+        this.translateInjection(values);
     }
 
 }

@@ -15,12 +15,18 @@ public @interface ModifyExpressionValue {
     At[] at();
 
     /**
-     * An array of slices is not supported. Only the first slice will be used.<br>
-     * An exception will be thrown during the translation process if more than one slice is specified.
+     * @return The named slices available to injection points
      */
     Slice[] slice() default {};
 
-    @Deprecated
     boolean remap() default true;
+
+    int require() default -1;
+
+    int expect() default 1;
+
+    int allow() default -1;
+
+    int order() default 1000;
 
 }

@@ -1,0 +1,16 @@
+package net.lenni0451.classtransform.transformer;
+
+/**
+ * The phases of the injection pipeline.<br>
+ * All regular injections are applied before expression modifiers and conditions.
+ */
+public enum InjectionPhase {
+
+    /** Regular callbacks, redirects, constant modifiers and return value modifiers. */
+    REGULAR,
+    /** Expression modifiers run after every regular injection. */
+    EXPRESSION,
+    /** Conditions run after regular injections and expression modifiers. */
+    CONDITION
+
+}

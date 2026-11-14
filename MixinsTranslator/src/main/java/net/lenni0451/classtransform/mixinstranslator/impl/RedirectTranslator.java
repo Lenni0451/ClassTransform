@@ -24,7 +24,7 @@ class RedirectTranslator implements AnnotationTranslator {
                 target.values.add(optional);
             }
         }
-        if (values.containsKey("slice")) this.dynamicTranslate((AnnotationNode) values.get("slice"));
+        this.translateInjection(values);
     }
 
 }

@@ -9,7 +9,8 @@ import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocesso
 import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectField;
 import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectNew;
-import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -21,7 +22,7 @@ import java.util.*;
  * The annotation handler for the {@link CRedirect} annotation.
  */
 @ParametersAreNonnullByDefault
-public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<CRedirect> {
+public class CRedirectAnnotationHandler extends InjectionAnnotationHandler<CRedirect> {
 
     private final CRedirectInvoke redirectInvoke = new CRedirectInvoke();
     private final CRedirectField redirectField = new CRedirectField();
@@ -43,18 +44,15 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
 
-        List<AbstractInsnNode> injectionInstructions = injectionTarget.getTargets(injectionTargets, target, annotation.target(), annotation.slice());
+        List<AbstractInsnNode> injectionInstructions = InjectionPlan.select(transformerManager, target, annotation.target(), annotation.slice());
         if (injectionInstructions == null) {
             throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, annotation.target().target());
-        }
-        if (injectionInstructions.isEmpty() && !annotation.target().optional()) {
-            throw new TransformerException(transformerMethod, transformer, "target '" + annotation.target().target() + "' could not be found")
-                    .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
         }
 
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CRedirect");
         for (AbstractInsnNode injectionInstruction : injectionInstructions) {
+            AbstractInsnNode next = injectionInstruction.getNext();
             if (injectionInstruction instanceof MethodInsnNode) {
                 if (injectionInstruction.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) injectionInstruction).name.equals("<init>")) {
                     this.redirectNew.inject(transformedClass, target, transformer, transformerMethod, injectionInstruction, transformerMethodCalls);
@@ -66,8 +64,11 @@ public class CRedirectAnnotationHandler extends RemovingTargetAnnotationHandler<
             } else {
                 throw new InvalidTargetException(transformerMethod, transformer, annotation.target().value(), Arrays.asList("INVOKE", "FIELD", "NEW"));
             }
+            InjectionPlan.replace(injectionInstruction, transformerMethodCalls.get(transformerMethodCalls.size() - 1));
+            InjectionPlan.setAfter(transformerMethodCalls.get(transformerMethodCalls.size() - 1), next == null ? target.instructions.getLast() : next.getPrevious());
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
+        InjectionPlan.record(transformerMethodCalls.size());
     }
 
 }

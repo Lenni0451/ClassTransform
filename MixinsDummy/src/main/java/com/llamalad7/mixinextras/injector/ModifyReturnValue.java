@@ -22,25 +22,18 @@ public @interface ModifyReturnValue {
     At[] at();
 
     /**
-     * An exception will be thrown during the translation process if more than one slice is specified.
-     *
-     * @return The slice
+     * @return The named slices available to injection points
      */
     Slice[] slice() default {};
 
-    @Deprecated
     boolean remap() default true;
 
-    @Deprecated
     int require() default -1;
 
-    @Deprecated
     int expect() default 1;
 
-    @Deprecated
     int allow() default -1;
 
-    @Deprecated
     int order() default 1000;
 
 }

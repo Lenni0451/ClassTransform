@@ -32,7 +32,7 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
     }
 
     @Override
-    public final void transform(T annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
+    public void transform(T annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod) {
         for (String targetCombi : this.targetCombis.apply(annotation)) {
             if (targetCombi.isEmpty()) throw new TransformerException(transformerMethod, transformer, "Target is empty");
             if (ASMUtils.METHOD_DECLARATION_PATTERN.matcher(targetCombi).matches()) {

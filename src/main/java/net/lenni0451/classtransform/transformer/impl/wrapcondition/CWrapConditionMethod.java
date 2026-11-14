@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.impl.wrapcondition;
 
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.InjectionUtils;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -21,14 +22,7 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         int capturedArguments = 0;
 
         if (hasArgs) {
-            Type[] expectedArgs;
-            if (isStatic) {
-                expectedArgs = argumentTypes;
-            } else {
-                expectedArgs = new Type[argumentTypes.length + 1];
-                expectedArgs[0] = type(insnNode.owner);
-                System.arraycopy(argumentTypes, 0, expectedArgs, 1, argumentTypes.length);
-            }
+            Type[] expectedArgs = this.getOperationArguments(InjectionPlan.original(insnNode));
             capturedArguments = InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, target, expectedArgs);
         }
 
@@ -45,7 +39,7 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         if (!isStatic) insns.add(new VarInsnNode(Opcodes.ASTORE, instanceIndex));
         if (!Modifier.isStatic(target.access)) insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
         if (hasArgs) {
-            if (!isStatic) insns.add(new VarInsnNode(Opcodes.ALOAD, instanceIndex));
+            if (!isStatic && InjectionPlan.original(insnNode) == insnNode) insns.add(new VarInsnNode(Opcodes.ALOAD, instanceIndex));
             for (int i = 0; i < argumentTypes.length; i++) insns.add(new VarInsnNode(argumentTypes[i].getOpcode(Opcodes.ILOAD), argIndices[i]));
         }
         MethodInsnNode transformerCall;
@@ -63,6 +57,21 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         target.instructions.insertBefore(insnNode, insns);
         target.instructions.insert(insnNode, end);
         return transformerCall;
+    }
+
+    private Type[] getOperationArguments(final AbstractInsnNode instruction) {
+        if (instruction instanceof FieldInsnNode) {
+            FieldInsnNode field = (FieldInsnNode) instruction;
+            if (field.getOpcode() == Opcodes.PUTSTATIC) return new Type[]{type(field.desc)};
+            return new Type[]{type(field.owner), type(field.desc)};
+        }
+        MethodInsnNode method = (MethodInsnNode) instruction;
+        Type[] arguments = argumentTypes(method.desc);
+        if (method.getOpcode() == Opcodes.INVOKESTATIC) return arguments;
+        Type[] result = new Type[arguments.length + 1];
+        result[0] = type(method.owner);
+        System.arraycopy(arguments, 0, result, 1, arguments.length);
+        return result;
     }
 
 }

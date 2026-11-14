@@ -59,6 +59,51 @@ public @interface CTarget {
      */
     boolean optional() default false;
 
+    /**
+     * @return The id of the slice to use
+     */
+    String slice() default "";
+
+    /**
+     * Filter matches by opcode before applying the ordinal.
+     *
+     * @return The opcode or -1 to accept any opcode
+     */
+    int opcode() default -1;
+
+    /**
+     * @return The instruction offset for {@link Shift#BY}
+     */
+    int by() default 0;
+
+    /**
+     * If omitted, this setting is inherited from the enclosing injection annotation.
+     *
+     * @return If this selector should be remapped
+     */
+    boolean remap() default true;
+
+    /**
+     * @return An identifier for this injection point
+     */
+    String id() default "";
+
+    /**
+     * Select a single boundary from multiple matches.<br>
+     * Supported values are {@code ONE}, {@code FIRST} and {@code LAST}.
+     *
+     * @return The slice boundary selector
+     */
+    String selector() default "ONE";
+
+    /**
+     * Additional named arguments for the injection point.<br>
+     * {@code INVOKE_STRING} accepts {@code ldc=...} to select a string argument.
+     *
+     * @return The injection point arguments
+     */
+    String[] args() default {};
+
 
     /**
      * The shift for injecting {@code BEFORE}/{@code AFTER} the target.
@@ -71,7 +116,11 @@ public @interface CTarget {
         /**
          * Inject the code after the target.
          */
-        AFTER
+        AFTER,
+        /**
+         * Select an instruction at the offset specified by {@link CTarget#by()}.
+         */
+        BY
     }
 
 }

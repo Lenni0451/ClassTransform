@@ -15,11 +15,14 @@ public @interface Redirect {
 
     Slice slice() default @Slice;
 
-    /**
-     * Require is partially supported as it gets remapped to {@code optional = (require <= 0)}.<br>
-     * It is still marked as deprecated since it is not fully supported
-     */
-    @Deprecated
     int require() default -1;
+
+    int expect() default 1;
+
+    int allow() default -1;
+
+    int order() default 10000;
+
+    boolean remap() default true;
 
 }

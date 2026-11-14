@@ -14,10 +14,7 @@ class ModifyConstantTranslator implements AnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CModifyConstant.class);
-        if (values.containsKey("slice")) {
-            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CModifyConstant");
-            if (slice != null) this.dynamicTranslate(slice);
-        }
+        this.translateInjection(values);
         if (values.containsKey("constant")) {
             AnnotationNode constant = this.getSingleAnnotation("constant", values, "CModifyConstant");
             if (constant != null) {
@@ -29,7 +26,9 @@ class ModifyConstantTranslator implements AnnotationTranslator {
                 this.move(constantValues, values, "doubleValue");
                 this.move(constantValues, values, "stringValue");
                 this.move(constantValues, values, "classValue");
+                this.move(values, "classValue", "typeValue");
                 this.move(constantValues, values, "ordinal");
+                if (constantValues.containsKey("slice")) values.put("sliceId", constantValues.get("slice"));
             }
         }
     }

@@ -18,8 +18,13 @@ import java.lang.annotation.Target;
 public @interface CSlice {
 
     /**
+     * @return The id used to select this slice
+     */
+    String id() default "";
+
+    /**
      * The start of the slice.<br>
-     * The target <b>must</b> match only a single instruction.
+     * The target must match only a single instruction unless {@link CTarget#selector()} selects FIRST or LAST.
      *
      * @return The start of the slice
      */
@@ -28,7 +33,7 @@ public @interface CSlice {
 
     /**
      * The end of the slice.<br>
-     * The target <b>must</b> match only a single instruction.
+     * The target must match only a single instruction unless {@link CTarget#selector()} selects FIRST or LAST.
      *
      * @return The end of the slice
      */

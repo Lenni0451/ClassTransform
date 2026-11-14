@@ -7,7 +7,8 @@ import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
-import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.InjectionUtils;
@@ -25,7 +26,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
  * The annotation handler for the {@link CModifyReturnValue} annotation.
  */
 @ParametersAreNonnullByDefault
-public class CModifyReturnValueAnnotationHandler extends RemovingTargetAnnotationHandler<CModifyReturnValue> {
+public class CModifyReturnValueAnnotationHandler extends InjectionAnnotationHandler<CModifyReturnValue> {
 
     public CModifyReturnValueAnnotationHandler() {
         super(CModifyReturnValue.class, CModifyReturnValue::method);
@@ -52,11 +53,8 @@ public class CModifyReturnValueAnnotationHandler extends RemovingTargetAnnotatio
         for (CTarget returnTarget : annotation.target()) {
             IInjectionTarget injectionTarget = injectionTargets.get(returnTarget.value().toUpperCase(Locale.ROOT));
             if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, returnTarget.value(), injectionTargets.keySet());
-            List<AbstractInsnNode> targets = injectionTarget.getTargets(injectionTargets, target, returnTarget, annotation.slice());
+            List<AbstractInsnNode> targets = InjectionPlan.select(transformerManager, target, returnTarget, annotation.slice());
             if (targets == null) throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, returnTarget.target());
-            if (targets.isEmpty() && !returnTarget.optional()) {
-                throw new TransformerException(transformerMethod, transformer, "target '" + returnTarget.value() + "' could not be found");
-            }
             for (AbstractInsnNode instruction : targets) {
                 if (instruction.getOpcode() != returnType.getOpcode(Opcodes.IRETURN)) {
                     throw new TransformerException(transformerMethod, transformer, "target must be a return instruction");
@@ -84,6 +82,7 @@ public class CModifyReturnValueAnnotationHandler extends RemovingTargetAnnotatio
             target.instructions.insertBefore(instruction, insns);
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
+        InjectionPlan.record(transformerMethodCalls.size());
     }
 
 }

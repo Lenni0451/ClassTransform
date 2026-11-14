@@ -7,10 +7,12 @@ import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
-import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
+import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -21,6 +23,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
@@ -28,7 +32,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
  * The annotation handler for the {@link CModifyConstant} annotation.
  */
 @ParametersAreNonnullByDefault
-public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHandler<CModifyConstant> implements IInjectionTarget {
+public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler<CModifyConstant> implements IInjectionTarget {
 
     public CModifyConstantAnnotationHandler() {
         super(CModifyConstant.class, CModifyConstant::method);
@@ -86,64 +90,55 @@ public class CModifyConstantAnnotationHandler extends RemovingTargetAnnotationHa
         }
 
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyConstant");
-        List<AbstractInsnNode> toReplace = new ArrayList<>();
-        for (AbstractInsnNode instruction : this.getSlice(transformerManager.getInjectionTargets(), target, annotation.slice())) {
-            if (hasNullValue) {
-                if (instruction.getOpcode() == Opcodes.ACONST_NULL && annotation.nullValue()) {
-                    toReplace.add(instruction);
-                }
-            } else if (hasIntValue) {
-                Number number = ASMUtils.getNumber(instruction);
-                if ((number instanceof Byte || number instanceof Short || number instanceof Integer) && number.intValue() == annotation.intValue()) {
-                    toReplace.add(instruction);
-                }
-            } else if (hasLongValue) {
-                Number number = ASMUtils.getNumber(instruction);
-                if (number instanceof Long && number.longValue() == annotation.longValue()) {
-                    toReplace.add(instruction);
-                }
-            } else if (hasFloatValue) {
-                Number number = ASMUtils.getNumber(instruction);
-                if (number instanceof Float && number.floatValue() == annotation.floatValue()) {
-                    toReplace.add(instruction);
-                }
-            } else if (hasDoubleValue) {
-                Number number = ASMUtils.getNumber(instruction);
-                if (number instanceof Double && number.doubleValue() == annotation.doubleValue()) {
-                    toReplace.add(instruction);
-                }
-            } else if (hasStringValue) {
-                if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst.equals(annotation.stringValue())) {
-                    toReplace.add(instruction);
-                }
-            } else if (hasTypeValue) {
-                if (instruction.getOpcode() == Opcodes.LDC && ((LdcInsnNode) instruction).cst.equals(type(parsedAnnotation.getValues().get("typeValue")))) {
-                    toReplace.add(instruction);
-                }
-            }
-        }
-
-        if (toReplace.isEmpty() && !annotation.optional()) {
-            throw new TransformerException(transformerMethod, transformer, "target constant could not be found")
-                    .help("e.g. intValue = 0");
-        }
+        List<AbstractInsnNode> toReplace = InjectionPlan.select(transformerManager, target, this.getInjectionTargets(annotation, transformerManager).get(0), annotation.slice());
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         for (int i = 0; i < toReplace.size(); i++) {
             AbstractInsnNode instruction = toReplace.get(i);
-            if (annotation.ordinal() != -1 && i != annotation.ordinal()) continue;
 
             MethodInsnNode invoke;
+            InsnList instructions = new InsnList();
             if (!Modifier.isStatic(transformerMethod.access)) {
-                target.instructions.insertBefore(instruction, new VarInsnNode(Opcodes.ALOAD, 0));
+                instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                if (transformerArguments.length == 1) instructions.add(ASMUtils.swap(transformerArguments[0], Type.getType(Object.class)));
                 invoke = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
             } else {
                 invoke = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
             }
-            if (transformerArguments.length == 1) target.instructions.insert(instruction, invoke);
-            else target.instructions.set(instruction, invoke);
+            instructions.add(invoke);
+            if (transformerArguments.length == 1) target.instructions.insert(InjectionPlan.after(instruction), instructions);
+            else {
+                target.instructions.insertBefore(instruction, instructions);
+                target.instructions.remove(instruction);
+            }
+            InjectionPlan.replace(instruction, invoke);
             transformerMethodCalls.add(invoke);
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
+        InjectionPlan.record(transformerMethodCalls.size());
+    }
+
+    @Override
+    protected List<CTarget> getInjectionTargets(CModifyConstant annotation, TransformerManager manager) {
+        IParsedAnnotation parsed = (IParsedAnnotation) annotation;
+        Map<String, Object> values = new HashMap<>();
+        String constant = null;
+        String[] names = {"nullValue", "intValue", "longValue", "floatValue", "doubleValue", "stringValue", "typeValue"};
+        String[] types = {"null", "int", "long", "float", "double", "string", "type"};
+        for (int i = 0; i < names.length; i++) {
+            if (!parsed.wasSet(names[i])) continue;
+            if (constant != null) throw new IllegalArgumentException("Exactly one constant discriminator is required");
+            Object value = parsed.getValues().get(names[i]);
+            if (i == 0) constant = Boolean.TRUE.equals(value) ? "null" : "null false";
+            else if (i == 6) constant = "type " + type(value).getDescriptor();
+            else constant = types[i] + " " + value;
+        }
+        if (constant == null) throw new IllegalArgumentException("Exactly one constant discriminator is required");
+        values.put("value", "CONSTANT");
+        values.put("target", constant);
+        values.put("ordinal", annotation.ordinal());
+        values.put("optional", annotation.optional());
+        values.put("slice", annotation.sliceId());
+        return Collections.singletonList(AnnotationParser.parse(CTarget.class, manager, values));
     }
 
     private int getTrueCount(final boolean... booleans) {

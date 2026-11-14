@@ -62,37 +62,37 @@ public class AnnotationTranslatorTest {
     private final String finalTest = null;
 
     @Redirect(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")), require = 0)
-    @CRedirect(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10, optional = true), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @CRedirect(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10, optional = true), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = 0)
     @TestMarker(from = Redirect.class, to = CRedirect.class)
     private native void redirectTest();
 
     @ModifyConstant(method = {"method1", "method2"}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")), constant = @Constant(stringValue = "test"))
-    @CModifyConstant(method = {"method1", "method2"}, stringValue = "test")
+    @CModifyConstant(method = {"method1", "method2"}, stringValue = "test", slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = ModifyConstant.class, to = CModifyConstant.class)
     private native void modifyConstantTest();
 
     @Inject(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")), cancellable = true, require = 0)
-    @CInject(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10, optional = true), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), cancellable = true)
+    @CInject(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10, optional = true), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), cancellable = true, require = 0)
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectTest();
 
     @WrapWithCondition(method = {"method1", "method2"}, at = {@At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), @At(value = "test2", target = "target2", shift = At.Shift.BEFORE, ordinal = 20)}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
-    @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BEFORE, ordinal = 20)}, slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BY, by = -1, ordinal = 20)}, slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = WrapWithCondition.class, to = CWrapCondition.class)
     private native void wrapWithConditionTest();
 
     @ModifyExpressionValue(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
-    @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = ModifyExpressionValue.class, to = CModifyExpressionValue.class)
     private native void modifyExpressionValueTest();
 
     @ModifyExpressionValue(method = "method", at = {@At(value = "CONSTANT", target = "intValue=1"), @At(value = "CONSTANT", target = "intValue=2")})
-    @CModifyExpressionValue(method = "method", targets = {@CTarget(value = "CONSTANT", target = "int 1", shift = CTarget.Shift.BEFORE), @CTarget(value = "CONSTANT", target = "int 2", shift = CTarget.Shift.BEFORE)})
+    @CModifyExpressionValue(method = "method", targets = {@CTarget(value = "CONSTANT", target = "int 1", shift = CTarget.Shift.BEFORE), @CTarget(value = "CONSTANT", target = "int 2", shift = CTarget.Shift.BEFORE)}, require = -1)
     @TestMarker(from = ModifyExpressionValue.class, to = CModifyExpressionValue.class)
     private native void modifyMultipleExpressionValuesTest();
 
     @ModifyReturnValue(method = {"method1", "method2"}, at = {@At("RETURN"), @At(value = "RETURN", ordinal = 1)}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
-    @CModifyReturnValue(method = {"method1", "method2"}, target = {@CTarget(value = "RETURN", shift = CTarget.Shift.BEFORE), @CTarget(value = "RETURN", ordinal = 1, shift = CTarget.Shift.BEFORE)}, slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @CModifyReturnValue(method = {"method1", "method2"}, target = {@CTarget(value = "RETURN", shift = CTarget.Shift.BEFORE), @CTarget(value = "RETURN", ordinal = 1, shift = CTarget.Shift.BEFORE)}, slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = ModifyReturnValue.class, to = CModifyReturnValue.class)
     private native void modifyReturnValueTest();
 

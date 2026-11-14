@@ -24,4 +24,6 @@ public @interface Constant {
 
     int ordinal() default -1;
 
+    String slice() default "";
+
 }

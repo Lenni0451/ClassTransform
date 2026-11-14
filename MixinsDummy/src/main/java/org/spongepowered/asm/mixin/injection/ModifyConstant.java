@@ -11,10 +11,6 @@ public @interface ModifyConstant {
 
     String[] method();
 
-    /**
-     * An array of slices is not supported. Only the first slice will be used.<br>
-     * An exception will be thrown during the translation process if more than one slice is specified.
-     */
     Slice[] slice() default {};
 
     /**
@@ -23,10 +19,14 @@ public @interface ModifyConstant {
      */
     Constant[] constant();
 
-    @Deprecated
     int require() default -1;
 
-    @Deprecated
+    int expect() default 1;
+
+    int allow() default -1;
+
+    int order() default 10000;
+
     boolean remap() default true;
 
 }

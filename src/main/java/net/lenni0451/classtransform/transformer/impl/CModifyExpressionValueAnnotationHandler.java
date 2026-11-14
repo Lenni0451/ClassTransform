@@ -7,7 +7,8 @@ import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
-import net.lenni0451.classtransform.transformer.types.RemovingTargetAnnotationHandler;
+import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.InjectionUtils;
@@ -25,7 +26,7 @@ import static net.lenni0451.classtransform.utils.Types.*;
  * The annotation handler for the {@link CModifyExpressionValue} annotation.
  */
 @ParametersAreNonnullByDefault
-public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnotationHandler<CModifyExpressionValue> {
+public class CModifyExpressionValueAnnotationHandler extends InjectionAnnotationHandler<CModifyExpressionValue> {
 
     public CModifyExpressionValueAnnotationHandler() {
         super(CModifyExpressionValue.class, CModifyExpressionValue::method);
@@ -49,12 +50,8 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
         for (CTarget expressionTarget : targets) {
             IInjectionTarget injectionTarget = injectionTargets.get(expressionTarget.value().toUpperCase(Locale.ROOT));
             if (injectionTarget == null) throw new InvalidTargetException(transformerMethod, transformer, expressionTarget.value(), injectionTargets.keySet());
-            List<AbstractInsnNode> instructions = injectionTarget.getTargets(injectionTargets, target, expressionTarget, annotation.slice());
+            List<AbstractInsnNode> instructions = InjectionPlan.select(transformerManager, target, expressionTarget, annotation.slice());
             if (instructions == null) throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, expressionTarget.target());
-            if (instructions.isEmpty() && !expressionTarget.optional()) {
-                throw new TransformerException(transformerMethod, transformer, "target '" + expressionTarget.target() + "' could not be found")
-                        .help("e.g. Ljava/lang/String;toString()V, Ljava/lang/Integer;MAX_VALUE:I");
-            }
             injectionInstructions.addAll(instructions);
         }
 
@@ -75,14 +72,22 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
             }
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
+        InjectionPlan.record(transformerMethodCalls.size());
     }
 
     private void modifyInvoke(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final MethodInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls) {
         Type wrappedType = returnType(targetNode);
+        AbstractInsnNode original = InjectionPlan.original(targetNode);
+        if (original instanceof MethodInsnNode) {
+            MethodInsnNode method = (MethodInsnNode) original;
+            wrappedType = method.name.equals("<init>") ? type(method.owner) : returnType(method);
+        } else if (original instanceof FieldInsnNode) {
+            wrappedType = type(((FieldInsnNode) original).desc);
+        }
         if (wrappedType.equals(Type.VOID_TYPE)) throw new TransformerException(transformerMethod, transformer, "target method returns void");
         boolean castReturnValue = this.checkDescriptor(transformer, transformerMethod, targetMethod, wrappedType);
         InsnList insns = this.getModifyInstructions(targetClass, targetMethod, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls);
-        targetMethod.instructions.insert(targetNode, insns);
+        this.insertAfter(targetMethod, targetNode, insns);
     }
 
     private void modifyField(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final FieldInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls) {
@@ -92,7 +97,7 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
         if (targetNode.getOpcode() == Opcodes.PUTFIELD || targetNode.getOpcode() == Opcodes.PUTSTATIC) {
             targetMethod.instructions.insertBefore(targetNode, insns);
         } else {
-            targetMethod.instructions.insert(targetNode, insns);
+            this.insertAfter(targetMethod, targetNode, insns);
         }
     }
 
@@ -100,7 +105,7 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
         Type wrappedType = type(targetNode.owner);
         boolean castReturnValue = this.checkDescriptor(transformer, transformerMethod, targetMethod, wrappedType);
         InsnList insns = this.getModifyInstructions(targetClass, targetMethod, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls);
-        targetMethod.instructions.insert(targetNode, insns);
+        this.insertAfter(targetMethod, targetNode, insns);
     }
 
     private void modifyConstant(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final AbstractInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls) {
@@ -129,7 +134,14 @@ public class CModifyExpressionValueAnnotationHandler extends RemovingTargetAnnot
             throw new TransformerException(transformerMethod, transformer, "target must be a method invocation, field access, object creation or constant");
         }
         boolean castReturnValue = this.checkDescriptor(transformer, transformerMethod, targetMethod, wrappedType);
-        targetMethod.instructions.insert(targetNode, this.getModifyInstructions(targetClass, targetMethod, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls));
+        this.insertAfter(targetMethod, targetNode, this.getModifyInstructions(targetClass, targetMethod, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls));
+    }
+
+    private void insertAfter(final MethodNode method, final AbstractInsnNode target, final InsnList instructions) {
+        LabelNode end = new LabelNode();
+        instructions.add(end);
+        method.instructions.insert(InjectionPlan.after(target), instructions);
+        InjectionPlan.setAfter(target, end);
     }
 
     private boolean checkDescriptor(final ClassNode transformer, final MethodNode transformerMethod, final MethodNode targetMethod, final Type expectedType) {
