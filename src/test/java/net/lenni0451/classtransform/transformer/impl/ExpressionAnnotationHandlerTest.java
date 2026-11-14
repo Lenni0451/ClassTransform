@@ -258,6 +258,13 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void unusedPrintLocalDefinitionDoesNotAbort() throws Exception {
+        Class<?> target = this.transform(UnusedPrintLocalDefinitionTest.class);
+        assertEquals(3, target.getMethod("add", int.class, int.class).invoke(null, 1, 2));
+        assertEquals(1, target.getField("seen").get(null));
+    }
+
+    @Test
     public void hierarchicalDefinition() throws Exception {
         Class<?> target = this.transform(HierarchicalDefinitionTest.class);
         assertEquals(15, target.getMethod("inherited").invoke(null));
@@ -930,6 +937,21 @@ class ExpressionAnnotationHandlerTest {
         @CModifyExpressionValue(method = "increment", target = @CTarget(value = "EXPRESSION"))
         private static int increment(final int original) {
             return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class UnusedPrintLocalDefinitionTest {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "unused", local = @CLocalDefinition(type = int.class, print = true))
+        @CExpression("? + ?")
+        @CInject(method = "add", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private static void inject() {
+            seen = 1;
         }
 
     }

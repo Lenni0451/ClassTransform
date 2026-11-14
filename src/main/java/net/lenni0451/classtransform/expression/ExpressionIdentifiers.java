@@ -59,25 +59,21 @@ public class ExpressionIdentifiers {
             this.addType(id, candidate -> candidate.equals(type));
         }
         for (AnnotationNode local : locals) {
-            Map<String, Object> values = AnnotationUtils.listToMap(local.values);
-            if (Boolean.TRUE.equals(values.get("print"))) {
-                this.printLocals(Boolean.TRUE.equals(values.get("argsOnly")));
-                throw new IllegalArgumentException("Injection aborted because local variables are being printed");
-            }
             this.addMember(id, new LocalDefinition(local, this.targetMethod));
         }
     }
 
-    private void printLocals(final boolean argsOnly) {
-        Logger.info("Local variables of {}.{}{}:", this.targetClass.name, this.targetMethod.name, this.targetMethod.desc);
+    private void printLocals(final int position, final boolean argsOnly) {
+        Logger.info("Local variables of {}.{}{} at instruction {}:", this.targetClass.name, this.targetMethod.name, this.targetMethod.desc, position);
         if (this.targetMethod.localVariables == null || this.targetMethod.localVariables.isEmpty()) {
             Logger.info("  no local variable table found");
             return;
         }
         for (LocalVariableNode local : this.targetMethod.localVariables) {
-            if (argsOnly && !this.isArgument(local.index)) continue;
             int start = this.targetMethod.instructions.indexOf(local.start);
             int end = this.targetMethod.instructions.indexOf(local.end);
+            if (position < start || position >= end) continue;
+            if (argsOnly && !this.isArgument(local.index)) continue;
             Logger.info("  index={} name={} type={} scope=[{}, {}] parameter={}", local.index, local.name, Type.getType(local.desc).getClassName(), start, end, this.isArgument(local.index));
         }
     }
@@ -276,12 +272,13 @@ public class ExpressionIdentifiers {
         }
     }
 
-    private static class LocalDefinition implements MemberDefinition {
+    private class LocalDefinition implements MemberDefinition {
         private final Type type;
         private final List<String> names;
         private final int ordinal;
         private final int index;
         private final boolean argsOnly;
+        private final boolean print;
         private final MethodNode targetMethod;
 
         private LocalDefinition(final AnnotationNode annotation, final MethodNode targetMethod) {
@@ -298,12 +295,19 @@ public class ExpressionIdentifiers {
             this.ordinal = values.get("ordinal") instanceof Integer ? (Integer) values.get("ordinal") : -1;
             this.index = values.get("index") instanceof Integer ? (Integer) values.get("index") : -1;
             this.argsOnly = Boolean.TRUE.equals(values.get("argsOnly"));
+            this.print = Boolean.TRUE.equals(values.get("print"));
             this.targetMethod = targetMethod;
         }
 
         @Override
         public boolean matches(final ExpressionFlow.FlowValue node) {
             if (!(node.getInsn() instanceof VarInsnNode)) return false;
+            if (this.print) {
+                int position = ExpressionIdentifiers.this.targetMethod.instructions.indexOf(node.getInsn());
+                if (position >= 0 && node.getInsn().getOpcode() >= Opcodes.ISTORE && node.getInsn().getOpcode() <= Opcodes.ASTORE) position++;
+                ExpressionIdentifiers.this.printLocals(position, this.argsOnly);
+                throw new IllegalArgumentException("Injection aborted because local variables are being printed");
+            }
             VarInsnNode var = (VarInsnNode) node.getInsn();
             if (this.index >= 0 && var.var != this.index) return false;
             if (this.type != null && !this.type.equals(node.getType()) && !this.type.equals(this.localType(var.var))) return false;
