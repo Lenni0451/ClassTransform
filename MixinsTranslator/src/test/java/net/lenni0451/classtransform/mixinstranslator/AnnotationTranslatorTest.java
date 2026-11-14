@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.lenni0451.classtransform.annotations.CShadow;
@@ -95,6 +96,11 @@ public class AnnotationTranslatorTest {
     @CModifyReturnValue(method = {"method1", "method2"}, target = {@CTarget(value = "RETURN", shift = CTarget.Shift.BEFORE), @CTarget(value = "RETURN", ordinal = 1, shift = CTarget.Shift.BEFORE)}, slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = ModifyReturnValue.class, to = CModifyReturnValue.class)
     private native void modifyReturnValueTest();
+
+    @ModifyReceiver(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")), require = 0, order = 100)
+    @CModifyReceiver(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = 0, order = 100)
+    @TestMarker(from = ModifyReceiver.class, to = CModifyReceiver.class)
+    private native void modifyReceiverTest();
 
     @Test
     void test() throws ClassNotFoundException {
