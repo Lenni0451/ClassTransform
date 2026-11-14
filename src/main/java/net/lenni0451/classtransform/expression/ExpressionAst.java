@@ -103,7 +103,7 @@ public abstract class ExpressionAst implements Expression {
 
         @Override
         public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
-            return !node.isComplex();
+            return true;
         }
     }
 

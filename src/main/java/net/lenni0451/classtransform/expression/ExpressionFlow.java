@@ -222,7 +222,16 @@ public class ExpressionFlow {
         @Override
         public FlowValue merge(final FlowValue value1, final FlowValue value2) {
             if (value1.equals(value2)) return value1;
-            return new DummyFlowValue(ExpressionTypes.getCommonSupertype(value1.getType(), value2.getType()));
+            Type type = ExpressionTypes.getCommonSupertype(value1.getType(), value2.getType());
+            Set<FlowValue> sources = new LinkedHashSet<>();
+            addSources(sources, value1);
+            addSources(sources, value2);
+            return new ComplexFlowValue(type, sources);
+        }
+
+        private static void addSources(final Set<FlowValue> sources, final FlowValue value) {
+            if (value instanceof ComplexFlowValue) sources.addAll(((ComplexFlowValue) value).getSources());
+            else sources.add(value);
         }
 
         private FlowValue record(final Type type, final AbstractInsnNode insn, final FlowValue... inputs) {

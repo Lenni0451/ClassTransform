@@ -177,6 +177,13 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void branchMergeExpression() throws Exception {
+        Class<?> target = this.transform(BranchMergeExpressionTest.class);
+        assertEquals(12, target.getMethod("merge", boolean.class, int.class, int.class).invoke(null, true, 1, 2));
+        assertEquals(13, target.getMethod("merge", boolean.class, int.class, int.class).invoke(null, false, 1, 2));
+    }
+
+    @Test
     public void boundObjectMethodReference() throws Exception {
         Class<?> target = this.transform(BoundObjectMethodReference.class);
         assertEquals(42, target.getMethod("boundObjectReference").invoke(null));
@@ -369,6 +376,13 @@ class ExpressionAnnotationHandlerTest {
             int local = value;
             local++;
             return local;
+        }
+
+        public static int merge(final boolean flag, final int left, final int right) {
+            int value;
+            if (flag) value = left;
+            else value = right;
+            return value + 1;
         }
 
         public int instanceValue() {
@@ -632,6 +646,17 @@ class ExpressionAnnotationHandlerTest {
         @CExpression("local + 1")
         @CModifyExpressionValue(method = "increment", target = @CTarget(value = "EXPRESSION"))
         private static int increment(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class BranchMergeExpressionTest {
+
+        @CExpression("? + ?")
+        @CModifyExpressionValue(method = "merge", target = @CTarget(value = "EXPRESSION"))
+        private static int merge(final int original) {
             return original + 10;
         }
 
