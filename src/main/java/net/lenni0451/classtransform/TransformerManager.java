@@ -138,6 +138,7 @@ public class TransformerManager implements ClassFileTransformer {
 
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());
+        this.injectionTargets.put("CTOR_HEAD", new ConstructorHeadTarget());
         this.injectionTargets.put("RETURN", new ReturnTarget());
         this.injectionTargets.put("THROW", new ThrowTarget());
         this.injectionTargets.put("TAIL", new TailTarget());
