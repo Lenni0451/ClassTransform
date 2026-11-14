@@ -111,7 +111,7 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
         int callbackVar = ASMUtils.getFreeVarIndex(target);
 
         InsnList instructions = this.getLoadInstructions(target, hasArgs);
-        this.createCallback(instructions, cancellable, hasCallback, callbackVar, Type.VOID_TYPE, 0);
+        this.createCallback(instructions, cancellable, hasCallback, callbackVar, returnType, -1);
         this.callInjectionMethod(instructions, classNode, target, source, transformerMethodCalls);
         this.getCancelInstructions(instructions, cancellable, hasCallback, callbackVar, returnType, -1);
         return instructions;
@@ -180,7 +180,11 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
         instructions.add(new InsnNode(Opcodes.DUP));
         instructions.add(new InsnNode(cancellable ? Opcodes.ICONST_1 : Opcodes.ICONST_0));
         if (!Type.VOID_TYPE.equals(returnType)) {
-            instructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(returnType), returnVar));
+            if (returnVar >= 0) {
+                instructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(returnType), returnVar));
+            } else {
+                this.pushDefaultValue(instructions, returnType);
+            }
             AbstractInsnNode convertOpcode = ASMUtils.getPrimitiveToObject(returnType);
             if (convertOpcode != null) instructions.add(convertOpcode);
             instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, internalName(InjectionCallback.class), MN_Init, methodDescriptor(void.class, boolean.class, Object.class)));
@@ -190,6 +194,33 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
         if (cancellable) {
             instructions.add(new VarInsnNode(Opcodes.ASTORE, callbackVar));
             instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+        }
+    }
+
+    private void pushDefaultValue(final InsnList instructions, final Type type) {
+        switch (type.getSort()) {
+            case Type.BOOLEAN:
+            case Type.BYTE:
+            case Type.CHAR:
+            case Type.SHORT:
+            case Type.INT:
+                instructions.add(new InsnNode(Opcodes.ICONST_0));
+                break;
+            case Type.LONG:
+                instructions.add(new InsnNode(Opcodes.LCONST_0));
+                break;
+            case Type.FLOAT:
+                instructions.add(new InsnNode(Opcodes.FCONST_0));
+                break;
+            case Type.DOUBLE:
+                instructions.add(new InsnNode(Opcodes.DCONST_0));
+                break;
+            case Type.ARRAY:
+            case Type.OBJECT:
+                instructions.add(new InsnNode(Opcodes.ACONST_NULL));
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported return type " + type);
         }
     }
 

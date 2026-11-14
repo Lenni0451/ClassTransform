@@ -24,6 +24,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Slice;"), new SliceTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Share;"), new ShareTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Local;"), new LocalTranslator());
+        register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Cancellable;"), new CancellableTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/WrapWithCondition;"), new WrapWithConditionTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/v2/WrapWithCondition;"), new WrapWithConditionTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;"), new ModifyExpressionValueTranslator());

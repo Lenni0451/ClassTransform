@@ -14,6 +14,7 @@ import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.targets.impl.*;
 import net.lenni0451.classtransform.transformer.*;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
+import net.lenni0451.classtransform.transformer.coprocessor.impl.CCancellableCoprocessor;
 import net.lenni0451.classtransform.transformer.coprocessor.impl.CLocalVariableCoprocessor;
 import net.lenni0451.classtransform.transformer.coprocessor.impl.CSharedCoprocessor;
 import net.lenni0451.classtransform.transformer.impl.*;
@@ -130,6 +131,7 @@ public class TransformerManager implements ClassFileTransformer {
         //Annotation coprocessors
         this.coprocessors.add(CLocalVariableCoprocessor::new);
         this.coprocessors.add(CSharedCoprocessor::new);
+        this.coprocessors.add(CCancellableCoprocessor::new);
 
         //Injection targets
         this.injectionTargets.put("HEAD", new HeadTarget());

@@ -1,7 +1,9 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
+import com.llamalad7.mixinextras.sugar.Cancellable;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
+import net.lenni0451.classtransform.annotations.CCancellable;
 import net.lenni0451.classtransform.annotations.CLocalVariable;
 import net.lenni0451.classtransform.annotations.CShared;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -47,6 +49,10 @@ public class ParameterAnnotationTest {
 
     private native void testShareNamespace(
             @Share(value = "test", namespace = "my.namespace") @CShared(value = "test", namespace = "my.namespace") @TestMarker(from = Share.class, to = CShared.class) String test2
+    );
+
+    private native void testCancellable(
+            @Cancellable @CCancellable @TestMarker(from = Cancellable.class, to = CCancellable.class) org.spongepowered.asm.mixin.injection.callback.CallbackInfo callback
     );
 
     @Test

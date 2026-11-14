@@ -3,10 +3,7 @@ package net.lenni0451.classtransform.mixinstranslator;
 import net.lenni0451.classtransform.InjectionCallback;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -57,48 +54,61 @@ class CallbackRewriter {
         }
 
         visitMethodInsn(methodNode);
-
+        visitInstructions(methodNode);
+        visitLocalVariables(methodNode);
     }
 
     private static void visitMethodInsn(final MethodNode methodNode) {
         for (AbstractInsnNode insn : methodNode.instructions.toArray()) {
-            if (insn instanceof MethodInsnNode) {
-                MethodInsnNode method = (MethodInsnNode) insn;
-                if (method.getOpcode() == Opcodes.INVOKEVIRTUAL) {
-                    boolean isCallbackInfo = method.owner.equals(CALLBACK_INFO.getInternalName());
-                    boolean isCallbackInfoReturnable = method.owner.equals(CALLBACK_INFO_RETURNABLE.getInternalName());
+            if (!(insn instanceof MethodInsnNode)) continue;
+            MethodInsnNode method = (MethodInsnNode) insn;
+            method.desc = replaceCallbackTypes(method.desc);
+            boolean isCallbackInfo = method.owner.equals(CALLBACK_INFO.getInternalName());
+            boolean isCallbackInfoReturnable = method.owner.equals(CALLBACK_INFO_RETURNABLE.getInternalName());
 
-                    if (isCallbackInfo || isCallbackInfoReturnable) {
-                        method.owner = INJECTION_CALLBACK.getInternalName();
+            if (!isCallbackInfo && !isCallbackInfoReturnable) continue;
+            method.owner = INJECTION_CALLBACK.getInternalName();
 
-                        if (method.name.equals("cancel") && method.desc.equals("()V")) { //cancel -> setCancelled(true)
-                            method.name = "setCancelled";
-                            method.desc = "(Z)V";
-                            methodNode.instructions.insertBefore(method, new InsnNode(Opcodes.ICONST_1));
-                        }
-                    }
-                    if (isCallbackInfoReturnable) {
-                        if (method.name.equals("getReturnValueB") && method.desc.equals("()B")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B"));
-                        } else if (method.name.equals("getReturnValueC") && method.desc.equals("()C")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Character", "charValue", "()C", false));
-                        } else if (method.name.equals("getReturnValueD") && method.desc.equals("()D")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false));
-                        } else if (method.name.equals("getReturnValueF") && method.desc.equals("()F")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false));
-                        } else if (method.name.equals("getReturnValueI") && method.desc.equals("()I")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false));
-                        } else if (method.name.equals("getReturnValueJ") && method.desc.equals("()J")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J", false));
-                        } else if (method.name.equals("getReturnValueS") && method.desc.equals("()S")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false));
-                        } else if (method.name.equals("getReturnValueZ") && method.desc.equals("()Z")) {
-                            methodNode.instructions.insert(method, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false));
-                        }
-                    }
+            if (method.name.equals("cancel") && method.desc.equals("()V")) {
+                method.name = "setCancelled";
+                method.desc = "(Z)V";
+                methodNode.instructions.insertBefore(method, new InsnNode(Opcodes.ICONST_1));
+            }
+        }
+    }
+
+    private static void visitInstructions(final MethodNode methodNode) {
+        for (AbstractInsnNode insn : methodNode.instructions.toArray()) {
+            if (insn instanceof FieldInsnNode) {
+                FieldInsnNode field = (FieldInsnNode) insn;
+                field.desc = replaceCallbackTypes(field.desc);
+            } else if (insn instanceof TypeInsnNode) {
+                TypeInsnNode type = (TypeInsnNode) insn;
+                if (type.desc.equals(CALLBACK_INFO.getInternalName()) || type.desc.equals(CALLBACK_INFO_RETURNABLE.getInternalName())) {
+                    type.desc = INJECTION_CALLBACK.getInternalName();
+                }
+            } else if (insn instanceof LdcInsnNode) {
+                LdcInsnNode ldc = (LdcInsnNode) insn;
+                if (ldc.cst instanceof Type) {
+                    Type type = (Type) ldc.cst;
+                    if (type.equals(CALLBACK_INFO) || type.equals(CALLBACK_INFO_RETURNABLE)) ldc.cst = INJECTION_CALLBACK;
                 }
             }
         }
+    }
+
+    private static void visitLocalVariables(final MethodNode methodNode) {
+        if (methodNode.localVariables == null) return;
+        for (LocalVariableNode localVariable : methodNode.localVariables) {
+            Type type = Type.getType(localVariable.desc);
+            if (type.equals(CALLBACK_INFO) || type.equals(CALLBACK_INFO_RETURNABLE)) localVariable.desc = INJECTION_CALLBACK.getDescriptor();
+        }
+    }
+
+    private static String replaceCallbackTypes(final String descriptor) {
+        return descriptor
+                .replace(CALLBACK_INFO.getDescriptor(), INJECTION_CALLBACK.getDescriptor())
+                .replace(CALLBACK_INFO_RETURNABLE.getDescriptor(), INJECTION_CALLBACK.getDescriptor());
     }
 
 }

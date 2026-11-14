@@ -55,4 +55,28 @@ class InjectionCallbackTest {
         assertEquals("test", returnValue);
     }
 
+    @Test
+    @DisplayName("Read primitive return values")
+    @Order(3)
+    public void primitiveReturnValues() {
+        assertEquals(true, new InjectionCallback(true, true).getReturnValueZ());
+        assertEquals((byte) 1, new InjectionCallback(true, (byte) 1).getReturnValueB());
+        assertEquals('a', new InjectionCallback(true, 'a').getReturnValueC());
+        assertEquals((short) 2, new InjectionCallback(true, (short) 2).getReturnValueS());
+        assertEquals(3, new InjectionCallback(true, 3).getReturnValueI());
+        assertEquals(4L, new InjectionCallback(true, 4L).getReturnValueJ());
+        assertEquals(5F, new InjectionCallback(true, 5F).getReturnValueF());
+        assertEquals(6D, new InjectionCallback(true, 6D).getReturnValueD());
+    }
+
+    @Test
+    @DisplayName("Cancel with the convenience method")
+    @Order(4)
+    public void cancelConvenienceMethod() {
+        InjectionCallback callback = new InjectionCallback(true);
+        assertTrue(callback.isCancellable());
+        callback.cancel();
+        assertTrue(callback.isCancelled());
+    }
+
 }

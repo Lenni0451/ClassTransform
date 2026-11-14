@@ -81,4 +81,67 @@ public class InjectionCallback {
         this.returnValueSet = true;
     }
 
+    /**
+     * Cancel the original method without setting a return value.
+     */
+    public void cancel() {
+        this.setCancelled(true);
+    }
+
+    /**
+     * @return The current return value as a boolean
+     */
+    public boolean getReturnValueZ() {
+        return (Boolean) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as a byte
+     */
+    public byte getReturnValueB() {
+        return (Byte) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as a char
+     */
+    public char getReturnValueC() {
+        return (Character) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as a short
+     */
+    public short getReturnValueS() {
+        return (Short) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as an int
+     */
+    public int getReturnValueI() {
+        return (Integer) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as a long
+     */
+    public long getReturnValueJ() {
+        return (Long) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as a float
+     */
+    public float getReturnValueF() {
+        return (Float) this.getReturnValue();
+    }
+
+    /**
+     * @return The current return value as a double
+     */
+    public double getReturnValueD() {
+        return (Double) this.getReturnValue();
+    }
+
 }
