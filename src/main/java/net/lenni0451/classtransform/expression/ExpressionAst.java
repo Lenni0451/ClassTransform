@@ -472,6 +472,7 @@ public abstract class ExpressionAst implements Expression {
         @Override
         public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
             if (node.isComplex()) return false;
+            if (NewArrayPostProcessor.getInfo(node) != null) return false;
             int opcode = node.getInsn().getOpcode();
             Type elementType;
             int newBlankDimensions;
@@ -517,7 +518,7 @@ public abstract class ExpressionAst implements Expression {
             ctx.capture(node, this, type, null, new Type[]{Type.INT_TYPE}, null, null, false);
         }
 
-        private static Type getPrimitiveType(final int operand) {
+        static Type getPrimitiveType(final int operand) {
             switch (operand) {
                 case Opcodes.T_BOOLEAN: return Type.BOOLEAN_TYPE;
                 case Opcodes.T_CHAR: return Type.CHAR_TYPE;
@@ -543,6 +544,48 @@ public abstract class ExpressionAst implements Expression {
                 case Opcodes.T_LONG: return "J";
                 default: throw new IllegalArgumentException("Unknown array type " + operand);
             }
+        }
+    }
+
+    public static class ArrayLiteralExpression extends ExpressionAst {
+        private final TypeIdentifier elementType;
+        private final List<Expression> values;
+
+        public ArrayLiteralExpression(final ExpressionSource src, final TypeIdentifier elementType, final List<Expression> values) {
+            super(src);
+            this.elementType = elementType;
+            this.values = values;
+        }
+
+        @Override
+        public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
+            ArrayCreationInfo creation = NewArrayPostProcessor.getInfo(node);
+            if (creation == null) return false;
+            Type newElementType;
+            switch (node.getInsn().getOpcode()) {
+                case Opcodes.NEWARRAY:
+                    newElementType = NewArrayExpression.getPrimitiveType(((IntInsnNode) node.getInsn()).operand);
+                    break;
+                case Opcodes.ANEWARRAY:
+                    newElementType = Type.getObjectType(((TypeInsnNode) node.getInsn()).desc);
+                    break;
+                default:
+                    return false;
+            }
+            if (!this.elementType.matches(ctx.getIdentifiers(), newElementType)) return false;
+            List<ExpressionFlow.FlowValue> stores = creation.getStores();
+            if (stores.size() != this.values.size()) return false;
+            for (int i = 0; i < this.values.size(); i++) {
+                if (!this.values.get(i).matches(stores.get(i).getInput(2), ctx)) return false;
+            }
+            return true;
+        }
+
+        @Override
+        public void capture(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
+            ArrayCreationInfo creation = NewArrayPostProcessor.getInfo(node);
+            if (creation == null) return;
+            ctx.capture(creation.getInitialized(), this, node.getType(), null, new Type[0], null, null, false);
         }
     }
 

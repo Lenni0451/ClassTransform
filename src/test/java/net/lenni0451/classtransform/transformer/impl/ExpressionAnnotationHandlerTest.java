@@ -161,6 +161,15 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void arrayLiteralExpression() throws Exception {
+        Class<?> target = this.transform(ArrayLiteralExpressionTest.class);
+        int[] array = (int[]) target.getMethod("literalArray").invoke(null);
+        assertEquals(11, array[0]);
+        assertEquals(2, array[1]);
+        assertEquals(13, array[2]);
+    }
+
+    @Test
     public void modifyInstantiation() throws Exception {
         Class<?> target = this.transform(InstantiationExpression.class);
         assertEquals(11, ((Holder) target.getMethod("create", int.class).invoke(null, 1)).value);
@@ -324,6 +333,10 @@ class ExpressionAnnotationHandlerTest {
 
         public static int[] createArray(final int size) {
             return new int[size];
+        }
+
+        public static int[] literalArray() {
+            return new int[]{1, 2, 3};
         }
 
         public static int slice(final int value) {
@@ -547,6 +560,17 @@ class ExpressionAnnotationHandlerTest {
         @CModifyExpressionValue(method = "createArray", target = @CTarget(value = "EXPRESSION"))
         private static int[] createArray(final int[] original) {
             return new int[original.length + 1];
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class ArrayLiteralExpressionTest {
+
+        @CExpression("new int[]{1, ?, 3}")
+        @CModifyExpressionValue(method = "literalArray", target = @CTarget(value = "EXPRESSION"))
+        private static int[] literalArray(final int[] original) {
+            return new int[]{original[0] + 10, original[1], original[2] + 10};
         }
 
     }

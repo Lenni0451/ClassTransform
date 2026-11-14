@@ -31,7 +31,15 @@ public class ExpressionFlow {
         } catch (AnalyzerException e) {
             throw new IllegalStateException("Failed to analyze value flow of " + classNode.name + "." + method.name + method.desc, e);
         }
-        return interpreter.getFlows();
+        List<FlowValue> flows = new ArrayList<>(interpreter.getFlows());
+        for (FlowValue flow : flows) {
+            if (flow.isComplex()) continue;
+            flow.setOrder(method.instructions.indexOf(flow.getInsn()));
+        }
+        for (FlowValue flow : flows) {
+            for (int i = 0; i < flow.inputCount(); i++) flow.getInput(i).addNext(flow);
+        }
+        return flows;
     }
 
 
@@ -39,6 +47,8 @@ public class ExpressionFlow {
         private final Type type;
         private final AbstractInsnNode insn;
         private final FlowValue[] inputs;
+        private final List<FlowValue> next = new ArrayList<>();
+        private int order = -1;
 
         public FlowValue(final Type type, final AbstractInsnNode insn, final FlowValue... inputs) {
             this.type = type;
@@ -65,6 +75,28 @@ public class ExpressionFlow {
 
         public int inputCount() {
             return this.inputs.length;
+        }
+
+        /**
+         * @return The values which use this value as an input
+         */
+        public List<FlowValue> getNext() {
+            return this.next;
+        }
+
+        /**
+         * @return The index of the instruction in the method or -1 for complex values
+         */
+        public int getOrder() {
+            return this.order;
+        }
+
+        public void setOrder(final int order) {
+            this.order = order;
+        }
+
+        public void addNext(final FlowValue value) {
+            if (!this.next.contains(value)) this.next.add(value);
         }
 
         public boolean isComplex() {

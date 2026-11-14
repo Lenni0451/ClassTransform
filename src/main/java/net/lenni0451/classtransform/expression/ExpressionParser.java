@@ -327,6 +327,23 @@ public class ExpressionParser {
         if (this.match(ExpressionToken.ExpressionTokenType.LEFT_PAREN)) {
             return new InstantiationExpression(this.source(start), new NamedType(name), this.parseArguments());
         }
+        int arrayLiteralDimensions = this.countEmptyBrackets();
+        if (arrayLiteralDimensions > 0 && this.checkAt(this.index + arrayLiteralDimensions * 2, ExpressionToken.ExpressionTokenType.LEFT_BRACE)) {
+            TypeIdentifier elementType = name.wildcard ? new WildcardType() : new NamedType(name);
+            for (int i = 1; i < arrayLiteralDimensions; i++) elementType = new ArrayTypeIdentifier(1, elementType);
+            for (int i = 0; i < arrayLiteralDimensions; i++) {
+                this.expect(ExpressionToken.ExpressionTokenType.LEFT_BRACKET);
+                this.expect(ExpressionToken.ExpressionTokenType.RIGHT_BRACKET);
+            }
+            this.expect(ExpressionToken.ExpressionTokenType.LEFT_BRACE);
+            List<Expression> values = new ArrayList<>();
+            do {
+                values.add(this.parseExpression());
+            } while (this.match(ExpressionToken.ExpressionTokenType.COMMA));
+            this.expect(ExpressionToken.ExpressionTokenType.RIGHT_BRACE);
+            return new ArrayLiteralExpression(this.source(start), elementType, values);
+        }
+
         int dims = 0;
         List<Expression> dimensions = new ArrayList<>();
         while (this.match(ExpressionToken.ExpressionTokenType.LEFT_BRACKET)) {
@@ -338,14 +355,27 @@ public class ExpressionParser {
             this.expect(ExpressionToken.ExpressionTokenType.RIGHT_BRACKET);
         }
         if (dimensions.isEmpty() && dims == 0) throw this.error("Expected constructor arguments or array dimensions");
-        if (dims > 0) {
-            if (this.check(ExpressionToken.ExpressionTokenType.LEFT_BRACE)) throw this.error("Array literals are not supported");
-        }
         while (this.match(ExpressionToken.ExpressionTokenType.LEFT_BRACKET)) {
             this.expect(ExpressionToken.ExpressionTokenType.RIGHT_BRACKET);
             dims++;
         }
         return new NewArrayExpression(this.source(start), new NamedType(name), dimensions, dims);
+    }
+
+    private int countEmptyBrackets() {
+        int count = 0;
+        int index = this.index;
+        while (index + 1 < this.tokens.size()
+                && this.tokens.get(index).is(ExpressionToken.ExpressionTokenType.LEFT_BRACKET)
+                && this.tokens.get(index + 1).is(ExpressionToken.ExpressionTokenType.RIGHT_BRACKET)) {
+            count++;
+            index += 2;
+        }
+        return count;
+    }
+
+    private boolean checkAt(final int index, final ExpressionToken.ExpressionTokenType type) {
+        return this.tokens.get(Math.min(index, this.tokens.size() - 1)).is(type);
     }
 
     private List<Expression> parseArguments() {
