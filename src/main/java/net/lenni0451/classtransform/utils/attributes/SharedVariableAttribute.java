@@ -26,18 +26,22 @@ public class SharedVariableAttribute extends Attribute {
         Serializer.read(AttributeAccessor.getContent(attribute), this);
     }
 
-    public SharedVariable addVariable(final String transformer, final String name, final int index, final Type type, final boolean global) {
-        SharedVariable sharedVariable = new SharedVariable(transformer, name, index, type, global);
+    public SharedVariable addVariable(final String transformer, final String name, final String namespace, final int index, final Type type, final boolean global, final boolean reference) {
+        SharedVariable sharedVariable = new SharedVariable(transformer, name, namespace, index, type, global, reference);
         this.variables.add(sharedVariable);
         return sharedVariable;
     }
 
     @Nullable
-    public SharedVariable getVariableIndex(final String transformer, final String name, final boolean global) {
+    public SharedVariable getVariable(final String transformer, final String name, final String namespace, final boolean global) {
         for (SharedVariable variable : this.variables) {
-            if (variable.name.equals(name) && global == variable.global) {
-                if (global) return variable;
-                else if (variable.transformer.equals(transformer)) return variable;
+            if (!variable.name.equals(name)) continue;
+            if (!namespace.isEmpty()) {
+                if (variable.namespace.equals(namespace)) return variable;
+            } else if (global) {
+                if (variable.namespace.isEmpty() && variable.global) return variable;
+            } else if (variable.namespace.isEmpty() && !variable.global && variable.transformer.equals(transformer)) {
+                return variable;
             }
         }
         return null;
@@ -52,16 +56,20 @@ public class SharedVariableAttribute extends Attribute {
     public static class SharedVariable {
         private final String transformer;
         private final String name;
+        private final String namespace;
         private final int variableIndex;
         private final Type type;
         private final boolean global;
+        private final boolean reference;
 
-        private SharedVariable(final String transformer, final String name, final int variableIndex, final Type type, final boolean global) {
+        private SharedVariable(final String transformer, final String name, final String namespace, final int variableIndex, final Type type, final boolean global, final boolean reference) {
             this.transformer = transformer;
             this.name = name;
+            this.namespace = namespace;
             this.variableIndex = variableIndex;
             this.type = type;
             this.global = global;
+            this.reference = reference;
         }
 
         public String getTransformer() {
@@ -70,6 +78,10 @@ public class SharedVariableAttribute extends Attribute {
 
         public String getName() {
             return this.name;
+        }
+
+        public String getNamespace() {
+            return this.namespace;
         }
 
         public int getVariableIndex() {
@@ -83,6 +95,10 @@ public class SharedVariableAttribute extends Attribute {
         public boolean isGlobal() {
             return this.global;
         }
+
+        public boolean isReference() {
+            return this.reference;
+        }
     }
 
     private static class Serializer {
@@ -94,9 +110,11 @@ public class SharedVariableAttribute extends Attribute {
             for (SharedVariable sharedVariable : attribute.variables) {
                 dos.writeUTF(sharedVariable.getTransformer());
                 dos.writeUTF(sharedVariable.getName());
+                dos.writeUTF(sharedVariable.getNamespace());
                 dos.writeInt(sharedVariable.getVariableIndex());
-                dos.writeUTF(sharedVariable.getType().getInternalName());
+                dos.writeUTF(sharedVariable.getType().getDescriptor());
                 dos.writeBoolean(sharedVariable.isGlobal());
+                dos.writeBoolean(sharedVariable.isReference());
             }
             return baos.toByteArray();
         }
@@ -107,10 +125,12 @@ public class SharedVariableAttribute extends Attribute {
             for (int i = 0; i < size; i++) {
                 String transformer = dis.readUTF();
                 String name = dis.readUTF();
+                String namespace = dis.readUTF();
                 int variableIndex = dis.readInt();
-                Type type = Type.getObjectType(dis.readUTF());
+                Type type = Type.getType(dis.readUTF());
                 boolean global = dis.readBoolean();
-                attribute.addVariable(transformer, name, variableIndex, type, global);
+                boolean reference = dis.readBoolean();
+                attribute.addVariable(transformer, name, namespace, variableIndex, type, global, reference);
             }
             return attribute;
         }

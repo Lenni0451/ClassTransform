@@ -15,6 +15,13 @@ public class CLocalRef<T> {
     private final int index;
 
     /**
+     * Create a new reference with the default value {@code null}.
+     */
+    public CLocalRef() {
+        this(new Object[]{null}, 0);
+    }
+
+    /**
      * @param values The backing array of local variable values
      * @param index  The index of the value in the backing array
      */

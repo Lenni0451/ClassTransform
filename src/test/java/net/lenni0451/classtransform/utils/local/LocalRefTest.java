@@ -16,6 +16,19 @@ class LocalRefTest {
     }
 
     @Test
+    public void defaultValues() {
+        assertNull(new CLocalRef<>().get());
+        assertFalse(new CLocalBooleanRef().get());
+        assertEquals(0, new CLocalByteRef().get());
+        assertEquals(0, new CLocalCharRef().get());
+        assertEquals(0, new CLocalShortRef().get());
+        assertEquals(0, new CLocalIntRef().get());
+        assertEquals(0L, new CLocalLongRef().get());
+        assertEquals(0F, new CLocalFloatRef().get());
+        assertEquals(0D, new CLocalDoubleRef().get());
+    }
+
+    @Test
     public void primitiveReferences() {
         Object[] values = new Object[]{false, (byte) 1, 'a', (short) 2, 3, 4L, 5F, 6D};
 

@@ -13,6 +13,13 @@ public class CLocalShortRef {
     private final int index;
 
     /**
+     * Create a new reference with the default value {@code 0}.
+     */
+    public CLocalShortRef() {
+        this(new Object[]{(short) 0}, 0);
+    }
+
+    /**
      * @param values The backing array of local variable values
      * @param index  The index of the value in the backing array
      */

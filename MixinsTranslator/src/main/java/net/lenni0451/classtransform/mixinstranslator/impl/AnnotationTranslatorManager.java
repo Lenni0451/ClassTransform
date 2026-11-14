@@ -1,7 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
 import net.lenni0451.classtransform.annotations.CShadow;
-import net.lenni0451.classtransform.annotations.CShared;
 import net.lenni0451.classtransform.annotations.injection.COverride;
 import org.objectweb.asm.Type;
 
@@ -23,7 +22,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/At;"), new AtTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/Shadow;"), Type.getType(CShadow.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Slice;"), new SliceTranslator());
-        register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Share;"), Type.getType(CShared.class));
+        register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Share;"), new ShareTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Local;"), new LocalTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/WrapWithCondition;"), new WrapWithConditionTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/v2/WrapWithCondition;"), new WrapWithConditionTranslator());

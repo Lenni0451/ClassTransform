@@ -10,6 +10,7 @@ import net.lenni0451.classtransform.utils.Types;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.attributes.SharedVariableAttribute;
+import net.lenni0451.classtransform.utils.local.LocalRefUtils;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -18,14 +19,37 @@ import org.objectweb.asm.tree.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The coprocessor for {@link CShared} parameters.<br>
+ * Shared values are stored in a local variable of the target method and are therefore isolated per invocation.
+ */
 public class CSharedCoprocessor implements IAnnotationCoprocessor {
 
     private CoprocessorUtils.AnnotatedParameter[] parameters;
+    private ParameterInfo[] parameterInfos;
 
     @Override
     public MethodNode preprocess(TransformerManager transformerManager, ClassNode transformedClass, MethodNode transformedMethod, ClassNode transformer, MethodNode transformerMethod) {
         this.parameters = CoprocessorUtils.getAnnotatedParameters(transformerMethod, CShared.class);
         if (this.parameters == null) return transformerMethod; //No annotated parameters found
+        List<ParameterInfo> parameterInfos = new ArrayList<>();
+        for (int i = 0; i < this.parameters.length; i++) {
+            CoprocessorUtils.AnnotatedParameter parameter = this.parameters[i];
+            if (parameter == null) continue;
+            CShared annotation = AnnotationParser.parse(CShared.class, transformerManager, AnnotationUtils.listToMap(parameter.getAnnotation().values));
+            boolean reference = LocalRefUtils.isRef(parameter.getType());
+            Type targetType = parameter.getType();
+            if (reference) {
+                Type typeArgument = CoprocessorUtils.getTypeArgument(transformerMethod, i);
+                targetType = LocalRefUtils.getTargetType(parameter.getType(), typeArgument);
+                if (targetType == null) {
+                    throw new TransformerException(transformerMethod, transformer, "reference parameter " + parameter.getAnnotationIndex() + " must have a concrete type argument")
+                            .help("e.g. CLocalRef<String>");
+                }
+            }
+            parameterInfos.add(new ParameterInfo(parameter, annotation, targetType, reference));
+        }
+        this.parameterInfos = parameterInfos.toArray(new ParameterInfo[0]);
         transformedMethod.signature = null; //Remove the signature as it is no longer valid
         CoprocessorUtils.mergeParametersToArray(transformerMethod, this.parameters);
         return transformerMethod;
@@ -55,25 +79,28 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
             before.add(new InsnNode(Opcodes.DUP)); //Duplicate the array
             before.add(new VarInsnNode(Opcodes.ASTORE, targetArrayIndex)); //Store the array in a local variable
             for (int i = 0; i < parsedSharedVariables.length; i++) {
-                //Go through all shared variables and add them to the array
                 ParsedSharedVariable parsedSharedVariable = parsedSharedVariables[i];
                 before.add(new InsnNode(Opcodes.DUP)); //Duplicate the array
                 before.add(ASMUtils.intPush(i)); //Push the array index
-                before.add(new VarInsnNode(parsedSharedVariable.parameter.getType().getOpcode(Opcodes.ILOAD), parsedSharedVariable.sharedVariable.getVariableIndex())); //Load the variable
-                AbstractInsnNode cast = ASMUtils.getPrimitiveToObject(parsedSharedVariable.parameter.getType());
-                if (cast != null) before.add(cast); //Convert primitive to object (if needed)
+                if (parsedSharedVariable.parameterInfo.reference) {
+                    before.add(new VarInsnNode(Opcodes.ALOAD, parsedSharedVariable.sharedVariable.getVariableIndex())); //Load the shared reference
+                } else {
+                    before.add(new VarInsnNode(parsedSharedVariable.parameterInfo.parameter.getType().getOpcode(Opcodes.ILOAD), parsedSharedVariable.sharedVariable.getVariableIndex())); //Load the variable
+                    AbstractInsnNode cast = ASMUtils.getPrimitiveToObject(parsedSharedVariable.parameterInfo.parameter.getType());
+                    if (cast != null) before.add(cast); //Convert primitive to object (if needed)
+                }
                 before.add(new InsnNode(Opcodes.AASTORE)); //Store the variable in the array
             }
         }
         { //Instructions inserted after the method call
             for (int i = 0; i < parsedSharedVariables.length; i++) {
                 ParsedSharedVariable parsedSharedVariable = parsedSharedVariables[i];
+                if (parsedSharedVariable.parameterInfo.reference) continue; //Reference changes are visible immediately
                 after.add(new VarInsnNode(Opcodes.ALOAD, targetArrayIndex)); //Load the array
                 after.add(ASMUtils.intPush(i)); //Push the array index
                 after.add(new InsnNode(Opcodes.AALOAD)); //Load the variable from the array
-                InsnList cast = ASMUtils.getCast(parsedSharedVariable.sharedVariable.getType());
-                after.add(cast);
-                after.add(new VarInsnNode(parsedSharedVariable.parameter.getType().getOpcode(Opcodes.ISTORE), parsedSharedVariable.sharedVariable.getVariableIndex())); //Store the variable back
+                after.add(ASMUtils.getCast(parsedSharedVariable.parameterInfo.parameter.getType()));
+                after.add(new VarInsnNode(ASMUtils.getStoreOpcode(parsedSharedVariable.parameterInfo.parameter.getType()), parsedSharedVariable.sharedVariable.getVariableIndex())); //Store the variable back
             }
         }
         for (MethodInsnNode transformerCall : transformerMethodCalls) {
@@ -116,63 +143,85 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
 
     private ParsedSharedVariable[] initializeSharedVariables(final TransformerManager transformerManager, final ClassNode transformer, final MethodNode transformerMethod, final SharedVariableAttribute attribute, final MethodNode transformedMethod) {
         List<ParsedSharedVariable> parsedSharedVariables = new ArrayList<>();
-        for (CoprocessorUtils.AnnotatedParameter parameter : this.parameters) {
-            if (parameter == null) continue;
-            CShared annotation = AnnotationParser.parse(CShared.class, transformerManager, AnnotationUtils.listToMap(parameter.getAnnotation().values));
-            SharedVariableAttribute.SharedVariable sharedVariable = attribute.getVariableIndex(transformer.name, annotation.value(), annotation.global());
+        for (ParameterInfo parameterInfo : this.parameterInfos) {
+            CShared annotation = parameterInfo.annotation;
+            SharedVariableAttribute.SharedVariable sharedVariable = attribute.getVariable(transformer.name, annotation.value(), annotation.namespace(), annotation.global());
             if (sharedVariable == null) {
                 //The shared variable with this name is not yet initialized
-                sharedVariable = attribute.addVariable(transformer.name, annotation.value(), ASMUtils.getFreeVarIndex(transformedMethod), parameter.getType(), annotation.global());
-                transformedMethod.instructions.insert(this.getDefaultInstructions(transformer, transformerMethod, parameter.getType(), sharedVariable.getVariableIndex()));
+                sharedVariable = attribute.addVariable(transformer.name, annotation.value(), annotation.namespace(), ASMUtils.getFreeVarIndex(transformedMethod), parameterInfo.targetType, annotation.global(), parameterInfo.reference);
+                transformedMethod.instructions.insert(this.getDefaultInstructions(transformer, transformerMethod, parameterInfo, sharedVariable.getVariableIndex()));
             } else {
                 //The shared variable with this name is already initialized
-                //Compare the types to ensure that the shared variable is not used with the wrong type
-                if (!ASMUtils.compareType(sharedVariable.getType(), parameter.getType())) {
-                    throw new TransformerException(transformerMethod, transformer, "uses shared variable '" + annotation.value() + "' with the wrong type (" + parameter.getType() + " != " + sharedVariable.getType() + ")");
+                if (sharedVariable.isReference() != parameterInfo.reference) {
+                    throw new TransformerException(transformerMethod, transformer, "uses shared variable '" + annotation.value() + "' both as a value and as a reference");
+                }
+                if (!sharedVariable.getType().equals(parameterInfo.targetType)) {
+                    throw new TransformerException(transformerMethod, transformer, "uses shared variable '" + annotation.value() + "' with the wrong type (" + parameterInfo.targetType + " != " + sharedVariable.getType() + ")");
                 }
             }
-            parsedSharedVariables.add(new ParsedSharedVariable(parameter, sharedVariable));
+            parsedSharedVariables.add(new ParsedSharedVariable(parameterInfo, sharedVariable));
         }
         return parsedSharedVariables.toArray(new ParsedSharedVariable[0]);
     }
 
-    private InsnList getDefaultInstructions(final ClassNode transformer, final MethodNode transformerMethod, final Type type, final int index) {
+    private InsnList getDefaultInstructions(final ClassNode transformer, final MethodNode transformerMethod, final ParameterInfo parameterInfo, final int index) {
         InsnList insns = new InsnList();
-        switch (type.getSort()) {
-            case Type.BOOLEAN:
-            case Type.CHAR:
-            case Type.BYTE:
-            case Type.SHORT:
-            case Type.INT:
-                insns.add(new InsnNode(Opcodes.ICONST_0));
-                break;
-            case Type.LONG:
-                insns.add(new InsnNode(Opcodes.LCONST_0));
-                break;
-            case Type.FLOAT:
-                insns.add(new InsnNode(Opcodes.FCONST_0));
-                break;
-            case Type.DOUBLE:
-                insns.add(new InsnNode(Opcodes.DCONST_0));
-                break;
-            case Type.ARRAY:
-            case Type.OBJECT:
-                insns.add(new InsnNode(Opcodes.ACONST_NULL));
-                break;
-            default:
-                throw new TransformerException(transformerMethod, transformer, "uses an unknown type: " + type);
+        if (parameterInfo.reference) {
+            String referenceClass = parameterInfo.parameter.getType().getInternalName();
+            insns.add(new TypeInsnNode(Opcodes.NEW, referenceClass));
+            insns.add(new InsnNode(Opcodes.DUP));
+            insns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, referenceClass, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE), false));
+        } else {
+            switch (parameterInfo.targetType.getSort()) {
+                case Type.BOOLEAN:
+                case Type.CHAR:
+                case Type.BYTE:
+                case Type.SHORT:
+                case Type.INT:
+                    insns.add(new InsnNode(Opcodes.ICONST_0));
+                    break;
+                case Type.LONG:
+                    insns.add(new InsnNode(Opcodes.LCONST_0));
+                    break;
+                case Type.FLOAT:
+                    insns.add(new InsnNode(Opcodes.FCONST_0));
+                    break;
+                case Type.DOUBLE:
+                    insns.add(new InsnNode(Opcodes.DCONST_0));
+                    break;
+                case Type.ARRAY:
+                case Type.OBJECT:
+                    insns.add(new InsnNode(Opcodes.ACONST_NULL));
+                    break;
+                default:
+                    throw new TransformerException(transformerMethod, transformer, "uses an unknown type: " + parameterInfo.targetType);
+            }
         }
-        insns.add(new VarInsnNode(type.getOpcode(Opcodes.ISTORE), index));
+        insns.add(new VarInsnNode(parameterInfo.reference ? Opcodes.ASTORE : ASMUtils.getStoreOpcode(parameterInfo.targetType), index));
         return insns;
     }
 
 
-    private static class ParsedSharedVariable {
+    private static class ParameterInfo {
         private final CoprocessorUtils.AnnotatedParameter parameter;
+        private final CShared annotation;
+        private final Type targetType;
+        private final boolean reference;
+
+        private ParameterInfo(final CoprocessorUtils.AnnotatedParameter parameter, final CShared annotation, final Type targetType, final boolean reference) {
+            this.parameter = parameter;
+            this.annotation = annotation;
+            this.targetType = targetType;
+            this.reference = reference;
+        }
+    }
+
+    private static class ParsedSharedVariable {
+        private final ParameterInfo parameterInfo;
         private final SharedVariableAttribute.SharedVariable sharedVariable;
 
-        private ParsedSharedVariable(final CoprocessorUtils.AnnotatedParameter parameter, final SharedVariableAttribute.SharedVariable sharedVariable) {
-            this.parameter = parameter;
+        private ParsedSharedVariable(final ParameterInfo parameterInfo, final SharedVariableAttribute.SharedVariable sharedVariable) {
+            this.parameterInfo = parameterInfo;
             this.sharedVariable = sharedVariable;
         }
     }

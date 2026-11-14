@@ -45,6 +45,10 @@ public class ParameterAnnotationTest {
             @Share(value = "test") @CShared(value = "test") @TestMarker(from = Share.class, to = CShared.class) String test2
     );
 
+    private native void testShareNamespace(
+            @Share(value = "test", namespace = "my.namespace") @CShared(value = "test", namespace = "my.namespace") @TestMarker(from = Share.class, to = CShared.class) String test2
+    );
+
     @Test
     void test() throws ClassNotFoundException {
         ClassNode classNode = ASMUtils.fromBytes(new BasicClassProvider().getClass(ParameterAnnotationTest.class.getName()));

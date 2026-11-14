@@ -13,6 +13,13 @@ public class CLocalCharRef {
     private final int index;
 
     /**
+     * Create a new reference with the default value {@code 0}.
+     */
+    public CLocalCharRef() {
+        this(new Object[]{(char) 0}, 0);
+    }
+
+    /**
      * @param values The backing array of local variable values
      * @param index  The index of the value in the backing array
      */

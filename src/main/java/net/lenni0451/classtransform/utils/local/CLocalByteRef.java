@@ -13,6 +13,13 @@ public class CLocalByteRef {
     private final int index;
 
     /**
+     * Create a new reference with the default value {@code 0}.
+     */
+    public CLocalByteRef() {
+        this(new Object[]{(byte) 0}, 0);
+    }
+
+    /**
      * @param values The backing array of local variable values
      * @param index  The index of the value in the backing array
      */

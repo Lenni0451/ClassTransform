@@ -13,6 +13,13 @@ public class CLocalDoubleRef {
     private final int index;
 
     /**
+     * Create a new reference with the default value {@code 0}.
+     */
+    public CLocalDoubleRef() {
+        this(new Object[]{0D}, 0);
+    }
+
+    /**
      * @param values The backing array of local variable values
      * @param index  The index of the value in the backing array
      */
