@@ -98,7 +98,8 @@ public @interface CTarget {
 
     /**
      * Additional named arguments for the injection point.<br>
-     * {@code INVOKE_STRING} accepts {@code ldc=...} to select a string argument.
+     * {@code INVOKE_STRING} accepts {@code ldc=...} to select a string argument.<br>
+     * {@code FIELD} accepts {@code array=get|set|length} and {@code fuzz=N} for array element accesses.
      *
      * @return The injection point arguments
      */
