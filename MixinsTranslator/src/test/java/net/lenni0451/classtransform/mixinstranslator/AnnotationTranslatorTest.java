@@ -29,6 +29,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -118,7 +119,7 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectConstantArgsTest();
 
-    @Inject(method = "method", at = @At("HEAD"), locals = org.spongepowered.asm.mixin.injection.callback.LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "method", at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD)
     @CInject(method = "method", target = @CTarget("HEAD"), locals = CLocalCapture.CAPTURE_FAILHARD)
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectLocalsTest();

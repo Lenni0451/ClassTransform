@@ -4,8 +4,6 @@ import net.lenni0451.classtransform.InjectionCallback;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CLocalCapture;
-import net.lenni0451.classtransform.annotations.CLocalVariable;
-import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CSurrogate;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CInject;

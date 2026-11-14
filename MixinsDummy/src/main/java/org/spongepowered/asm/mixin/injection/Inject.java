@@ -1,5 +1,7 @@
 package org.spongepowered.asm.mixin.injection;
 
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -21,7 +23,7 @@ public @interface Inject {
 
     boolean cancellable() default false;
 
-    org.spongepowered.asm.mixin.injection.callback.LocalCapture locals() default org.spongepowered.asm.mixin.injection.callback.LocalCapture.NO_CAPTURE;
+    LocalCapture locals() default LocalCapture.NO_CAPTURE;
 
     int require() default -1;
 

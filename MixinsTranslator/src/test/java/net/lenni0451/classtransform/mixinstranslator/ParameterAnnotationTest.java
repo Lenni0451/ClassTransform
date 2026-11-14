@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.sugar.Cancellable;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import net.lenni0451.classtransform.annotations.CCancellable;
+import net.lenni0451.classtransform.annotations.CCoerce;
 import net.lenni0451.classtransform.annotations.CLocalVariable;
 import net.lenni0451.classtransform.annotations.CShared;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.spongepowered.asm.mixin.injection.Coerce;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -56,7 +58,7 @@ public class ParameterAnnotationTest {
     );
 
     private native void testCoerce(
-            @org.spongepowered.asm.mixin.injection.Coerce @net.lenni0451.classtransform.annotations.CCoerce @TestMarker(from = org.spongepowered.asm.mixin.injection.Coerce.class, to = net.lenni0451.classtransform.annotations.CCoerce.class) Object value
+            @Coerce @CCoerce @TestMarker(from = Coerce.class, to = CCoerce.class) Object value
     );
 
     @Test

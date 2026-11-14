@@ -2,7 +2,6 @@ package net.lenni0451.classtransform.utils;
 
 import net.lenni0451.classtransform.annotations.CDesc;
 import org.objectweb.asm.Handle;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
