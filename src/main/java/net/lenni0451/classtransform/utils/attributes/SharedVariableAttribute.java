@@ -40,6 +40,14 @@ public class SharedVariableAttribute extends Attribute {
         return sharedVariable;
     }
 
+    /**
+     * <b>Use {@link #addVariable(String, String, String, int, Type, boolean, boolean)}.</b>
+     */
+    @Deprecated
+    public SharedVariable addVariable(final String transformer, final String name, final int index, final Type type, final boolean global) {
+        return this.addVariable(transformer, name, "", index, type, global, false);
+    }
+
     @Nullable
     public SharedVariable getVariable(final String transformer, final String name, final String namespace, final boolean global) {
         for (SharedVariable variable : this.variables) {
@@ -53,6 +61,15 @@ public class SharedVariableAttribute extends Attribute {
             }
         }
         return null;
+    }
+
+    /**
+     * <b>Use {@link #getVariable(String, String, String, boolean)}.</b>
+     */
+    @Deprecated
+    @Nullable
+    public SharedVariable getVariableIndex(final String transformer, final String name, final boolean global) {
+        return this.getVariable(transformer, name, "", global);
     }
 
     @Override
