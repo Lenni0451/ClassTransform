@@ -69,6 +69,12 @@ public class AnnotationTranslatorTest {
     private static class MixinTest {
     }
 
+    @Mixin(value = MixinOptionsTest.class, priority = 2000, remap = false)
+    @CTransformer(value = MixinOptionsTest.class, priority = 2000, remap = false)
+    @TestMarker(from = Mixin.class, to = CTransformer.class)
+    private static class MixinOptionsTest {
+    }
+
     @Final
     @TestMarker(from = Final.class, to = Final.class)
     private final String finalTest = null;

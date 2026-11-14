@@ -84,6 +84,7 @@ public class TransformerManager implements ClassFileTransformer {
     final List<IBytecodeTransformer> bytecodeTransformer = new ArrayList<>();
     final Map<String, List<IRawTransformer>> rawTransformer = new HashMap<>();
     final Map<String, List<ClassNode>> transformer = new HashMap<>();
+    private final Map<String, Integer> transformerPriority = new HashMap<>();
     final List<IPostTransformer> postTransformer = new ArrayList<>();
 
     final Set<String> registeredTransformer = new HashSet<>();
@@ -500,8 +501,18 @@ public class TransformerManager implements ClassFileTransformer {
         List<ClassNode> transformerList = this.transformer.computeIfAbsent(className, n -> new ArrayList<>());
         transformerList.removeIf(cn -> cn.name.equals(transformer.name));
         transformerList.add(transformer);
+        this.transformerPriority.put(transformer.name, this.getTransformerPriority(transformer));
+        transformerList.sort(Comparator.comparingInt((ClassNode node) -> this.transformerPriority.getOrDefault(node.name, 1000)).reversed());
 
         transformedClasses.add(className);
+    }
+
+    private int getTransformerPriority(final ClassNode transformer) {
+        return AnnotationUtils.findAnnotation(transformer, CTransformer.class)
+                .map(annotation -> AnnotationUtils.listToMap(annotation.values).get("priority"))
+                .filter(Integer.class::isInstance)
+                .map(Integer.class::cast)
+                .orElse(1000);
     }
 
     /**

@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.mappings;
 
 import lombok.SneakyThrows;
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.mappings.dynamic.IDynamicRemapper;
@@ -110,6 +111,7 @@ public abstract class AMapper {
      */
     public final ClassNode mapClass(final TransformerManager transformerManager, final ClassNode target, final ClassNode transformer) {
         this.fillTransformerSuperMappings(transformerManager, transformer);
+        boolean remap = this.isRemapEnabled(transformer);
         List<AnnotationHolder> annotationsToRemap = new ArrayList<>();
         this.checkAnnotations(transformer, transformer.visibleAnnotations, annotationsToRemap);
         this.checkAnnotations(transformer, transformer.invisibleAnnotations, annotationsToRemap);
@@ -132,14 +134,22 @@ public abstract class AMapper {
             }
             try {
                 Map<String, Object> annotationMap = AnnotationUtils.listToMap(annotation.annotation.values);
-                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, transformerManager, target, transformer, true);
+                this.mapAnnotation(annotation.holder, annotationClass, annotationMap, transformerManager, target, transformer, remap);
                 annotation.annotation.values = AnnotationUtils.mapToList(annotationMap);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Unable to remap annotation '" + annotation.annotation.desc + "' from transformer '" + transformer.name + "'", e);
             }
         }
-        if (this.config.remapTransformer) return Remapper.remap(transformer, this.remapper);
+        if (this.config.remapTransformer && remap) return Remapper.remap(transformer, this.remapper);
         else return transformer;
+    }
+
+    private boolean isRemapEnabled(final ClassNode transformer) {
+        return AnnotationUtils.findAnnotation(transformer, CTransformer.class)
+                .map(annotation -> AnnotationUtils.listToMap(annotation.values).get("remap"))
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(true);
     }
 
     /**

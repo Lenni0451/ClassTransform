@@ -13,6 +13,8 @@ public @interface Mixin {
 
     String[] targets() default {};
 
+    int priority() default 1000;
+
     @Deprecated
     boolean remap() default true;
 

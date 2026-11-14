@@ -35,4 +35,17 @@ public @interface CTransformer {
     @AnnotationRemap(RemapType.CLASS)
     String[] name() default {};
 
+    /**
+     * The priority of this transformer.<br>
+     * Transformers with a higher priority are applied first.
+     *
+     * @return The priority
+     */
+    int priority() default 1000;
+
+    /**
+     * @return If the transformer and its annotations should be remapped
+     */
+    boolean remap() default true;
+
 }
