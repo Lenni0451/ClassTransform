@@ -48,9 +48,7 @@ public class NewTarget implements IInjectionTarget {
             i++;
         }
         CDesc selector = target.desc();
-        if (!selector.value().isEmpty() || Type.getType(selector.owner()).getSort() != Type.VOID || selector.args().length > 0) {
-            DescMatcher.checkMatchCount(selector, i);
-        }
+        if (this.usesDescriptor(selector)) DescMatcher.checkMatchCount(selector, i);
         return targets;
     }
 
@@ -76,18 +74,23 @@ public class NewTarget implements IInjectionTarget {
 
     private boolean isTarget(final String owner, final String name, final String desc, final CTarget target) {
         CDesc selector = target.desc();
-        boolean useDesc = !selector.value().isEmpty() || Type.getType(selector.owner()).getSort() != Type.VOID || selector.args().length > 0;
-        if (!useDesc) return this.isTarget(owner, name, desc, target.target());
+        if (!this.usesDescriptor(selector)) return this.isTarget(owner, name, desc, target.target());
         if (!name.equals("<init>")) return false;
         if (!selector.value().isEmpty() && !selector.value().equals(name)) return false;
         Type selectedOwner = Type.getType(selector.owner());
         if (selectedOwner.getSort() != Type.VOID && !selectedOwner.getInternalName().equals(owner)) return false;
-        if (selector.args().length > 0) {
-            Type[] args = new Type[selector.args().length];
-            for (int i = 0; i < args.length; i++) args[i] = Type.getType(selector.args()[i]);
-            if (!Type.getMethodDescriptor(Type.VOID_TYPE, args).equals(desc)) return false;
-        }
-        return true;
+        Type selectedRet = Type.getType(selector.ret());
+        if (selectedRet.getSort() != Type.VOID) return false;
+        Type[] args = new Type[selector.args().length];
+        for (int i = 0; i < args.length; i++) args[i] = Type.getType(selector.args()[i]);
+        return Type.getMethodDescriptor(Type.VOID_TYPE, args).equals(desc);
+    }
+
+    private boolean usesDescriptor(final CDesc selector) {
+        return !selector.value().isEmpty()
+                || Type.getType(selector.owner()).getSort() != Type.VOID
+                || Type.getType(selector.ret()).getSort() != Type.VOID
+                || selector.args().length > 0;
     }
 
     private boolean isTarget(final String owner, final String name, final String desc, String target) {
