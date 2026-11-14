@@ -392,7 +392,8 @@ public abstract class ExpressionAst implements Expression {
             LMFInfo info = ctx.getIdentifiers().getLMFInfo(node);
             if (info == null || info.type != LMFInfo.Type.BOUND_METHOD) return false;
             if (!this.member.matches(ctx, info.impl)) return false;
-            return node.inputCount() >= 1 && this.receiver.matches(node.getInput(0), ctx);
+            if (node.inputCount() < 1) return false;
+            return this.receiver.matches(LMFInfo.unwrapReceiver(node.getInput(0)), ctx);
         }
     }
 
@@ -666,6 +667,13 @@ public abstract class ExpressionAst implements Expression {
         @Override
         public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
             if (node.isComplex()) return false;
+            if (node.getInsn().getOpcode() == Opcodes.IINC) {
+                if (this.operator != Operator.PLUS) return false;
+                IincInsnNode iinc = (IincInsnNode) node.getInsn();
+                ExpressionFlow.FlowValue load = new ExpressionFlow.FlowValue(Type.INT_TYPE, new VarInsnNode(Opcodes.ILOAD, iinc.var));
+                ExpressionFlow.FlowValue constant = new ExpressionFlow.FlowValue(Type.INT_TYPE, new LdcInsnNode(iinc.incr));
+                return this.left.matches(load, ctx) && this.right.matches(constant, ctx);
+            }
             if (node.inputCount() == 2 && this.operator.matches(node.getInsn().getOpcode())) {
                 return this.left.matches(node.getInput(0), ctx) && this.right.matches(node.getInput(1), ctx);
             }
@@ -696,6 +704,10 @@ public abstract class ExpressionAst implements Expression {
         @Override
         public void capture(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
             if (node.isComplex()) return;
+            if (node.getInsn().getOpcode() == Opcodes.IINC) {
+                ctx.capture(node, this, Type.INT_TYPE, null, new Type[0], null, null, false);
+                return;
+            }
             Type[] argumentTypes = node.inputCount() == 2
                     ? new Type[]{node.getInput(0).getType(), node.getInput(1).getType()}
                     : new Type[0];

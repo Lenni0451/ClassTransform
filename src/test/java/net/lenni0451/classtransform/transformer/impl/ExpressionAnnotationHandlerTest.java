@@ -23,6 +23,7 @@ import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.IntFunction;
+import java.util.function.IntSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -167,6 +168,19 @@ class ExpressionAnnotationHandlerTest {
         assertEquals(11, array[0]);
         assertEquals(2, array[1]);
         assertEquals(13, array[2]);
+    }
+
+    @Test
+    public void incrementExpression() throws Exception {
+        Class<?> target = this.transform(IncrementExpressionTest.class);
+        assertEquals(12, target.getMethod("increment", int.class).invoke(null, 1));
+    }
+
+    @Test
+    public void boundObjectMethodReference() throws Exception {
+        Class<?> target = this.transform(BoundObjectMethodReference.class);
+        assertEquals(42, target.getMethod("boundObjectReference").invoke(null));
+        assertEquals(1, target.getField("seen").get(null));
     }
 
     @Test
@@ -349,6 +363,22 @@ class ExpressionAnnotationHandlerTest {
 
         public static int[] literalArray() {
             return new int[]{1, 2, 3};
+        }
+
+        public static int increment(final int value) {
+            int local = value;
+            local++;
+            return local;
+        }
+
+        public int instanceValue() {
+            return 42;
+        }
+
+        public static int boundObjectReference() {
+            Target target = new Target();
+            IntSupplier supplier = target::instanceValue;
+            return supplier.getAsInt();
         }
 
         public static String concat(final int value) {
@@ -591,6 +621,33 @@ class ExpressionAnnotationHandlerTest {
         @CModifyExpressionValue(method = "literalArray", target = @CTarget(value = "EXPRESSION"))
         private static int[] literalArray(final int[] original) {
             return new int[]{original[0] + 10, original[1], original[2] + 10};
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class IncrementExpressionTest {
+
+        @CDefinition(id = "local", local = @CLocalDefinition(type = int.class, name = "local"))
+        @CExpression("local + 1")
+        @CModifyExpressionValue(method = "increment", target = @CTarget(value = "EXPRESSION"))
+        private static int increment(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class BoundObjectMethodReference {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "instanceValue", method = "instanceValue()I")
+        @CExpression("?::instanceValue")
+        @CInject(method = "boundObjectReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private static void inject() {
+            seen = 1;
         }
 
     }

@@ -113,9 +113,26 @@ public class ExpressionEngine {
             if (match != null) expanded.put(capture.getJump(), match);
             return match;
         }
+        AbstractInsnNode instruction = capture.getInstruction();
+        if (instruction instanceof IincInsnNode) {
+            if (!targetMethod.instructions.contains(instruction)) return null;
+            instruction = expandIinc(targetMethod, (IincInsnNode) instruction);
+        }
         Type valueType = capture.getValueType() == null ? Type.VOID_TYPE : capture.getValueType();
-        return new ExpressionMatch(capture.getInstruction(), valueType, capture.getReceiverType(), capture.getArgumentTypes(), null, null, false,
-                targetMethod.instructions.indexOf(capture.getInstruction()), targetMethod.instructions.indexOf(capture.getInstruction()));
+        int index = targetMethod.instructions.indexOf(instruction);
+        return new ExpressionMatch(instruction, valueType, capture.getReceiverType(), capture.getArgumentTypes(), null, null, false, index, index);
+    }
+
+    private static AbstractInsnNode expandIinc(final MethodNode targetMethod, final IincInsnNode iinc) {
+        InsnNode add = new InsnNode(Opcodes.IADD);
+        InsnList replacement = new InsnList();
+        replacement.add(new VarInsnNode(Opcodes.ILOAD, iinc.var));
+        replacement.add(new LdcInsnNode(iinc.incr));
+        replacement.add(add);
+        replacement.add(new VarInsnNode(Opcodes.ISTORE, iinc.var));
+        targetMethod.instructions.insertBefore(iinc, replacement);
+        targetMethod.instructions.remove(iinc);
+        return add;
     }
 
     @Nullable
