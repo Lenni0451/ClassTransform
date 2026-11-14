@@ -170,6 +170,18 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void stringConcatExpression() throws Exception {
+        Class<?> target = this.transform(StringConcatExpressionTest.class);
+        assertEquals("value: 5!", target.getMethod("concat", int.class).invoke(null, 5));
+    }
+
+    @Test
+    public void stringConcatSuffixExpression() throws Exception {
+        Class<?> target = this.transform(StringConcatSuffixExpressionTest.class);
+        assertEquals("value=5!?", target.getMethod("concatSuffix", int.class).invoke(null, 5));
+    }
+
+    @Test
     public void modifyInstantiation() throws Exception {
         Class<?> target = this.transform(InstantiationExpression.class);
         assertEquals(11, ((Holder) target.getMethod("create", int.class).invoke(null, 1)).value);
@@ -337,6 +349,14 @@ class ExpressionAnnotationHandlerTest {
 
         public static int[] literalArray() {
             return new int[]{1, 2, 3};
+        }
+
+        public static String concat(final int value) {
+            return "value: " + value;
+        }
+
+        public static String concatSuffix(final int value) {
+            return "value=" + value + "!";
         }
 
         public static int slice(final int value) {
@@ -571,6 +591,28 @@ class ExpressionAnnotationHandlerTest {
         @CModifyExpressionValue(method = "literalArray", target = @CTarget(value = "EXPRESSION"))
         private static int[] literalArray(final int[] original) {
             return new int[]{original[0] + 10, original[1], original[2] + 10};
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class StringConcatExpressionTest {
+
+        @CExpression("'value: ' + ?")
+        @CModifyExpressionValue(method = "concat", target = @CTarget(value = "EXPRESSION"))
+        private static String concat(final String original) {
+            return original + "!";
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class StringConcatSuffixExpressionTest {
+
+        @CExpression("? + '!'")
+        @CModifyExpressionValue(method = "concatSuffix", target = @CTarget(value = "EXPRESSION"))
+        private static String concatSuffix(final String original) {
+            return original + "?";
         }
 
     }

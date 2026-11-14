@@ -90,6 +90,10 @@ public abstract class ExpressionAst implements Expression {
             this.inner.capture(node, ctx);
             return true;
         }
+
+        public Expression getInner() {
+            return this.inner;
+        }
     }
 
     public static class WildcardExpression extends ExpressionAst {
@@ -661,15 +665,41 @@ public abstract class ExpressionAst implements Expression {
 
         @Override
         public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
-            if (node.isComplex() || node.inputCount() != 2) return false;
-            if (!this.operator.matches(node.getInsn().getOpcode())) return false;
-            return this.left.matches(node.getInput(0), ctx) && this.right.matches(node.getInput(1), ctx);
+            if (node.isComplex()) return false;
+            if (node.inputCount() == 2 && this.operator.matches(node.getInsn().getOpcode())) {
+                return this.left.matches(node.getInput(0), ctx) && this.right.matches(node.getInput(1), ctx);
+            }
+            if (this.operator != Operator.PLUS) return false;
+            StringConcatInfo concat = StringConcatInfo.get(node);
+            if (concat == null) return false;
+            List<ExpressionFlow.FlowValue> parts = concat.getParts();
+            return this.matchesConcat(parts, parts.size(), ctx);
+        }
+
+        private boolean matchesConcat(final List<ExpressionFlow.FlowValue> parts, final int end, final ExpressionContext ctx) {
+            if (end < 2) return false;
+            if (!this.right.matches(parts.get(end - 1), ctx)) return false;
+            if (end == 2) return this.left.matches(parts.get(0), ctx);
+            if (this.left instanceof WildcardExpression) return true;
+            if (this.left instanceof CapturingExpression) {
+                Expression inner = ((CapturingExpression) this.left).getInner();
+                if (inner instanceof WildcardExpression) return true;
+                return inner instanceof BinaryExpression
+                        && ((BinaryExpression) inner).operator == Operator.PLUS
+                        && ((BinaryExpression) inner).matchesConcat(parts, end - 1, ctx);
+            }
+            return this.left instanceof BinaryExpression
+                    && ((BinaryExpression) this.left).operator == Operator.PLUS
+                    && ((BinaryExpression) this.left).matchesConcat(parts, end - 1, ctx);
         }
 
         @Override
         public void capture(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
             if (node.isComplex()) return;
-            ctx.capture(node, this, node.getType(), null, new Type[]{node.getInput(0).getType(), node.getInput(1).getType()}, null, null, false);
+            Type[] argumentTypes = node.inputCount() == 2
+                    ? new Type[]{node.getInput(0).getType(), node.getInput(1).getType()}
+                    : new Type[0];
+            ctx.capture(node, this, node.getType(), null, argumentTypes, null, null, false);
         }
 
 
