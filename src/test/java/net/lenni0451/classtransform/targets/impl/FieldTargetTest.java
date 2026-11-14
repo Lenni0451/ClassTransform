@@ -77,6 +77,33 @@ class FieldTargetTest extends ATargetTest {
     }
 
     @Test
+    @DisplayName("Select object array element accesses")
+    public void selectObjectArrayElementAccesses() {
+        MethodNode method = new MethodNode(0, "test", "()V", null, null);
+        method.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, "Test", "objects", "[Ljava/lang/Object;"));
+        method.instructions.add(new InsnNode(Opcodes.ICONST_0));
+        method.instructions.add(new InsnNode(Opcodes.AALOAD));
+        method.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, "Test", "objects", "[Ljava/lang/Object;"));
+        method.instructions.add(new InsnNode(Opcodes.ICONST_0));
+        method.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
+        method.instructions.add(new InsnNode(Opcodes.AASTORE));
+        method.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, "Test", "objects", "[Ljava/lang/Object;"));
+        method.instructions.add(new InsnNode(Opcodes.ARRAYLENGTH));
+        method.instructions.add(new InsnNode(Opcodes.RETURN));
+
+        FieldTarget fieldTarget = new FieldTarget();
+        List<AbstractInsnNode> get = fieldTarget.getTargets(this.injectionTargets, method, this.getArrayTarget("LTest;objects:[Ljava/lang/Object;", "array=get"), this.emptySlice);
+        assertEquals(1, get.size());
+        assertEquals(0, method.instructions.indexOf(get.get(0)));
+        List<AbstractInsnNode> set = fieldTarget.getTargets(this.injectionTargets, method, this.getArrayTarget("LTest;objects:[Ljava/lang/Object;", "array=set"), this.emptySlice);
+        assertEquals(1, set.size());
+        assertEquals(3, method.instructions.indexOf(set.get(0)));
+        List<AbstractInsnNode> length = fieldTarget.getTargets(this.injectionTargets, method, this.getArrayTarget("LTest;objects:[Ljava/lang/Object;", "array=length"), this.emptySlice);
+        assertEquals(1, length.size());
+        assertEquals(7, method.instructions.indexOf(length.get(0)));
+    }
+
+    @Test
     @DisplayName("Limit array search with fuzz")
     public void limitArraySearchWithFuzz() {
         MethodNode method = new MethodNode(0, "test", "()V", null, null);

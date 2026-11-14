@@ -33,14 +33,13 @@ class InfoFiller {
         Object value = values.get(method.getName());
         if (method.getReturnType().equals(String.class)) {
             String current = (String) value;
-            if (!remap.fill().equals(FillType.KEEP_EMPTY)) {
-                try {
-                    List<String> names = getNames(remapper, holder, remap, current, target, transformer);
-                    if (names.size() != 1) throw new MethodNotFoundException(target, transformer, current);
-                    values.put(method.getName(), names.get(0));
-                } catch (MethodNotFoundException e) {
-                    if (!hasAliases(values)) throw e;
-                }
+            if (remap.fill().equals(FillType.KEEP_EMPTY) && (current == null || current.isEmpty())) return;
+            try {
+                List<String> names = getNames(remapper, holder, remap, current, target, transformer);
+                if (names.size() != 1) throw new MethodNotFoundException(target, transformer, current);
+                values.put(method.getName(), names.get(0));
+            } catch (MethodNotFoundException e) {
+                if (!hasAliases(values)) throw e;
             }
         } else if (method.getReturnType().equals(String[].class)) {
             List<String> current = (List<String>) value;

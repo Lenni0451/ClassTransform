@@ -44,6 +44,7 @@ class ExpressionAnnotationHandlerTest {
     private static final String TARGET = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$Target;";
     private static final String HOLDER = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$Holder;";
     private static final String BASE = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$Base;";
+    private static final String PROVIDER = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$ValueProvider;";
 
     private final BasicClassProvider classProvider = new BasicClassProvider();
 
@@ -277,6 +278,12 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void interfaceHierarchyDefinition() throws Exception {
+        Class<?> target = this.transform(InterfaceDefinitionTest.class, InterfaceTarget.class);
+        assertEquals(15, target.getMethod("call").invoke(null));
+    }
+
+    @Test
     public void branchMergeExpression() throws Exception {
         Class<?> target = this.transform(BranchMergeExpressionTest.class);
         assertEquals(12, target.getMethod("merge", boolean.class, int.class, int.class).invoke(null, true, 1, 2));
@@ -343,10 +350,14 @@ class ExpressionAnnotationHandlerTest {
     }
 
     private Class<?> transform(final Class<?> transformerClass) throws Exception {
+        return this.transform(transformerClass, Target.class);
+    }
+
+    private Class<?> transform(final Class<?> transformerClass, final Class<?> targetClass) throws Exception {
         TransformerManager manager = new TransformerManager(this.classProvider);
         manager.setFailStrategy(FailStrategy.THROW);
         manager.addTransformer(ASMUtils.fromBytes(this.classProvider.getClass(transformerClass.getName())));
-        byte[] bytes = manager.transform(Target.class.getName(), this.classProvider.getClass(Target.class.getName()));
+        byte[] bytes = manager.transform(targetClass.getName(), this.classProvider.getClass(targetClass.getName()));
         assertNotNull(bytes);
         return TestClassLoader.load(ASMUtils.fromBytes(bytes));
     }
@@ -381,6 +392,25 @@ class ExpressionAnnotationHandlerTest {
 
         public int baseMethod() {
             return 5;
+        }
+
+    }
+
+    public interface ValueProvider {
+
+        int provide();
+
+    }
+
+    public static class InterfaceTarget implements ValueProvider {
+
+        @Override
+        public int provide() {
+            return 5;
+        }
+
+        public static int call() {
+            return new InterfaceTarget().provide();
         }
 
     }
@@ -963,6 +993,18 @@ class ExpressionAnnotationHandlerTest {
         @CExpression("?.baseValue")
         @CModifyExpressionValue(method = "inheritedField", target = @CTarget(value = "EXPRESSION"))
         private static int inheritedField(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(InterfaceTarget.class)
+    private static class InterfaceDefinitionTest {
+
+        @CDefinition(id = "provide", method = PROVIDER + "provide()I")
+        @CExpression("?.provide()")
+        @CModifyExpressionValue(method = "call", target = @CTarget(value = "EXPRESSION"))
+        private static int provide(final int original) {
             return original + 10;
         }
 

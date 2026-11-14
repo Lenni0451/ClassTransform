@@ -30,6 +30,24 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     }
 
     @Test
+    @DisplayName("Pass constraint")
+    public void passConstraint() {
+        this.transformerManager.registerConstraintToken("TEST", 5);
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SConstraintTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        assertEquals(1234, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null)));
+    }
+
+    @Test
+    @DisplayName("Fail constraint")
+    public void failConstraint() {
+        this.transformerManager.registerConstraintToken("TEST", 5);
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SFailingConstraintTestTransformer");
+        assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
+    }
+
+    @Test
     @DisplayName("Redirect static invoke")
     public void redirectStaticInvoke() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SInvokeTestTransformer");
@@ -154,6 +172,26 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     private static class SInvokeTestTransformer {
 
         @CRedirect(method = "rint", target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"))
+        public static int add(final Random rnd) {
+            return 1234;
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SConstraintTestTransformer {
+
+        @CRedirect(method = "rint", target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"), constraints = "TEST(5)")
+        public static int add(final Random rnd) {
+            return 1234;
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SFailingConstraintTestTransformer {
+
+        @CRedirect(method = "rint", target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"), constraints = "TEST(6)")
         public static int add(final Random rnd) {
             return 1234;
         }

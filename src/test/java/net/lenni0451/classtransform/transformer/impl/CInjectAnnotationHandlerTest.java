@@ -52,6 +52,16 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
     }
 
     @Test
+    @DisplayName("Inject into methods selected by multiple descriptors")
+    public void injectIntoMethodsSelectedByMultipleDescriptors() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SMultipleDescTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("add", int.class, int.class).invoke(null, 1, 2)));
+        assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("subtract", int.class, int.class).invoke(null, 1, 2)));
+    }
+
+    @Test
     @DisplayName("Fail descriptor minimum match count")
     public void failDescriptorMinimumMatchCount() throws ClassNotFoundException {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SDescMinimumTestTransformer");
@@ -104,6 +114,19 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
     private static class SDescTestTransformer {
 
         @CInject(desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}), target = @CTarget("HEAD"), cancellable = true)
+        public static void inject(final int i1, final int i2, final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SMultipleDescTestTransformer {
+
+        @CInject(desc = {
+                @CDesc(value = "add", ret = int.class, args = {int.class, int.class}),
+                @CDesc(value = "subtract", ret = int.class, args = {int.class, int.class})
+        }, target = @CTarget("HEAD"), cancellable = true)
         public static void inject(final int i1, final int i2, final InjectionCallback callback) {
             callback.setReturnValue(100);
         }

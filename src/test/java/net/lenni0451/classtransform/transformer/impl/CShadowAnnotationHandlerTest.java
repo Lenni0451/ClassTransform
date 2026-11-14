@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CTransformer;
+import net.lenni0451.classtransform.exceptions.MethodNotFoundException;
 import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CShadowAnnotationHandlerTest extends AnnotationHandlerTest {
@@ -52,12 +54,41 @@ class CShadowAnnotationHandlerTest extends AnnotationHandlerTest {
         assertFalse(transformer.methods.contains(method));
     }
 
+    @Test
+    @DisplayName("Honor shadow remap flag")
+    public void honorShadowRemapFlag() {
+        String owner = SCalculator.class.getName().replace('.', '/');
+        this.voidMapper.getRemapper().addMethodMapping(owner, "oldPi", "()D", "getPi");
+
+        ClassNode remapped = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CShadowAnnotationHandlerTest$SRemappedShadowTestTransformer");
+        assertDoesNotThrow(() -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, remapped));
+        assertTrue(remapped.methods.stream().noneMatch(method -> method.name.equals("shadow$oldPi")));
+
+        assertThrows(MethodNotFoundException.class, () -> this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CShadowAnnotationHandlerTest$SUnmappedShadowTestTransformer"));
+    }
+
 
     @CTransformer(SCalculator.class)
     private static class SPrefixShadowTestTransformer {
 
         @CShadow(prefix = "shadow$", makePublic = true)
         private static native double shadow$getPi();
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SRemappedShadowTestTransformer {
+
+        @CShadow(value = "oldPi()D", prefix = "shadow$")
+        private static native double shadow$oldPi();
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SUnmappedShadowTestTransformer {
+
+        @CShadow(value = "oldPi()D", prefix = "shadow$", remap = false)
+        private static native double shadow$oldPi();
 
     }
 
