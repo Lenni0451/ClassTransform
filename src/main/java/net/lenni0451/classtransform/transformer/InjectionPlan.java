@@ -200,7 +200,7 @@ public class InjectionPlan {
         if (injectionTargets.isEmpty()) throw new TransformerException(method, transformer, "does not have any injection targets");
         for (MethodNode target : targets) {
             Map<List<Object>, List<Target>> selections = new LinkedHashMap<>();
-            ExpressionTarget.BuildContext expressionContext = new ExpressionTarget.BuildContext(targetClass, method);
+            ExpressionTarget.BuildContext expressionContext = new ExpressionTarget.BuildContext(this.manager, targetClass, method);
             ExpressionTarget.setContext(expressionContext);
             try {
                 for (CTarget injectionTarget : injectionTargets) {

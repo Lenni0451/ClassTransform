@@ -33,6 +33,7 @@ class ExpressionAnnotationHandlerTest {
 
     private static final String TARGET = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$Target;";
     private static final String HOLDER = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$Holder;";
+    private static final String BASE = "Lnet/lenni0451/classtransform/transformer/impl/ExpressionAnnotationHandlerTest$Base;";
 
     private final BasicClassProvider classProvider = new BasicClassProvider();
 
@@ -177,6 +178,12 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void hierarchicalDefinition() throws Exception {
+        Class<?> target = this.transform(HierarchicalDefinitionTest.class);
+        assertEquals(15, target.getMethod("inherited").invoke(null));
+    }
+
+    @Test
     public void branchMergeExpression() throws Exception {
         Class<?> target = this.transform(BranchMergeExpressionTest.class);
         assertEquals(12, target.getMethod("merge", boolean.class, int.class, int.class).invoke(null, true, 1, 2));
@@ -266,7 +273,15 @@ class ExpressionAnnotationHandlerTest {
 
     }
 
-    public static class Target {
+    public static class Base {
+
+        public int baseMethod() {
+            return 5;
+        }
+
+    }
+
+    public static class Target extends Base {
 
         public static int seen;
         public static int conditionValue;
@@ -376,6 +391,10 @@ class ExpressionAnnotationHandlerTest {
             int local = value;
             local++;
             return local;
+        }
+
+        public static int inherited() {
+            return new Target().baseMethod();
         }
 
         public static int merge(final boolean flag, final int left, final int right) {
@@ -646,6 +665,18 @@ class ExpressionAnnotationHandlerTest {
         @CExpression("local + 1")
         @CModifyExpressionValue(method = "increment", target = @CTarget(value = "EXPRESSION"))
         private static int increment(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class HierarchicalDefinitionTest {
+
+        @CDefinition(id = "baseMethod", method = BASE + "baseMethod()I")
+        @CExpression("?.baseMethod()")
+        @CModifyExpressionValue(method = "inherited", target = @CTarget(value = "EXPRESSION"))
+        private static int inherited(final int original) {
             return original + 10;
         }
 

@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.expression;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
@@ -23,10 +24,17 @@ public class ExpressionIdentifiers {
     private final Map<String, List<TypeDefinition>> types = new HashMap<>();
     private final ClassNode targetClass;
     private final MethodNode targetMethod;
+    @Nullable
+    private final TransformerManager transformerManager;
 
     public ExpressionIdentifiers(final ClassNode targetClass, final MethodNode targetMethod) {
+        this(targetClass, targetMethod, null);
+    }
+
+    public ExpressionIdentifiers(final ClassNode targetClass, final MethodNode targetMethod, @Nullable final TransformerManager transformerManager) {
         this.targetClass = targetClass;
         this.targetMethod = targetMethod;
+        this.transformerManager = transformerManager;
         this.addType("byte", type -> type.equals(Type.BYTE_TYPE));
         this.addType("char", type -> type.equals(Type.CHAR_TYPE));
         this.addType("double", type -> type.equals(Type.DOUBLE_TYPE));
@@ -115,6 +123,30 @@ public class ExpressionIdentifiers {
         this.types.computeIfAbsent(id, k -> new ArrayList<>()).add(definition);
     }
 
+    private boolean matchesOwner(@Nullable final String pattern, final String owner) {
+        if (matchesWildcard(pattern, owner)) return true;
+        if (pattern == null || owner == null || this.transformerManager == null) return false;
+        return this.isSuperType(owner, ASMUtils.dot(pattern), new HashSet<>());
+    }
+
+    private boolean isSuperType(final String owner, final String expected, final Set<String> visited) {
+        String name = ASMUtils.dot(owner);
+        if (name.equals(expected)) return true;
+        if (!visited.add(name)) return false;
+        try {
+            ClassNode node = ASMUtils.fromBytes(this.transformerManager.getClassProvider().getClass(name));
+            if (node.superName != null && this.isSuperType(node.superName, expected, visited)) return true;
+            if (node.interfaces != null) {
+                for (String anInterface : node.interfaces) {
+                    if (this.isSuperType(anInterface, expected, visited)) return true;
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return false;
+    }
+
     private static boolean matchesWildcard(@Nullable final String pattern, final String value) {
         if (pattern == null || pattern.isEmpty() || pattern.equals("*")) return true;
         StringBuilder regex = new StringBuilder("(?s)^");
@@ -142,7 +174,7 @@ public class ExpressionIdentifiers {
     }
 
 
-    private static class MethodDefinition implements MemberDefinition {
+    private class MethodDefinition implements MemberDefinition {
         private final String owner;
         private final String name;
         private final String desc;
@@ -180,11 +212,11 @@ public class ExpressionIdentifiers {
         }
 
         private boolean matches(final String owner, final String name, final String desc) {
-            return matchesWildcard(this.owner, owner) && matchesWildcard(this.name, name) && matchesWildcard(this.desc, desc);
+            return ExpressionIdentifiers.this.matchesOwner(this.owner, owner) && matchesWildcard(this.name, name) && matchesWildcard(this.desc, desc);
         }
     }
 
-    private static class FieldDefinition implements MemberDefinition {
+    private class FieldDefinition implements MemberDefinition {
         private final String owner;
         private final String name;
         private final String desc;
@@ -213,7 +245,7 @@ public class ExpressionIdentifiers {
         public boolean matches(final ExpressionFlow.FlowValue node) {
             if (!(node.getInsn() instanceof FieldInsnNode)) return false;
             FieldInsnNode field = (FieldInsnNode) node.getInsn();
-            return matchesWildcard(this.owner, field.owner) && matchesWildcard(this.name, field.name) && matchesWildcard(this.desc, field.desc);
+            return ExpressionIdentifiers.this.matchesOwner(this.owner, field.owner) && matchesWildcard(this.name, field.name) && matchesWildcard(this.desc, field.desc);
         }
     }
 

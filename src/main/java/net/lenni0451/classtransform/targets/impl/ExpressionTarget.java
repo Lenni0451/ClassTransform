@@ -54,7 +54,7 @@ public class ExpressionTarget implements IInjectionTarget {
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         BuildContext context = CONTEXT.get();
         if (context == null) throw new IllegalStateException("Expression target used outside of a prepared injection");
-        List<AbstractInsnNode> matches = ExpressionEngine.match(context.targetClass, method, context.transformerMethod, target.target(), context.matches);
+        List<AbstractInsnNode> matches = ExpressionEngine.match(context.transformerManager, context.targetClass, method, context.transformerMethod, target.target(), context.matches);
         if (slice == null) return matches;
         List<AbstractInsnNode> inSlice = this.getSlice(injectionTargets, method, slice);
         List<AbstractInsnNode> result = new ArrayList<>();
@@ -72,11 +72,17 @@ public class ExpressionTarget implements IInjectionTarget {
 
 
     public static class BuildContext {
+        private final TransformerManager transformerManager;
         private final ClassNode targetClass;
         private final MethodNode transformerMethod;
         private final Map<AbstractInsnNode, ExpressionMatch> matches = new IdentityHashMap<>();
 
         public BuildContext(final ClassNode targetClass, final MethodNode transformerMethod) {
+            this(null, targetClass, transformerMethod);
+        }
+
+        public BuildContext(@Nullable final TransformerManager transformerManager, final ClassNode targetClass, final MethodNode transformerMethod) {
+            this.transformerManager = transformerManager;
             this.targetClass = targetClass;
             this.transformerMethod = transformerMethod;
         }

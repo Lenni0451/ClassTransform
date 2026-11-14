@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.expression;
 
+import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.expression.CDefinition;
 import net.lenni0451.classtransform.annotations.expression.CDefinitions;
 import net.lenni0451.classtransform.annotations.expression.CExpression;
@@ -42,11 +43,26 @@ public class ExpressionEngine {
      * @return The captured instructions
      */
     public static List<AbstractInsnNode> match(final ClassNode targetClass, final MethodNode targetMethod, final MethodNode transformerMethod, final String id, final Map<AbstractInsnNode, ExpressionMatch> matches) {
+        return match(null, targetClass, targetMethod, transformerMethod, id, matches);
+    }
+
+    /**
+     * Match an expression against a method.
+     *
+     * @param manager           The transformer manager used for class hierarchy lookups
+     * @param targetClass       The transformed class
+     * @param targetMethod      The target method
+     * @param transformerMethod The handler method containing the expressions and definitions
+     * @param id                The expression id
+     * @param matches           The map to store match details in
+     * @return The captured instructions
+     */
+    public static List<AbstractInsnNode> match(@Nullable final TransformerManager manager, final ClassNode targetClass, final MethodNode targetMethod, final MethodNode transformerMethod, final String id, final Map<AbstractInsnNode, ExpressionMatch> matches) {
         String signature = signature(transformerMethod) + "|" + id;
         Map<String, List<ExpressionMatch>> methodCache = CACHE.get().computeIfAbsent(targetMethod, k -> new HashMap<>());
         List<ExpressionMatch> cached = methodCache.get(signature);
         if (cached == null) {
-            cached = matchUncached(targetClass, targetMethod, transformerMethod, id);
+            cached = matchUncached(manager, targetClass, targetMethod, transformerMethod, id);
             methodCache.put(signature, cached);
         }
         List<AbstractInsnNode> result = new ArrayList<>();
@@ -57,10 +73,10 @@ public class ExpressionEngine {
         return result;
     }
 
-    private static List<ExpressionMatch> matchUncached(final ClassNode targetClass, final MethodNode targetMethod, final MethodNode transformerMethod, final String id) {
+    private static List<ExpressionMatch> matchUncached(@Nullable final TransformerManager manager, final ClassNode targetClass, final MethodNode targetMethod, final MethodNode transformerMethod, final String id) {
         List<AnnotationNode> expressionAnnotations = findAnnotations(transformerMethod, CExpression.class, CExpressions.class);
         List<AnnotationNode> definitionAnnotations = findAnnotations(transformerMethod, CDefinition.class, CDefinitions.class);
-        ExpressionIdentifiers identifiers = new ExpressionIdentifiers(targetClass, targetMethod);
+        ExpressionIdentifiers identifiers = new ExpressionIdentifiers(targetClass, targetMethod, manager);
         for (AnnotationNode definition : definitionAnnotations) {
             Map<String, Object> values = AnnotationUtils.listToMap(definition.values);
             String definitionId = string(values.get("id"), "");
