@@ -31,6 +31,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;"), new ModifyReturnValueTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/ModifyReceiver;"), new ModifyReceiverTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"), new WrapOperationTranslator());
+        register(Type.getType("Lcom/llamalad7/mixinextras/injector/wrapmethod/WrapMethod;"), new WrapMethodTranslator());
     }
 
     private static void register(final Type from, final Type to) {

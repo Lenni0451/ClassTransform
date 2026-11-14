@@ -5,6 +5,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ByteVector;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -24,6 +25,13 @@ public class SharedVariableAttribute extends Attribute {
     public SharedVariableAttribute(final Attribute attribute) throws IOException {
         this();
         Serializer.read(AttributeAccessor.getContent(attribute), this);
+    }
+
+    /**
+     * @return All shared variables of this attribute
+     */
+    public List<SharedVariable> getVariables() {
+        return this.variables;
     }
 
     public SharedVariable addVariable(final String transformer, final String name, final String namespace, final int index, final Type type, final boolean global, final boolean reference) {
@@ -61,6 +69,7 @@ public class SharedVariableAttribute extends Attribute {
         private final Type type;
         private final boolean global;
         private final boolean reference;
+        private final List<AbstractInsnNode> initialization = new ArrayList<>();
 
         private SharedVariable(final String transformer, final String name, final String namespace, final int variableIndex, final Type type, final boolean global, final boolean reference) {
             this.transformer = transformer;
@@ -98,6 +107,23 @@ public class SharedVariableAttribute extends Attribute {
 
         public boolean isReference() {
             return this.reference;
+        }
+
+        /**
+         * Record the instructions which initialize this variable.<br>
+         * They are removed again when the containing method body is moved during method wrapping.
+         *
+         * @param instructions The initialization instructions
+         */
+        public void addInitialization(final AbstractInsnNode[] instructions) {
+            for (AbstractInsnNode instruction : instructions) this.initialization.add(instruction);
+        }
+
+        /**
+         * @return The instructions which initialize this variable
+         */
+        public List<AbstractInsnNode> getInitialization() {
+            return this.initialization;
         }
     }
 

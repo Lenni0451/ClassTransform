@@ -122,6 +122,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
         this.annotationHandler.add(new CWrapConditionAnnotationHandler());
         this.annotationHandler.add(new CRedirectAnnotationHandler());
+        this.annotationHandler.add(new CWrapMethodAnnotationHandler());
         //HandlerPosition#POST
         this.annotationHandler.add(new CUpgradeAnnotationHandler());
         this.annotationHandler.add(new MemberCopyGeneralHandler(false)); //Copy all leftover methods to the transformed class
@@ -694,6 +695,17 @@ public class TransformerManager implements ClassFileTransformer {
                     }
                 }
                 i++;
+            }
+        }
+        for (AnnotationHandler handler : this.annotationHandler) {
+            if (!(handler instanceof IAnnotationHandlerFinalizer)) continue;
+            timings.start(TimedGroup.ANNOTATION_HANDLER, handler.getClass().getName());
+            try {
+                ((IAnnotationHandlerFinalizer) handler).finish(this, target);
+            } catch (Throwable t) {
+                if (!this.handleAnnotationFailure(name, bytecode, handler.getClass().getName(), t)) return false;
+            } finally {
+                timings.end();
             }
         }
         return true;

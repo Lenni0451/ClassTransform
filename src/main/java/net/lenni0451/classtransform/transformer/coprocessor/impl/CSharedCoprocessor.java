@@ -149,7 +149,9 @@ public class CSharedCoprocessor implements IAnnotationCoprocessor {
             if (sharedVariable == null) {
                 //The shared variable with this name is not yet initialized
                 sharedVariable = attribute.addVariable(transformer.name, annotation.value(), annotation.namespace(), ASMUtils.getFreeVarIndex(transformedMethod), parameterInfo.targetType, annotation.global(), parameterInfo.reference);
-                transformedMethod.instructions.insert(this.getDefaultInstructions(transformer, transformerMethod, parameterInfo, sharedVariable.getVariableIndex()));
+                InsnList initialization = this.getDefaultInstructions(transformer, transformerMethod, parameterInfo, sharedVariable.getVariableIndex());
+                sharedVariable.addInitialization(initialization.toArray());
+                transformedMethod.instructions.insert(initialization);
             } else {
                 //The shared variable with this name is already initialized
                 if (sharedVariable.isReference() != parameterInfo.reference) {
