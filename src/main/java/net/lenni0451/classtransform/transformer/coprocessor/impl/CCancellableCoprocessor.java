@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CCancellable;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.IAnnotationCoprocessor;
+import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.CoprocessorUtils;
 import net.lenni0451.classtransform.utils.Types;
@@ -62,9 +63,16 @@ public class CCancellableCoprocessor implements IAnnotationCoprocessor {
         }
 
         for (MethodInsnNode transformerCall : transformerMethodCalls) {
-            int callbackIndex = ASMUtils.getFreeVarIndex(transformedMethod);
+            Object inheritedContext = InjectionPlan.getContext(transformerCall);
+            CancellableContext context = inheritedContext instanceof CancellableContext ? (CancellableContext) inheritedContext : null;
+            int callbackIndex;
             InsnList before = new InsnList();
-            this.createCallback(before, targetReturnType, callbackIndex);
+            if (context == null) {
+                callbackIndex = ASMUtils.getFreeVarIndex(transformedMethod);
+                this.createCallback(before, targetReturnType, callbackIndex);
+            } else {
+                callbackIndex = context.callbackIndex;
+            }
             before.add(ASMUtils.intPush(parameterCount));
             before.add(new TypeInsnNode(Opcodes.ANEWARRAY, Types.internalName(Object.class)));
             for (CoprocessorUtils.AnnotatedParameter parameter : this.parameters) {
@@ -80,6 +88,7 @@ public class CCancellableCoprocessor implements IAnnotationCoprocessor {
             this.createCancellation(after, targetReturnType, handlerReturnType, callbackIndex);
             transformedMethod.instructions.insert(transformerCall, after);
             transformerCall.desc = transformerMethod.desc;
+            InjectionPlan.setContext(transformerCall, new CancellableContext(callbackIndex));
         }
     }
 
@@ -141,6 +150,18 @@ public class CCancellableCoprocessor implements IAnnotationCoprocessor {
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported return type " + type);
+        }
+    }
+
+
+    /**
+     * The callback local shared by an operation wrapper chain.
+     */
+    static class CancellableContext {
+        private final int callbackIndex;
+
+        private CancellableContext(final int callbackIndex) {
+            this.callbackIndex = callbackIndex;
         }
     }
 

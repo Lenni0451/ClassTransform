@@ -11,6 +11,8 @@ public enum InjectionPhase {
     /** Expression modifiers run after every regular injection. */
     EXPRESSION,
     /** Conditions run after regular injections and expression modifiers. */
-    CONDITION
+    CONDITION,
+    /** Operation wrappers run after every other injection to allow wrapping redirects and other replacements. */
+    LATE
 
 }

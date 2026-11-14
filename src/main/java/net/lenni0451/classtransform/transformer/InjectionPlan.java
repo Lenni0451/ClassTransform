@@ -71,6 +71,56 @@ public class InjectionPlan {
     }
 
     /**
+     * Get the operation context attached to the given instruction.
+     *
+     * @param instruction The instruction
+     * @return The context or null
+     */
+    @Nullable
+    public static Object getContext(final AbstractInsnNode instruction) {
+        InjectionPlan plan = ACTIVE.get();
+        Target target = plan == null ? null : plan.registry.get(instruction);
+        return target == null ? null : target.context;
+    }
+
+    /**
+     * Attach a context to the given instruction.
+     *
+     * @param instruction The instruction
+     * @param context     The context
+     */
+    public static void setContext(final AbstractInsnNode instruction, final Object context) {
+        InjectionPlan plan = ACTIVE.get();
+        Target target = plan == null ? null : plan.registry.get(instruction);
+        if (target != null) target.context = context;
+    }
+
+    /**
+     * Get the operation wrapper context attached to the given instruction.
+     *
+     * @param instruction The instruction
+     * @return The context or null
+     */
+    @Nullable
+    public static Object getOperationContext(final AbstractInsnNode instruction) {
+        InjectionPlan plan = ACTIVE.get();
+        Target target = plan == null ? null : plan.registry.get(instruction);
+        return target == null ? null : target.operationContext;
+    }
+
+    /**
+     * Attach an operation wrapper context to the given instruction.
+     *
+     * @param instruction The instruction
+     * @param context     The context
+     */
+    public static void setOperationContext(final AbstractInsnNode instruction, final Object context) {
+        InjectionPlan plan = ACTIVE.get();
+        Target target = plan == null ? null : plan.registry.get(instruction);
+        if (target != null) target.operationContext = context;
+    }
+
+    /**
      * @param instruction The current operation
      * @return The insertion anchor after existing modifiers and required casts
      */
@@ -191,6 +241,10 @@ public class InjectionPlan {
         private final AbstractInsnNode original;
         private AbstractInsnNode current;
         private AbstractInsnNode after;
+        @Nullable
+        private Object context;
+        @Nullable
+        private Object operationContext;
 
         private Target(final AbstractInsnNode instruction) {
             this.original = instruction;

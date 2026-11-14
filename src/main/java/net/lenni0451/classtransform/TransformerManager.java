@@ -117,6 +117,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.annotationHandler.add(new CInjectAnnotationHandler());
         this.annotationHandler.add(new CModifyReturnValueAnnotationHandler());
         this.annotationHandler.add(new CModifyReceiverAnnotationHandler());
+        this.annotationHandler.add(new CWrapOperationAnnotationHandler());
         this.annotationHandler.add(new CModifyExpressionValueAnnotationHandler());
         this.annotationHandler.add(new CModifyConstantAnnotationHandler());
         this.annotationHandler.add(new CWrapConditionAnnotationHandler());
@@ -148,6 +149,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.injectionTargets.put("NEW", new NewTarget());
         this.injectionTargets.put("OPCODE", new OpcodeTarget());
         this.injectionTargets.put("CONSTANT", new ConstantTarget());
+        this.injectionTargets.put("INSTANCEOF", new InstanceofTarget());
     }
 
     /**

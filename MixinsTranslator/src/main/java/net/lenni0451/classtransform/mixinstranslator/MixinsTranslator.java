@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.mixinstranslator;
 import net.lenni0451.classtransform.mixinstranslator.impl.AnnotationTranslator;
 import net.lenni0451.classtransform.mixinstranslator.impl.AnnotationTranslatorManager;
 import net.lenni0451.classtransform.mixinstranslator.impl.LocalRefRemapper;
+import net.lenni0451.classtransform.mixinstranslator.impl.OperationRemapper;
 import net.lenni0451.classtransform.transformer.IAnnotationHandlerPreprocessor;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Type;
@@ -29,6 +30,7 @@ public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
     @Override
     public void process(ClassNode node) {
         LocalRefRemapper.remap(node);
+        OperationRemapper.remap(node);
         this.translate(node.visibleAnnotations);
         this.translate(node.invisibleAnnotations);
         for (FieldNode field : node.fields) {
