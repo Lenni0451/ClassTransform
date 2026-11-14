@@ -184,6 +184,16 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = ModifyVariable.class, to = CModifyVariable.class)
     private native void modifyVariableDescTest();
 
+    @ModifyArg(method = "call", at = @At(value = "INVOKE", target = "Ljava/lang/String;valueOf(I)Ljava/lang/String;"), index = 1, constraints = "TEST(1)", require = 0, order = 100)
+    @CModifyArg(method = "call", target = @CTarget(value = "INVOKE", target = "Ljava/lang/String;valueOf(I)Ljava/lang/String;"), index = 1, constraints = "TEST(1)", require = 0, order = 100)
+    @TestMarker(from = ModifyArg.class, to = CModifyArg.class)
+    private native void modifyArgTest();
+
+    @ModifyArg(method = "call", target = @Desc(value = "call", ret = int.class), at = @At("INVOKE"))
+    @CModifyArg(method = "call", desc = @CDesc(value = "call", ret = int.class), target = @CTarget("INVOKE"), require = -1)
+    @TestMarker(from = ModifyArg.class, to = CModifyArg.class)
+    private native void modifyArgDescTest();
+
     @Test
     void test() throws ClassNotFoundException {
         this.iterate(AnnotationTranslatorTest.class);

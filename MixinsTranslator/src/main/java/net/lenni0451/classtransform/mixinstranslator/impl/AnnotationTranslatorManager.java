@@ -21,6 +21,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Redirect;"), new RedirectTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyConstant;"), new ModifyConstantTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyVariable;"), new ModifyVariableTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyArg;"), new ModifyArgTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/Overwrite;"), Type.getType(COverride.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/At;"), new AtTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Desc;"), Type.getType(CDesc.class));
