@@ -12,6 +12,8 @@ public @interface At {
 
     String target() default "";
 
+    Desc desc() default @Desc(value = "");
+
     /**
      * Named arguments for the injection point.<br>
      * Constant value discriminators are supported for {@code CONSTANT}.

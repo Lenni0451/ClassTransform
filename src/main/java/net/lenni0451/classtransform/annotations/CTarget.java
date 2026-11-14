@@ -97,6 +97,15 @@ public @interface CTarget {
     String selector() default "ONE";
 
     /**
+     * A descriptor selector for the target member.<br>
+     * If the descriptor value is not empty, it is used instead of {@link #target()}.
+     *
+     * @return The descriptor selector
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CDesc desc() default @CDesc(value = "");
+
+    /**
      * Additional named arguments for the injection point.<br>
      * {@code INVOKE_STRING} accepts {@code ldc=...} to select a string argument.<br>
      * {@code FIELD} accepts {@code array=get|set|length} and {@code fuzz=N} for array element accesses.

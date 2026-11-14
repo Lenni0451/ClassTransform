@@ -115,6 +115,16 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectDescTargetTest();
 
+    @Inject(method = "add", at = @At(value = "INVOKE", desc = @Desc(value = "add", ret = int.class, args = {int.class, int.class})))
+    @CInject(method = "add", target = @CTarget(value = "INVOKE", desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class})), require = -1)
+    @TestMarker(from = Inject.class, to = CInject.class)
+    private native void injectAtDescTargetTest();
+
+    @Inject(method = "add", at = @At("HEAD"), target = @Desc(value = "add", ret = int.class, args = {int.class, int.class}, min = 1, max = 1, next = @Next(name = "next", ret = String.class)))
+    @CInject(method = "add", target = @CTarget("HEAD"), desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}, min = 1, max = 1, next = @CDesc.Next(name = "next", ret = String.class)), require = -1)
+    @TestMarker(from = Inject.class, to = CInject.class)
+    private native void injectDescOptionsTest();
+
     @Inject(method = "add", at = @At(value = "HEAD", id = "head"))
     @CInject(method = "add", target = @CTarget(value = "HEAD", id = "head"), require = -1)
     @TestMarker(from = Inject.class, to = CInject.class)

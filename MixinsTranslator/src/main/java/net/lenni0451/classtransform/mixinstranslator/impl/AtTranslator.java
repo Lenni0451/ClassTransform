@@ -17,6 +17,8 @@ class AtTranslator implements AnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CTarget.class);
+        Object desc = values.get("desc");
+        if (desc instanceof AnnotationNode) this.dynamicTranslate((AnnotationNode) desc);
         String point = (String) values.get("value");
         if ("MIXINEXTRAS:EXPRESSION".equalsIgnoreCase(point)) {
             values.put("value", "EXPRESSION");

@@ -48,6 +48,13 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
         assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
     }
 
+    @Test
+    @DisplayName("Fail descriptor minimum match count")
+    public void failDescriptorMinimumMatchCount() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SDescMinimumTestTransformer");
+        assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
+    }
+
 
     @CTransformer(SCalculator.class)
     private static class SDescTestTransformer {
@@ -73,6 +80,16 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
     private static class SFailingConstraintTestTransformer {
 
         @CInject(method = "add", target = @CTarget("HEAD"), constraints = "TEST(6)", cancellable = true)
+        public static void inject(final int i1, final int i2, final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SDescMinimumTestTransformer {
+
+        @CInject(desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}, min = 2), target = @CTarget("HEAD"), cancellable = true)
         public static void inject(final int i1, final int i2, final InjectionCallback callback) {
             callback.setReturnValue(100);
         }

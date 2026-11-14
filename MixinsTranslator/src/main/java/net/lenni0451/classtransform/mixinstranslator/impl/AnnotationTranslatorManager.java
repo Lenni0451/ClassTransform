@@ -24,6 +24,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/At;"), new AtTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Desc;"), Type.getType(CDesc.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Descriptors;"), Type.getType(CDescs.class));
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Next;"), Type.getType(CDesc.Next.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/Shadow;"), Type.getType(CShadow.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Slice;"), new SliceTranslator());
         register(Type.getType("Lcom/llamalad7/mixinextras/sugar/Share;"), new ShareTranslator());

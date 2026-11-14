@@ -26,7 +26,7 @@ public class InjectionTargets {
     public static List<AbstractInsnNode> find(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CTarget target, @Nullable final CSlice slice) {
         IInjectionTarget injectionTarget = injectionTargets.get(target.value().toUpperCase(Locale.ROOT));
         if (injectionTarget == null) throw new IllegalArgumentException("Unknown injection target '" + target.value() + "'");
-        CTarget unfiltered = CTargetImpl.of(target.value(), target.target(), target.shift(), -1, target.optional(), target.args());
+        CTarget unfiltered = CTargetImpl.of(target.value(), target.target(), target.shift(), -1, target.optional(), target.args(), target.desc());
         List<AbstractInsnNode> found = injectionTarget.getTargets(injectionTargets, method, unfiltered, slice);
         if (found == null) throw new IllegalArgumentException("Invalid target '" + target.target() + "'");
         List<AbstractInsnNode> result = new ArrayList<>();

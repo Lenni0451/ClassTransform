@@ -1,9 +1,11 @@
 package net.lenni0451.classtransform.targets.impl;
 
+import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.DescMatcher;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -42,8 +44,10 @@ public class FieldTarget implements IInjectionTarget {
     @Override
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         List<AbstractInsnNode> targets = new ArrayList<>();
-        MemberDeclaration memberDeclaration = ASMUtils.splitMemberDeclaration(target.target());
-        if (memberDeclaration == null) return null;
+        CDesc desc = target.desc();
+        boolean useDesc = !desc.value().isEmpty();
+        MemberDeclaration memberDeclaration = useDesc ? null : ASMUtils.splitMemberDeclaration(target.target());
+        if (!useDesc && memberDeclaration == null) return null;
 
         int arrayOpcode = this.getArrayOpcode(target);
         int fuzz = this.getFuzz(target);
@@ -53,7 +57,8 @@ public class FieldTarget implements IInjectionTarget {
             if (!(instruction instanceof FieldInsnNode)) continue;
             if (!allAccess && (this.nonStaticAccess != instruction.getOpcode() && this.staticAccess != instruction.getOpcode())) continue;
             FieldInsnNode fieldInsnNode = (FieldInsnNode) instruction;
-            if (!fieldInsnNode.owner.equals(memberDeclaration.getOwner()) || !fieldInsnNode.name.equals(memberDeclaration.getName()) || !fieldInsnNode.desc.equals(memberDeclaration.getDesc())) continue;
+            boolean matches = useDesc ? DescMatcher.matchesField(desc, fieldInsnNode) : fieldInsnNode.owner.equals(memberDeclaration.getOwner()) && fieldInsnNode.name.equals(memberDeclaration.getName()) && fieldInsnNode.desc.equals(memberDeclaration.getDesc());
+            if (!matches) continue;
             if (arrayOpcode != 0) {
                 if (fieldInsnNode.getOpcode() != Opcodes.GETFIELD && fieldInsnNode.getOpcode() != Opcodes.GETSTATIC) continue;
                 if (Type.getType(fieldInsnNode.desc).getSort() != Type.ARRAY) continue;

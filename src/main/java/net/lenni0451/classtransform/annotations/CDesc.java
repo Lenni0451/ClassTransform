@@ -57,4 +57,61 @@ public @interface CDesc {
      */
     Class<?>[] args() default {};
 
+    /**
+     * The next elements of this descriptor path.
+     *
+     * @return The next descriptors
+     */
+    Next[] next() default {};
+
+    /**
+     * The minimum number of matches required.
+     *
+     * @return The minimum match count
+     */
+    int min() default 0;
+
+    /**
+     * The maximum number of matches allowed.
+     *
+     * @return The maximum match count
+     */
+    int max() default Integer.MAX_VALUE;
+
+
+    /**
+     * A next element of a {@link CDesc} path.
+     */
+    @Retention(RetentionPolicy.CLASS)
+    @Target({})
+    @interface Next {
+
+        /**
+         * @return The member name
+         */
+        String name() default "";
+
+        /**
+         * @return The return or field type
+         */
+        @AnnotationRemap(RemapType.DESCRIPTOR)
+        Class<?> ret() default void.class;
+
+        /**
+         * @return The argument types
+         */
+        Class<?>[] args() default {};
+
+        /**
+         * @return The minimum match count
+         */
+        int min() default 0;
+
+        /**
+         * @return The maximum match count
+         */
+        int max() default Integer.MAX_VALUE;
+
+    }
+
 }

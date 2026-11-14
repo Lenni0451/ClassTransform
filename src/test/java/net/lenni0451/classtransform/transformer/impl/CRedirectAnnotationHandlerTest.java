@@ -50,6 +50,16 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     }
 
     @Test
+    @DisplayName("Redirect static invoke selected by at descriptor")
+    public void redirectStaticInvokeSelectedByAtDescriptor() {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SInvokeAtDescTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null));
+        assertEquals(rint, 1234);
+    }
+
+    @Test
     @DisplayName("Redirect virtual invoke")
     public void redirectVirtualInvoke() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$VInvokeTestTransformer");
@@ -154,6 +164,16 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     private static class SInvokeDescTestTransformer {
 
         @CRedirect(desc = @CDesc(value = "rint", ret = int.class), target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"))
+        public static int add(final Random rnd) {
+            return 1234;
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SInvokeAtDescTestTransformer {
+
+        @CRedirect(method = "rint", target = @CTarget(value = "INVOKE", desc = @CDesc(value = "nextInt", ret = int.class)))
         public static int add(final Random rnd) {
             return 1234;
         }

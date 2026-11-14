@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.targets.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.mappings.AMapper;
@@ -41,7 +42,7 @@ public class NewTarget implements IInjectionTarget {
         for (AbstractInsnNode instruction : this.getSlice(injectionTargets, method, slice)) {
             if (instruction.getOpcode() != Opcodes.INVOKESPECIAL) continue;
             MethodInsnNode methodInsnNode = (MethodInsnNode) instruction;
-            if (!this.isTarget(methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc, target.target())) continue;
+            if (!this.isTarget(methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc, target)) continue;
             if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
             i++;
         }
@@ -66,6 +67,22 @@ public class NewTarget implements IInjectionTarget {
             }
             return RemapType.CLASS;
         }
+    }
+
+    private boolean isTarget(final String owner, final String name, final String desc, final CTarget target) {
+        CDesc selector = target.desc();
+        boolean useDesc = !selector.value().isEmpty() || Type.getType(selector.owner()).getSort() != Type.VOID || selector.args().length > 0;
+        if (!useDesc) return this.isTarget(owner, name, desc, target.target());
+        if (!name.equals("<init>")) return false;
+        if (!selector.value().isEmpty() && !selector.value().equals(name)) return false;
+        Type selectedOwner = Type.getType(selector.owner());
+        if (selectedOwner.getSort() != Type.VOID && !selectedOwner.getInternalName().equals(owner)) return false;
+        if (selector.args().length > 0) {
+            Type[] args = new Type[selector.args().length];
+            for (int i = 0; i < args.length; i++) args[i] = Type.getType(selector.args()[i]);
+            if (!Type.getMethodDescriptor(Type.VOID_TYPE, args).equals(desc)) return false;
+        }
+        return true;
     }
 
     private boolean isTarget(final String owner, final String name, final String desc, String target) {
