@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -18,6 +19,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE, ElementType.METHOD})
+@Repeatable(CDescs.class)
 public @interface CDesc {
 
     /**

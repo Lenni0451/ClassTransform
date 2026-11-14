@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.InjectionCallback;
 import net.lenni0451.classtransform.annotations.CDesc;
+import net.lenni0451.classtransform.annotations.CDescs;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.injection.CInject;
@@ -73,6 +74,31 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
         assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("lambda").invoke(null)));
     }
 
+    @Test
+    @DisplayName("Inject into method selected by named class descriptor")
+    public void injectIntoMethodSelectedByNamedClassDescriptor() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SNamedClassDescTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("add", int.class, int.class).invoke(null, 1, 2)));
+    }
+
+    @Test
+    @DisplayName("Inject into instruction selected by named method descriptor")
+    public void injectIntoInstructionSelectedByNamedMethodDescriptor() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SNamedInstructionDescTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null)));
+    }
+
+    @Test
+    @DisplayName("Fail unknown named descriptor")
+    public void failUnknownNamedDescriptor() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SUsingMissingNamedDescTestTransformer");
+        assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
+    }
+
 
     @CTransformer(SCalculator.class)
     private static class SDescTestTransformer {
@@ -128,6 +154,38 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
     private static class SNestedDescTestTransformer {
 
         @CInject(desc = @CDesc(value = "lambda", ret = int.class, next = @CDesc.Next(ret = int.class)), target = @CTarget("HEAD"), cancellable = true)
+        public static void inject(final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    @CDescs(@CDesc(id = "add", value = "add", ret = int.class, args = {int.class, int.class}))
+    private static class SNamedClassDescTestTransformer {
+
+        @CInject(desc = @CDesc(id = "add", value = ""), target = @CTarget("HEAD"), cancellable = true)
+        public static void inject(final int i1, final int i2, final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SNamedInstructionDescTestTransformer {
+
+        @CDesc(id = "nextInt", value = "nextInt", ret = int.class)
+        @CInject(method = "rint", target = @CTarget(value = "INVOKE", desc = @CDesc(id = "nextInt", value = "")), cancellable = true)
+        public static void inject(final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SUsingMissingNamedDescTestTransformer {
+
+        @CInject(desc = @CDesc(id = "missing", value = ""), target = @CTarget("HEAD"), cancellable = true)
         public static void inject(final InjectionCallback callback) {
             callback.setReturnValue(100);
         }

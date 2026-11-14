@@ -12,6 +12,7 @@ import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectNew;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
+import net.lenni0451.classtransform.utils.CDescResolver;
 import net.lenni0451.classtransform.utils.DescMatcher;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
@@ -35,9 +36,9 @@ public class CRedirectAnnotationHandler extends InjectionAnnotationHandler<CRedi
     }
 
     @Override
-    protected Set<MethodNode> getTargetMethods(final CRedirect annotation, final ClassNode target, final ClassNode transformer, final MethodNode method) {
-        Set<MethodNode> targets = super.getTargetMethods(annotation, target, transformer, method);
-        CDesc[] descs = annotation.desc();
+    protected Set<MethodNode> getTargetMethods(final CRedirect annotation, final TransformerManager manager, final ClassNode target, final ClassNode transformer, final MethodNode method) {
+        Set<MethodNode> targets = super.getTargetMethods(annotation, manager, target, transformer, method);
+        CDesc[] descs = CDescResolver.resolve(annotation.desc(), manager, transformer, method);
         if (descs.length > 0) DescMatcher.addMethods(targets, target, descs);
         return targets;
     }

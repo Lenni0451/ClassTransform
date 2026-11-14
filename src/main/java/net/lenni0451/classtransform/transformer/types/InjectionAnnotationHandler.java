@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CDescResolver;
 import net.lenni0451.classtransform.utils.InjectionSettings;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.tree.ClassNode;
@@ -65,8 +66,11 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
 
     private InjectionPlan prepare(final T annotation, final TransformerManager manager, final ClassNode target, final ClassNode transformer, final MethodNode method, final Map<AbstractInsnNode, InjectionPlan.Target> registry) {
         InjectionSettings settings = new InjectionSettings(annotation);
-        Set<MethodNode> targets = this.getTargetMethods(annotation, target, transformer, method);
-        List<CTarget> injectionTargets = this.getInjectionTargets(annotation, manager);
+        Set<MethodNode> targets = this.getTargetMethods(annotation, manager, target, transformer, method);
+        List<CTarget> injectionTargets = new ArrayList<>();
+        for (CTarget injectionTarget : this.getInjectionTargets(annotation, manager)) {
+            injectionTargets.add(CDescResolver.resolve(injectionTarget, manager, transformer, method));
+        }
         return new InjectionPlan(manager, target, settings, transformer, method, targets, injectionTargets, registry, targetMethod -> {
             try {
                 this.transform(annotation, manager, target, transformer, ASMUtils.cloneMethod(method), targetMethod);
@@ -82,12 +86,13 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
      * Resolve the target methods for the given annotation.
      *
      * @param annotation  The injection annotation
+     * @param manager     The transformer manager
      * @param target      The target class
      * @param transformer The transformer class
      * @param method      The handler method
      * @return The target methods
      */
-    protected Set<MethodNode> getTargetMethods(final T annotation, final ClassNode target, final ClassNode transformer, final MethodNode method) {
+    protected Set<MethodNode> getTargetMethods(final T annotation, final TransformerManager manager, final ClassNode target, final ClassNode transformer, final MethodNode method) {
         Set<MethodNode> targets = new LinkedHashSet<>();
         for (String selector : this.methodTargets.apply(annotation)) {
             if (selector.isEmpty()) throw new TransformerException(method, transformer, "Target is empty");

@@ -12,6 +12,7 @@ import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocesso
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CDescResolver;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.DescMatcher;
 import org.objectweb.asm.Opcodes;
@@ -40,9 +41,9 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
     }
 
     @Override
-    protected Set<MethodNode> getTargetMethods(final CInject annotation, final ClassNode target, final ClassNode transformer, final MethodNode method) {
-        Set<MethodNode> targets = super.getTargetMethods(annotation, target, transformer, method);
-        CDesc[] descs = annotation.desc();
+    protected Set<MethodNode> getTargetMethods(final CInject annotation, final TransformerManager manager, final ClassNode target, final ClassNode transformer, final MethodNode method) {
+        Set<MethodNode> targets = super.getTargetMethods(annotation, manager, target, transformer, method);
+        CDesc[] descs = CDescResolver.resolve(annotation.desc(), manager, transformer, method);
         if (descs.length > 0) DescMatcher.addMethods(targets, target, descs);
         return targets;
     }

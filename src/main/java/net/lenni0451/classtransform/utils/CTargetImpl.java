@@ -148,4 +148,85 @@ public class CTargetImpl {
         };
     }
 
+    /**
+     * Clone a target with a different descriptor selector.
+     *
+     * @param target The original target
+     * @param desc   The new descriptor selector
+     * @return The cloned target
+     */
+    public static CTarget withDesc(final CTarget target, final CDesc desc) {
+        return new CTarget() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return CTarget.class;
+            }
+
+            @Override
+            public String value() {
+                return target.value();
+            }
+
+            @Override
+            public String target() {
+                return target.target();
+            }
+
+            @Override
+            public Shift shift() {
+                return target.shift();
+            }
+
+            @Override
+            public int ordinal() {
+                return target.ordinal();
+            }
+
+            @Override
+            public boolean optional() {
+                return target.optional();
+            }
+
+            @Override
+            public String slice() {
+                return target.slice();
+            }
+
+            @Override
+            public int opcode() {
+                return target.opcode();
+            }
+
+            @Override
+            public int by() {
+                return target.by();
+            }
+
+            @Override
+            public boolean remap() {
+                return target.remap();
+            }
+
+            @Override
+            public String id() {
+                return target.id();
+            }
+
+            @Override
+            public String selector() {
+                return target.selector();
+            }
+
+            @Override
+            public String[] args() {
+                return target.args();
+            }
+
+            @Override
+            public CDesc desc() {
+                return desc;
+            }
+        };
+    }
+
 }
