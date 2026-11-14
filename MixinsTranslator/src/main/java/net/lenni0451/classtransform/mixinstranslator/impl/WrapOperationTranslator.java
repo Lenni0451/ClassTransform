@@ -8,7 +8,6 @@ import org.objectweb.asm.tree.AnnotationNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -29,16 +28,65 @@ class WrapOperationTranslator implements AnnotationTranslator {
             }
         } else {
             for (AnnotationNode constant : (List<AnnotationNode>) values.remove("constant")) {
-                Map<String, Object> constantValues = AnnotationUtils.listToMap(constant.values);
-                Object classValue = constantValues.get("classValue");
-                if (!(classValue instanceof Type)) throw new IllegalArgumentException("@WrapOperation constant target must specify classValue");
-                AnnotationNode target = new AnnotationNode(Type.getDescriptor(CTarget.class));
-                target.values = new ArrayList<>(Arrays.asList("value", "INSTANCEOF", "target", ((Type) classValue).getInternalName()));
-                targets.add(target);
+                targets.add(this.translateConstant(AnnotationUtils.listToMap(constant.values)));
             }
         }
         values.put("target", targets);
         this.translateInjection(values);
+    }
+
+    private AnnotationNode translateConstant(final Map<String, Object> constant) {
+        AnnotationNode target = new AnnotationNode(Type.getDescriptor(CTarget.class));
+        List<Object> targetValues = new ArrayList<>();
+        Object classValue = constant.get("classValue");
+        if (classValue instanceof Type) {
+            targetValues.add("value");
+            targetValues.add("INSTANCEOF");
+            targetValues.add("target");
+            targetValues.add(((Type) classValue).getInternalName());
+        } else {
+            targetValues.add("value");
+            targetValues.add("CONSTANT");
+            targetValues.add("target");
+            targetValues.add(this.getConstantTarget(constant));
+            List<String> args = new ArrayList<>();
+            Object expandZeroConditions = constant.get("expandZeroConditions");
+            if (expandZeroConditions instanceof List) {
+                StringBuilder conditions = new StringBuilder();
+                for (Object condition : (List<?>) expandZeroConditions) {
+                    if (conditions.length() > 0) conditions.append(',');
+                    conditions.append(((String[]) condition)[1]);
+                }
+                args.add("expandZeroConditions=" + conditions);
+            }
+            if (Boolean.TRUE.equals(constant.get("log"))) args.add("log=true");
+            if (!args.isEmpty()) {
+                targetValues.add("args");
+                targetValues.add(args);
+            }
+        }
+        Object ordinal = constant.get("ordinal");
+        if (ordinal instanceof Integer) {
+            targetValues.add("ordinal");
+            targetValues.add(ordinal);
+        }
+        Object slice = constant.get("slice");
+        if (slice instanceof String && !((String) slice).isEmpty()) {
+            targetValues.add("slice");
+            targetValues.add(slice);
+        }
+        target.values = targetValues;
+        return target;
+    }
+
+    private String getConstantTarget(final Map<String, Object> constant) {
+        if (constant.containsKey("nullValue")) return Boolean.TRUE.equals(constant.get("nullValue")) ? "null" : "null false";
+        if (constant.containsKey("intValue")) return "int " + constant.get("intValue");
+        if (constant.containsKey("longValue")) return "long " + constant.get("longValue");
+        if (constant.containsKey("floatValue")) return "float " + constant.get("floatValue");
+        if (constant.containsKey("doubleValue")) return "double " + constant.get("doubleValue");
+        if (constant.containsKey("stringValue")) return "string " + constant.get("stringValue");
+        throw new IllegalArgumentException("@WrapOperation constant target must specify a constant discriminator");
     }
 
 }

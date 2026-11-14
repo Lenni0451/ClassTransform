@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
@@ -128,6 +129,11 @@ public class AnnotationTranslatorTest {
     @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BY, by = -1, ordinal = 20)}, slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = WrapWithCondition.class, to = CWrapCondition.class)
     private native void wrapWithConditionTest();
+
+    @WrapOperation(method = "constant", constant = {@Constant(intValue = 5), @Constant(stringValue = "x")})
+    @CWrapOperation(method = "constant", target = {@CTarget(value = "CONSTANT", target = "int 5"), @CTarget(value = "CONSTANT", target = "string x")}, require = -1)
+    @TestMarker(from = WrapOperation.class, to = CWrapOperation.class)
+    private native void wrapOperationConstantsTest();
 
     @ModifyExpressionValue(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
     @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)

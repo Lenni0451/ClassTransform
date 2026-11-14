@@ -80,6 +80,12 @@ class CWrapOperationAnnotationHandlerTest {
     }
 
     @Test
+    public void wrapConstant() throws Exception {
+        Class<?> target = this.transform(ConstantTransformer.class);
+        assertEquals(6, target.getMethod("constant").invoke(null));
+    }
+
+    @Test
     public void wrapInstanceof() throws Exception {
         Class<?> target = this.transform(InstanceofTransformer.class);
         target.getField("mode").set(null, 0);
@@ -262,6 +268,10 @@ class CWrapOperationAnnotationHandlerTest {
             return left + right;
         }
 
+        public static int constant() {
+            return 5;
+        }
+
         public static int fail() {
             return throwing(2);
         }
@@ -374,6 +384,16 @@ class CWrapOperationAnnotationHandlerTest {
         @CWrapOperation(method = "add", target = @CTarget(value = "OPCODE", target = "IADD"))
         private static int add(final int left, final int right, final COperation<Integer> original) {
             return original.call(left + 1, right) + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class ConstantTransformer {
+
+        @CWrapOperation(method = "constant", target = @CTarget(value = "CONSTANT", target = "int 5"))
+        private static int constant(final COperation<Integer> original) {
+            return original.call() + 1;
         }
 
     }

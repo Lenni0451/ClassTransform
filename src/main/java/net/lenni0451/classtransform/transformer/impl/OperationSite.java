@@ -84,6 +84,10 @@ class OperationSite {
     }
 
     static OperationInfo describe(final ClassNode targetClass, final AbstractInsnNode instruction) {
+        Type constantType = getConstantType(instruction);
+        if (constantType != null) {
+            return new OperationInfo(new Type[0], constantType, false, null);
+        }
         if (instruction instanceof MethodInsnNode) {
             MethodInsnNode method = (MethodInsnNode) instruction;
             if (method.name.equals("<init>")) {
@@ -174,6 +178,26 @@ class OperationSite {
             case Opcodes.SALOAD: return Type.SHORT_TYPE;
             default: throw new IllegalArgumentException("Unknown array load opcode " + opcode);
         }
+    }
+
+    @Nullable
+    private static Type getConstantType(final AbstractInsnNode instruction) {
+        int opcode = instruction.getOpcode();
+        if (opcode == Opcodes.ACONST_NULL) return Type.getType(Object.class);
+        if ((opcode >= Opcodes.ICONST_M1 && opcode <= Opcodes.ICONST_5) || opcode == Opcodes.BIPUSH || opcode == Opcodes.SIPUSH) return Type.INT_TYPE;
+        if (opcode == Opcodes.LCONST_0 || opcode == Opcodes.LCONST_1) return Type.LONG_TYPE;
+        if (opcode >= Opcodes.FCONST_0 && opcode <= Opcodes.FCONST_2) return Type.FLOAT_TYPE;
+        if (opcode == Opcodes.DCONST_0 || opcode == Opcodes.DCONST_1) return Type.DOUBLE_TYPE;
+        if (instruction instanceof LdcInsnNode) {
+            Object constant = ((LdcInsnNode) instruction).cst;
+            if (constant instanceof Integer) return Type.INT_TYPE;
+            if (constant instanceof Long) return Type.LONG_TYPE;
+            if (constant instanceof Float) return Type.FLOAT_TYPE;
+            if (constant instanceof Double) return Type.DOUBLE_TYPE;
+            if (constant instanceof String) return Type.getType(String.class);
+            if (constant instanceof Type) return Type.getType(Class.class);
+        }
+        return null;
     }
 
     private static OperationInfo simpleOperation(final int opcode) {
