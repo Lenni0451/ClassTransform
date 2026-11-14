@@ -54,6 +54,11 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = Overwrite.class, to = COverride.class)
     private native void overwriteTest();
 
+    @Overwrite(constraints = "TEST(5)", aliases = {"first", "second"}, remap = false)
+    @COverride(constraints = "TEST(5)", aliases = {"first", "second"}, remap = false)
+    @TestMarker(from = Overwrite.class, to = COverride.class)
+    private native void overwriteOptionsTest();
+
     @Mutable
     @TestMarker(from = Mutable.class, to = Mutable.class)
     private final String mutableTest = null;

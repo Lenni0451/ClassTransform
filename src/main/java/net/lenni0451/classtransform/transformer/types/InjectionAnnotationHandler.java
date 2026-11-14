@@ -5,7 +5,6 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.Constraints;
 import net.lenni0451.classtransform.utils.InjectionSettings;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.tree.ClassNode;
@@ -101,22 +100,6 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
             targets.addAll(ASMUtils.getMethodsFromCombi(target, selector));
         }
         return targets;
-    }
-
-    /**
-     * Validate Mixin style constraints before applying an injection.
-     *
-     * @param manager     The transformer manager
-     * @param constraints The constraint expression
-     * @param method      The handler method
-     * @param transformer The transformer class
-     */
-    protected void checkConstraints(final TransformerManager manager, final String constraints, final MethodNode method, final ClassNode transformer) {
-        try {
-            Constraints.check(manager, constraints);
-        } catch (IllegalArgumentException e) {
-            throw new TransformerException(method, transformer, "constraint violation").cause(e);
-        }
     }
 
     /**

@@ -9,6 +9,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Overwrite {
 
+    String constraints() default "";
+
+    String[] aliases() default {};
+
     @Deprecated
     boolean remap() default true;
 

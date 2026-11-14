@@ -2,6 +2,8 @@ package net.lenni0451.classtransform.transformer;
 
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.InjectionInfo;
+import net.lenni0451.classtransform.exceptions.TransformerException;
+import net.lenni0451.classtransform.utils.Constraints;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.mappings.Remapper;
@@ -104,6 +106,22 @@ public abstract class AnnotationHandler {
             }
         }
         return null;
+    }
+
+    /**
+     * Validate Mixin style constraints before applying an annotation.
+     *
+     * @param manager     The transformer manager
+     * @param constraints The constraint expression
+     * @param method      The handler method
+     * @param transformer The transformer class
+     */
+    protected void checkConstraints(final TransformerManager manager, final String constraints, final MethodNode method, final ClassNode transformer) {
+        try {
+            Constraints.check(manager, constraints);
+        } catch (IllegalArgumentException e) {
+            throw new TransformerException(method, transformer, "constraint violation").cause(e);
+        }
     }
 
     /**

@@ -42,7 +42,7 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
                 targetCombi = declaration.getName() + declaration.getDesc();
             }
 
-            List<MethodNode> targets = ASMUtils.getMethodsFromCombi(transformedClass, targetCombi);
+            List<MethodNode> targets = this.getTargetMethods(annotation, transformedClass, targetCombi);
             if (targets.isEmpty()) throw new MethodNotFoundException(transformedClass, transformer, targetCombi);
             for (MethodNode target : targets) {
                 try {
@@ -56,6 +56,18 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
                 }
             }
         }
+    }
+
+    /**
+     * Resolve the target methods for one selector.
+     *
+     * @param annotation The annotation
+     * @param target     The target class
+     * @param selector   The normalized selector
+     * @return The matching methods
+     */
+    protected List<MethodNode> getTargetMethods(final T annotation, final ClassNode target, final String selector) {
+        return ASMUtils.getMethodsFromCombi(target, selector);
     }
 
     /**

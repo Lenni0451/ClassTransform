@@ -38,4 +38,23 @@ public @interface COverride {
     @AnnotationRemap(value = RemapType.SHORT_MEMBER, allowClassPrefix = true)
     String[] value() default {};
 
+    /**
+     * Alternative target method names which are tried when the main target is not found.
+     *
+     * @return The aliases
+     */
+    String[] aliases() default {};
+
+    /**
+     * @return If the target method should be remapped
+     */
+    boolean remap() default true;
+
+    /**
+     * Constraints which have to pass for this overwrite to be applied.
+     *
+     * @return The constraints
+     */
+    String constraints() default "";
+
 }

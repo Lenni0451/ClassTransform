@@ -34,9 +34,13 @@ class InfoFiller {
         if (method.getReturnType().equals(String.class)) {
             String current = (String) value;
             if (!remap.fill().equals(FillType.KEEP_EMPTY)) {
-                List<String> names = getNames(remapper, holder, remap, current, target, transformer);
-                if (names.size() != 1) throw new MethodNotFoundException(target, transformer, current);
-                values.put(method.getName(), names.get(0));
+                try {
+                    List<String> names = getNames(remapper, holder, remap, current, target, transformer);
+                    if (names.size() != 1) throw new MethodNotFoundException(target, transformer, current);
+                    values.put(method.getName(), names.get(0));
+                } catch (MethodNotFoundException e) {
+                    if (!hasAliases(values)) throw e;
+                }
             }
         } else if (method.getReturnType().equals(String[].class)) {
             List<String> current = (List<String>) value;
@@ -49,13 +53,24 @@ class InfoFiller {
                     try {
                         newValues.addAll(getNames(remapper, holder, remap, name, target, transformer));
                     } catch (MethodNotFoundException e) {
-                        if (!method.getDeclaringClass().isAnnotationPresent(InjectionType.class) || !values.containsKey("require")) throw e;
+                        if (hasAliases(values)) {
+                            newValues.add(name);
+                        } else if (!method.getDeclaringClass().isAnnotationPresent(InjectionType.class) || !values.containsKey("require")) {
+                            throw e;
+                        }
                     }
                 }
                 current = newValues;
             }
             values.put(method.getName(), current);
         }
+    }
+
+    private static boolean hasAliases(final Map<String, Object> values) {
+        Object aliases = values.get("aliases");
+        if (aliases instanceof List) return !((List<?>) aliases).isEmpty();
+        if (aliases instanceof String[]) return ((String[]) aliases).length > 0;
+        return false;
     }
 
     private static List<String> getNames(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, final String current, final ClassNode target, final ClassNode transformer) {

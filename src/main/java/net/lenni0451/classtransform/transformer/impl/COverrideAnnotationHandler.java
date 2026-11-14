@@ -11,6 +11,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 
@@ -22,6 +23,22 @@ public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<
 
     public COverrideAnnotationHandler() {
         super(COverride.class, COverride::value);
+    }
+
+    @Override
+    public void transform(final COverride annotation, final TransformerManager transformerManager, final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod) {
+        this.checkConstraints(transformerManager, annotation.constraints(), transformerMethod, transformer);
+        super.transform(annotation, transformerManager, transformedClass, transformer, transformerMethod);
+    }
+
+    @Override
+    protected List<MethodNode> getTargetMethods(final COverride annotation, final ClassNode target, final String selector) {
+        List<MethodNode> targets = super.getTargetMethods(annotation, target, selector);
+        for (String alias : annotation.aliases()) {
+            if (!targets.isEmpty()) break;
+            if (!alias.isEmpty()) targets = super.getTargetMethods(annotation, target, alias);
+        }
+        return targets;
     }
 
     @Override
