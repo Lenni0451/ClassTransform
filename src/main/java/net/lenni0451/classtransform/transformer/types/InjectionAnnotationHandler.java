@@ -68,7 +68,7 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
         InjectionSettings settings = new InjectionSettings(annotation);
         Set<MethodNode> targets = this.getTargetMethods(annotation, manager, target, transformer, method);
         List<CTarget> injectionTargets = new ArrayList<>();
-        for (CTarget injectionTarget : this.getInjectionTargets(annotation, manager)) {
+        for (CTarget injectionTarget : this.getInjectionTargets(annotation, manager, method)) {
             injectionTargets.add(CDescResolver.resolve(injectionTarget, manager, transformer, method));
         }
         return new InjectionPlan(manager, target, settings, transformer, method, targets, injectionTargets, registry, targetMethod -> {
@@ -114,6 +114,18 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
      */
     protected List<CTarget> getInjectionTargets(final T annotation, final TransformerManager manager) {
         return new InjectionSettings(annotation).getTargets();
+    }
+
+    /**
+     * Resolve the instruction selectors to prepare for the given handler method.
+     *
+     * @param annotation The injection annotation
+     * @param manager    The transformer manager
+     * @param method     The handler method
+     * @return The instruction selectors to prepare
+     */
+    protected List<CTarget> getInjectionTargets(final T annotation, final TransformerManager manager, final MethodNode method) {
+        return this.getInjectionTargets(annotation, manager);
     }
 
 }

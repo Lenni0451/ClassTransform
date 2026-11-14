@@ -20,7 +20,7 @@ import java.util.*;
  * Resolve local variables for {@link CLocalVariable} parameters at a specific injection point.
  */
 @ParametersAreNonnullByDefault
-class LocalVariableLookup {
+public class LocalVariableLookup {
 
     static Local find(final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode targetMethod, final int position, final CLocalVariable annotation, final Type parameterType, final Type targetType, @Nullable final String parameterName) {
         IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
@@ -34,7 +34,80 @@ class LocalVariableLookup {
         return findImplicit(transformer, transformerMethod, transformedClass, targetMethod, position, annotation, targetType);
     }
 
-    static void print(final ClassNode transformedClass, final MethodNode targetMethod, final int position, final Type targetType, final boolean argsOnly) {
+    /**
+     * Find a local variable using the discriminator rules of Mixin's {@code @ModifyVariable}.<br>
+     * The {@code this} reference is never considered a candidate.
+     *
+     * @param transformedClass  The transformed class, or null if unknown
+     * @param transformer       The transformer class
+     * @param transformerMethod The transformer method
+     * @param targetMethod      The target method
+     * @param position          The instruction index to search at
+     * @param names             The candidate names, or null
+     * @param ordinal           The ordinal of the variable type, or -1
+     * @param index             The variable index, or -1
+     * @param argsOnly          If only method arguments should be considered
+     * @param targetType        The required variable type
+     * @return The resolved local variable
+     */
+    public static Local findVariable(@Nullable final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode targetMethod, final int position, @Nullable final String[] names, final int ordinal, final int index, final boolean argsOnly, final Type targetType) {
+        List<Candidate> candidates = candidates(transformedClass, targetMethod, position, argsOnly, true);
+        if (ordinal >= 0) {
+            List<Candidate> matching = new ArrayList<>();
+            for (Candidate candidate : candidates) {
+                if (candidate.type.equals(targetType)) matching.add(candidate);
+            }
+            if (ordinal >= matching.size()) {
+                throw new TransformerException(transformerMethod, transformer, "could not find local variable ordinal " + ordinal + " with type " + targetType.getClassName() + " in scope")
+                        .help("Set print = true to list all available local variables");
+            }
+            return new Local(matching.get(ordinal));
+        }
+        if (index >= 0) {
+            Candidate match = null;
+            for (Candidate candidate : candidates) {
+                if (candidate.index != index) continue;
+                if (match == null || candidate.start > match.start) match = candidate;
+            }
+            if (match == null) {
+                throw new TransformerException(transformerMethod, transformer, "could not find local variable " + index + " in scope")
+                        .help("Set print = true to list all available local variables");
+            }
+            if (!match.type.equals(targetType)) {
+                throw new TransformerException(transformerMethod, transformer, "local variable " + index + " has type " + match.type.getClassName() + " but " + targetType.getClassName() + " is required");
+            }
+            return new Local(match);
+        }
+        if (names != null && names.length > 0) {
+            if (targetMethod.localVariables == null || targetMethod.localVariables.isEmpty()) {
+                throw new TransformerException(transformerMethod, transformer, "can not get the local variable index by name because no local variable table is present")
+                        .help("Compile the target class with debug information or specify the index manually");
+            }
+            for (String name : names) {
+                Candidate match = null;
+                for (Candidate candidate : candidates) {
+                    if (!name.equals(candidate.name) || !candidate.type.equals(targetType)) continue;
+                    if (match == null || candidate.start > match.start) match = candidate;
+                }
+                if (match != null) return new Local(match);
+            }
+            throw new TransformerException(transformerMethod, transformer, "could not find a local variable with the name(s) " + Arrays.toString(names) + " and type " + targetType.getClassName() + " in scope")
+                    .help("Set print = true to list all available local variables");
+        }
+        List<Candidate> matching = new ArrayList<>();
+        for (Candidate candidate : candidates) {
+            if (candidate.type.equals(targetType)) matching.add(candidate);
+        }
+        if (matching.size() == 1) return new Local(matching.get(0));
+        if (matching.isEmpty()) {
+            throw new TransformerException(transformerMethod, transformer, "could not find a local variable with type " + targetType.getClassName() + " in scope")
+                    .help("Set print = true to list all available local variables");
+        }
+        throw new TransformerException(transformerMethod, transformer, "found multiple local variables with type " + targetType.getClassName() + " in scope: " + matching)
+                .help("Set name, ordinal or index to select one of them");
+    }
+
+    public static void print(final ClassNode transformedClass, final MethodNode targetMethod, final int position, final Type targetType, final boolean argsOnly) {
         Logger.info("Local variables at {}.{}{} (instruction {}):", transformedClass.name, targetMethod.name, targetMethod.desc, position);
         List<Candidate> candidates = getInScope(targetMethod, position, argsOnly);
         if (candidates.isEmpty()) {
@@ -143,6 +216,22 @@ class LocalVariableLookup {
                 .help("Set name, ordinal or index on the parameter to select one of them");
     }
 
+    private static List<Candidate> candidates(@Nullable final ClassNode transformedClass, final MethodNode method, final int position, final boolean argsOnly, final boolean excludeThis) {
+        List<Candidate> candidates = getInScope(method, position, argsOnly);
+        if (candidates.isEmpty()) {
+            Map<Integer, Type> inferred = inferAvailable(transformedClass, method, position, argsOnly);
+            for (Map.Entry<Integer, Type> entry : inferred.entrySet()) {
+                candidates.add(new Candidate(entry.getKey(), entry.getValue(), null, 0, method.instructions.size()));
+            }
+            candidates.sort(Comparator.comparingInt(candidate -> candidate.index));
+        }
+        if (excludeThis) {
+            int baseArgIndex = Modifier.isStatic(method.access) ? 0 : 1;
+            candidates.removeIf(candidate -> candidate.index < baseArgIndex);
+        }
+        return candidates;
+    }
+
     private static List<Candidate> getInScope(final MethodNode method, final int position, final boolean argsOnly) {
         if (method.localVariables == null || method.localVariables.isEmpty()) return Collections.emptyList();
         Map<Integer, Candidate> candidates = new HashMap<>();
@@ -238,7 +327,7 @@ class LocalVariableLookup {
     }
 
 
-    static class Local {
+    public static class Local {
 
         private final int index;
         private final Type type;
@@ -248,11 +337,11 @@ class LocalVariableLookup {
             this.type = candidate.type;
         }
 
-        int getIndex() {
+        public int getIndex() {
             return this.index;
         }
 
-        Type getType() {
+        public Type getType() {
             return this.type;
         }
 

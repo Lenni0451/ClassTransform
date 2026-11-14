@@ -174,6 +174,16 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = Definition.class, to = CDefinition.class)
     private native void definitionLocalPrintTest();
 
+    @ModifyVariable(method = "method", at = @At("HEAD"), index = 1, ordinal = 2, name = {"first", "second"}, argsOnly = true, print = true, constraints = "TEST(1)", require = 0, order = 100)
+    @CModifyVariable(method = "method", target = @CTarget("HEAD"), index = 1, ordinal = 2, name = {"first", "second"}, argsOnly = true, print = true, constraints = "TEST(1)", require = 0, order = 100)
+    @TestMarker(from = ModifyVariable.class, to = CModifyVariable.class)
+    private native void modifyVariableTest();
+
+    @ModifyVariable(method = "method", target = @Desc(value = "method", ret = int.class), at = @At("LOAD"))
+    @CModifyVariable(method = "method", desc = @CDesc(value = "method", ret = int.class), target = @CTarget("LOAD"), require = -1)
+    @TestMarker(from = ModifyVariable.class, to = CModifyVariable.class)
+    private native void modifyVariableDescTest();
+
     @Test
     void test() throws ClassNotFoundException {
         this.iterate(AnnotationTranslatorTest.class);
