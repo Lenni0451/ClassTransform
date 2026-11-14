@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.test;
 
 import java.util.Random;
+import java.util.function.IntSupplier;
 
 public class SCalculator {
 
@@ -31,6 +32,11 @@ public class SCalculator {
     public static int rbint(final int bound) {
         Random rnd = new Random();
         return rnd.nextInt(bound);
+    }
+
+    public static int lambda() {
+        IntSupplier supplier = () -> 42;
+        return supplier.getAsInt();
     }
 
     public static double getPi() {

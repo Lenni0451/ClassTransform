@@ -23,6 +23,13 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import org.junit.jupiter.api.Test;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -124,10 +131,44 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void intLikeHandlerTypes() throws Exception {
+        Class<?> byteTarget = this.transform(IntLikeByteExpressionTest.class);
+        assertEquals((byte) 15, (byte) byteTarget.getMethod("literalByte").invoke(null));
+        Class<?> charTarget = this.transform(IntLikeCharExpressionTest.class);
+        assertEquals((char) 15, (char) charTarget.getMethod("literalChar").invoke(null));
+        Class<?> shortTarget = this.transform(IntLikeShortExpressionTest.class);
+        assertEquals((short) 15, (short) shortTarget.getMethod("literalShort").invoke(null));
+        Class<?> intTarget = this.transform(IntLikeIntExpressionTest.class);
+        assertEquals(15, (int) intTarget.getMethod("literalInt").invoke(null));
+    }
+
+    @Test
     public void modifyUnusedInstantiation() throws Exception {
         Class<?> target = this.transform(UnusedInstantiationTest.class);
         assertDoesNotThrow(() -> target.getMethod("unusedNew").invoke(null));
         assertEquals(1, target.getField("creations").get(null));
+    }
+
+    @Test
+    public void modifyNewWithoutDup() throws Exception {
+        String targetName = Target.class.getName().replace('.', '/');
+        String holderName = Holder.class.getName().replace('.', '/');
+        ClassNode target = ASMUtils.fromBytes(this.classProvider.getClass(Target.class.getName()));
+        MethodNode method = new MethodNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "newWithoutDup", "()V", null, null);
+        method.instructions.add(new TypeInsnNode(Opcodes.NEW, holderName));
+        method.instructions.add(new InsnNode(Opcodes.ICONST_4));
+        method.instructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, holderName, "<init>", "(I)V", false));
+        method.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, targetName, "creations", "I"));
+        method.instructions.add(new InsnNode(Opcodes.ICONST_1));
+        method.instructions.add(new InsnNode(Opcodes.IADD));
+        method.instructions.add(new FieldInsnNode(Opcodes.PUTSTATIC, targetName, "creations", "I"));
+        method.instructions.add(new InsnNode(Opcodes.RETURN));
+        target.methods.add(method);
+
+        Class<?> transformed = this.transform(NewWithoutDupTest.class, target);
+        assertDoesNotThrow(() -> transformed.getMethod("newWithoutDup").invoke(null));
+        assertEquals(1, transformed.getField("creations").get(null));
+        assertEquals(1, transformed.getField("seen").get(null));
     }
 
     @Test
@@ -149,6 +190,20 @@ class ExpressionAnnotationHandlerTest {
     public void constructorReference() throws Exception {
         Class<?> target = this.transform(ConstructorReference.class);
         assertEquals(5, ((Holder) target.getMethod("constructorReference", int.class).invoke(null, 5)).value);
+        assertEquals(1, target.getField("seen").get(null));
+    }
+
+    @Test
+    public void staticTypeMethodReference() throws Exception {
+        Class<?> target = this.transform(StaticTypeMethodReference.class);
+        assertEquals(42, target.getMethod("staticTypeReference").invoke(null));
+        assertEquals(1, target.getField("seen").get(null));
+    }
+
+    @Test
+    public void lambdaReference() throws Exception {
+        Class<?> target = this.transform(LambdaReference.class);
+        assertEquals(43, target.getMethod("lambdaReference").invoke(null));
         assertEquals(1, target.getField("seen").get(null));
     }
 
@@ -175,6 +230,14 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void objectArrayLiteralExpression() throws Exception {
+        Class<?> target = this.transform(ObjectArrayLiteralExpressionTest.class);
+        Holder[] array = (Holder[]) target.getMethod("objectArray").invoke(null);
+        assertEquals(11, array[0].value);
+        assertEquals(2, array[1].value);
+    }
+
+    @Test
     public void incrementExpression() throws Exception {
         Class<?> target = this.transform(IncrementExpressionTest.class);
         assertEquals(12, target.getMethod("increment", int.class).invoke(null, 1));
@@ -198,6 +261,12 @@ class ExpressionAnnotationHandlerTest {
     public void hierarchicalDefinition() throws Exception {
         Class<?> target = this.transform(HierarchicalDefinitionTest.class);
         assertEquals(15, target.getMethod("inherited").invoke(null));
+    }
+
+    @Test
+    public void hierarchicalFieldDefinition() throws Exception {
+        Class<?> target = this.transform(HierarchicalFieldDefinitionTest.class);
+        assertEquals(21, target.getMethod("inheritedField").invoke(null));
     }
 
     @Test
@@ -275,6 +344,15 @@ class ExpressionAnnotationHandlerTest {
         return TestClassLoader.load(ASMUtils.fromBytes(bytes));
     }
 
+    private Class<?> transform(final Class<?> transformerClass, final ClassNode target) throws Exception {
+        TransformerManager manager = new TransformerManager(this.classProvider);
+        manager.setFailStrategy(FailStrategy.THROW);
+        manager.addTransformer(ASMUtils.fromBytes(this.classProvider.getClass(transformerClass.getName())));
+        byte[] bytes = manager.transform(Target.class.getName(), ASMUtils.toBytes(target, manager));
+        assertNotNull(bytes);
+        return TestClassLoader.load(ASMUtils.fromBytes(bytes));
+    }
+
 
     public static class Holder {
 
@@ -291,6 +369,8 @@ class ExpressionAnnotationHandlerTest {
     }
 
     public static class Base {
+
+        public int baseValue = 11;
 
         public int baseMethod() {
             return 5;
@@ -390,6 +470,22 @@ class ExpressionAnnotationHandlerTest {
             return 5;
         }
 
+        public static byte literalByte() {
+            return 5;
+        }
+
+        public static char literalChar() {
+            return 5;
+        }
+
+        public static short literalShort() {
+            return 5;
+        }
+
+        public static int literalInt() {
+            return 5;
+        }
+
         public static Holder unusedNew() {
             new Holder(4);
             creations++;
@@ -414,8 +510,30 @@ class ExpressionAnnotationHandlerTest {
             return new Target().baseMethod();
         }
 
+        public static int inheritedField() {
+            return new Target().baseValue;
+        }
+
+        public static int staticValue() {
+            return 42;
+        }
+
+        public static int staticTypeReference() {
+            IntSupplier supplier = Target::staticValue;
+            return supplier.getAsInt();
+        }
+
+        public static int lambdaReference() {
+            IntSupplier supplier = () -> 43;
+            return supplier.getAsInt();
+        }
+
         public static int expressionConstant() {
             return 7;
+        }
+
+        public static Holder[] objectArray() {
+            return new Holder[]{new Holder(1), new Holder(2)};
         }
 
         public static int merge(final boolean flag, final int left, final int right) {
@@ -646,12 +764,72 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @CTransformer(Target.class)
+    private static class IntLikeByteExpressionTest {
+
+        @CExpression("5")
+        @CModifyExpressionValue(method = "literalByte", target = @CTarget(value = "EXPRESSION"))
+        private static byte literalByte(final byte original) {
+            return (byte) (original + 10);
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class IntLikeCharExpressionTest {
+
+        @CExpression("5")
+        @CModifyExpressionValue(method = "literalChar", target = @CTarget(value = "EXPRESSION"))
+        private static char literalChar(final char original) {
+            return (char) (original + 10);
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class IntLikeShortExpressionTest {
+
+        @CExpression("5")
+        @CModifyExpressionValue(method = "literalShort", target = @CTarget(value = "EXPRESSION"))
+        private static short literalShort(final short original) {
+            return (short) (original + 10);
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class IntLikeIntExpressionTest {
+
+        @CExpression("5")
+        @CModifyExpressionValue(method = "literalInt", target = @CTarget(value = "EXPRESSION"))
+        private static int literalInt(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
     private static class UnusedInstantiationTest {
 
         @CDefinition(id = "Holder", type = Holder.class)
         @CExpression("new Holder(?)")
         @CModifyExpressionValue(method = "unusedNew", target = @CTarget(value = "EXPRESSION"))
         private static Holder modify(final Holder original) {
+            return original;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class NewWithoutDupTest {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "Holder", type = Holder.class)
+        @CExpression("new Holder(?)")
+        @CModifyExpressionValue(method = "newWithoutDup", target = @CTarget(value = "EXPRESSION"))
+        private static Holder modify(final Holder original) {
+            seen++;
             return original;
         }
 
@@ -675,6 +853,36 @@ class ExpressionAnnotationHandlerTest {
         @CModifyExpressionValue(method = "literalArray", target = @CTarget(value = "EXPRESSION"))
         private static int[] literalArray(final int[] original) {
             return new int[]{original[0] + 10, original[1], original[2] + 10};
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class StaticTypeMethodReference {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "Target", type = Target.class)
+        @CDefinition(id = "staticValue", method = "staticValue()I")
+        @CExpression("Target::staticValue")
+        @CInject(method = "staticTypeReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private static void inject() {
+            seen = 1;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class LambdaReference {
+
+        @CShadow
+        private static int seen;
+
+        @CExpression("::?")
+        @CInject(method = "lambdaReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private static void inject() {
+            seen = 1;
         }
 
     }
@@ -727,6 +935,18 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @CTransformer(Target.class)
+    private static class HierarchicalFieldDefinitionTest {
+
+        @CDefinition(id = "baseValue", field = BASE + "baseValue:I")
+        @CExpression("?.baseValue")
+        @CModifyExpressionValue(method = "inheritedField", target = @CTarget(value = "EXPRESSION"))
+        private static int inheritedField(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
     private static class BranchMergeExpressionTest {
 
         @CExpression("? + ?")
@@ -748,6 +968,18 @@ class ExpressionAnnotationHandlerTest {
         @CInject(method = "boundObjectReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
         private static void inject() {
             seen = 1;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class ObjectArrayLiteralExpressionTest {
+
+        @CDefinition(id = "Holder", type = Holder.class)
+        @CExpression("new Holder[]{?, ?}")
+        @CModifyExpressionValue(method = "objectArray", target = @CTarget(value = "EXPRESSION"))
+        private static Holder[] objectArray(final Holder[] original) {
+            return new Holder[]{new Holder(original[0].value + 10), original[1]};
         }
 
     }

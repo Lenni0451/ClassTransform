@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * A target for the head of a constructor (after the {@code super()} or {@code this()} call).<br>
- * For regular methods this target behaves like {@code HEAD}.
+ * This target can only be used on constructors.
  */
 @ParametersAreNonnullByDefault
 public class ConstructorHeadTarget implements IInjectionTarget {
@@ -24,7 +24,7 @@ public class ConstructorHeadTarget implements IInjectionTarget {
     @Override
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         AbstractInsnNode head = method.instructions.getFirst();
-        if (!"<init>".equals(method.name)) return Collections.singletonList(head);
+        if (!"<init>".equals(method.name)) throw new IllegalArgumentException("CTOR_HEAD can only be used on constructors");
 
         int allocations = 0;
         for (AbstractInsnNode instruction : method.instructions) {

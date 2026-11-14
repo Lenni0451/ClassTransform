@@ -42,20 +42,33 @@ public class Constraints {
                 max = number;
                 String leading = matcher.group(2);
                 if (matcher.group(6) != null) {
+                    if (leading != null) throw new IllegalArgumentException("Unexpected modifier in constraint range '" + constraint + "'");
                     max = Integer.parseInt(matcher.group(6));
                     if (max < min) throw new IllegalArgumentException("Invalid constraint range '" + constraint + "'");
                 } else if (matcher.group(8) != null) {
+                    if (leading != null) throw new IllegalArgumentException("Unexpected modifier in constraint range '" + constraint + "'");
                     max = min + Integer.parseInt(matcher.group(8));
-                } else if (matcher.group(4) != null) {
-                    max = min;
-                    min = Integer.MIN_VALUE;
-                } else if (matcher.group(7) != null) {
-                    max = Integer.MAX_VALUE;
                 } else if (leading != null) {
-                    if (">".equals(leading)) min = number + 1;
-                    else if ("<".equals(leading)) max = number - 1;
-                    else if (">=".equals(leading)) min = number;
-                    else if ("<=".equals(leading)) max = number;
+                    if (matcher.group(4) != null) throw new IllegalArgumentException("Unexpected trailing modifier in constraint '" + constraint + "'");
+                    if (">".equals(leading)) {
+                        min = number + 1;
+                        max = Integer.MAX_VALUE;
+                    } else if (">=".equals(leading)) {
+                        max = Integer.MAX_VALUE;
+                    } else if ("<".equals(leading)) {
+                        max = number - 1;
+                        min = Integer.MIN_VALUE;
+                    } else if ("<=".equals(leading)) {
+                        max = number;
+                        min = Integer.MIN_VALUE;
+                    }
+                } else if (matcher.group(4) != null) {
+                    if ("<".equals(matcher.group(4))) {
+                        max = number;
+                        min = Integer.MIN_VALUE;
+                    } else {
+                        max = Integer.MAX_VALUE;
+                    }
                 }
             }
             if (value < min || value > max) {

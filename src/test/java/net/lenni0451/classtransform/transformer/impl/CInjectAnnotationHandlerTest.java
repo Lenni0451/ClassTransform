@@ -13,6 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
 
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,6 +57,22 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
         assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
     }
 
+    @Test
+    @DisplayName("Fail instruction descriptor minimum match count")
+    public void failInstructionDescriptorMinimumMatchCount() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SInstructionDescMinimumTestTransformer");
+        assertThrows(TransformerException.class, () -> this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer));
+    }
+
+    @Test
+    @DisplayName("Inject into nested lambda selected by descriptor")
+    public void injectIntoNestedLambdaSelectedByDescriptor() throws ClassNotFoundException {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CInjectAnnotationHandlerTest$SNestedDescTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("lambda").invoke(null)));
+    }
+
 
     @CTransformer(SCalculator.class)
     private static class SDescTestTransformer {
@@ -91,6 +109,26 @@ class CInjectAnnotationHandlerTest extends AnnotationHandlerTest {
 
         @CInject(desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}, min = 2), target = @CTarget("HEAD"), cancellable = true)
         public static void inject(final int i1, final int i2, final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SInstructionDescMinimumTestTransformer {
+
+        @CInject(method = "rint", target = @CTarget(value = "INVOKE", desc = @CDesc(owner = Random.class, value = "nextInt", ret = int.class, min = 2)), cancellable = true)
+        public static void inject(final InjectionCallback callback) {
+            callback.setReturnValue(100);
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SNestedDescTestTransformer {
+
+        @CInject(desc = @CDesc(value = "lambda", ret = int.class, next = @CDesc.Next(ret = int.class)), target = @CTarget("HEAD"), cancellable = true)
+        public static void inject(final InjectionCallback callback) {
             callback.setReturnValue(100);
         }
 

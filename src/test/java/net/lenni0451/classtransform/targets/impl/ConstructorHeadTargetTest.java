@@ -10,6 +10,7 @@ import org.objectweb.asm.tree.*;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ConstructorHeadTargetTest extends ATargetTest {
 
@@ -57,11 +58,9 @@ class ConstructorHeadTargetTest extends ATargetTest {
     }
 
     @Test
-    @DisplayName("Fall back to head for regular methods")
-    public void fallBackToHeadForRegularMethods() {
-        List<AbstractInsnNode> insns = new ConstructorHeadTarget().getTargets(this.injectionTargets, this.method, this.getTarget("", CTarget.Shift.BEFORE, -1), this.emptySlice);
-        assertEquals(1, insns.size());
-        assertEquals(this.method.instructions.getFirst(), insns.get(0));
+    @DisplayName("Reject regular methods")
+    public void rejectRegularMethods() {
+        assertThrows(IllegalArgumentException.class, () -> new ConstructorHeadTarget().getTargets(this.injectionTargets, this.method, this.getTarget("", CTarget.Shift.BEFORE, -1), this.emptySlice));
     }
 
     private MethodNode constructor() {

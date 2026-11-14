@@ -68,6 +68,7 @@ public class FieldTarget implements IInjectionTarget {
             }
             i++;
         }
+        if (useDesc) DescMatcher.checkMatchCount(desc, i);
         return targets;
     }
 

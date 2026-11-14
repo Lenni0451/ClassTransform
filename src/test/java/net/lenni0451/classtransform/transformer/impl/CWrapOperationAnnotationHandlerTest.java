@@ -86,6 +86,30 @@ class CWrapOperationAnnotationHandlerTest {
     }
 
     @Test
+    public void wrapStringConstant() throws Exception {
+        Class<?> target = this.transform(StringConstantTransformer.class);
+        assertEquals("value!", target.getMethod("stringConstant").invoke(null));
+    }
+
+    @Test
+    public void wrapClassConstant() throws Exception {
+        Class<?> target = this.transform(ClassConstantTransformer.class);
+        assertEquals(Integer.class, target.getMethod("classConstant").invoke(null));
+    }
+
+    @Test
+    public void wrapNullConstant() throws Exception {
+        Class<?> target = this.transform(NullConstantTransformer.class);
+        assertEquals("wrapped", target.getMethod("nullConstant").invoke(null));
+    }
+
+    @Test
+    public void wrapOrdinalConstant() throws Exception {
+        Class<?> target = this.transform(OrdinalConstantTransformer.class);
+        assertEquals(11, target.getMethod("duplicateConstants").invoke(null));
+    }
+
+    @Test
     public void wrapInstanceof() throws Exception {
         Class<?> target = this.transform(InstanceofTransformer.class);
         target.getField("mode").set(null, 0);
@@ -272,6 +296,24 @@ class CWrapOperationAnnotationHandlerTest {
             return 5;
         }
 
+        public static String stringConstant() {
+            return "value";
+        }
+
+        public static Class<?> classConstant() {
+            return String.class;
+        }
+
+        public static Object nullConstant() {
+            return null;
+        }
+
+        public static int duplicateConstants() {
+            int first = 5;
+            int second = 5;
+            return first + second;
+        }
+
         public static int fail() {
             return throwing(2);
         }
@@ -326,6 +368,46 @@ class CWrapOperationAnnotationHandlerTest {
             if (mode == 1) return new Holder(100);
             if (mode == 2) return original.call(value + 10);
             return original.call(value);
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class StringConstantTransformer {
+
+        @CWrapOperation(method = "stringConstant", target = @CTarget(value = "CONSTANT", target = "string value"))
+        private static String constant(final COperation<String> original) {
+            return original.call() + "!";
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class ClassConstantTransformer {
+
+        @CWrapOperation(method = "classConstant", target = @CTarget(value = "CONSTANT", target = "type Ljava/lang/String;"))
+        private static Class<?> constant(final COperation<Class<?>> original) {
+            return Integer.class;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class NullConstantTransformer {
+
+        @CWrapOperation(method = "nullConstant", target = @CTarget(value = "CONSTANT", target = "null"))
+        private static Object constant(final COperation<Object> original) {
+            return "wrapped";
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class OrdinalConstantTransformer {
+
+        @CWrapOperation(method = "duplicateConstants", target = @CTarget(value = "CONSTANT", target = "int 5", ordinal = 1))
+        private static int constant(final COperation<Integer> original) {
+            return original.call() + 1;
         }
 
     }

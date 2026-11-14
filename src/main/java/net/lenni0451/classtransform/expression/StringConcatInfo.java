@@ -64,7 +64,7 @@ public class StringConcatInfo {
                 }
                 if (c == '\u0001') {
                     if (argument >= node.inputCount()) return null;
-                    parts.add(node.getInput(argument++));
+                    parts.add(unwrapArgument(node.getInput(argument++)));
                 } else {
                     if (constant >= indy.bsmArgs.length) return null;
                     parts.add(createConstant(indy.bsmArgs[constant++]));
@@ -98,7 +98,7 @@ public class StringConcatInfo {
             MethodInsnNode method = (MethodInsnNode) current.getInsn();
             if (!method.owner.equals(STRING_BUILDER) || !method.name.equals("append")) return null;
             if (current.inputCount() != 2 || Type.getArgumentTypes(method.desc).length != 1) return null;
-            parts.add(current.getInput(1));
+            parts.add(unwrapArgument(current.getInput(1)));
             current = current.getInput(0);
         }
         if (parts.size() < 2) return null;
@@ -120,6 +120,18 @@ public class StringConcatInfo {
             }
         }
         return false;
+    }
+
+    private static ExpressionFlow.FlowValue unwrapArgument(final ExpressionFlow.FlowValue value) {
+        if (value.isComplex() || !(value.getInsn() instanceof MethodInsnNode) || value.inputCount() != 1) return value;
+        MethodInsnNode call = (MethodInsnNode) value.getInsn();
+        if (call.getOpcode() == Opcodes.INVOKESTATIC
+                && call.owner.equals("java/lang/String")
+                && call.name.equals("valueOf")
+                && call.desc.equals("(Ljava/lang/Object;)Ljava/lang/String;")) {
+            return value.getInput(0);
+        }
+        return value;
     }
 
     private static ExpressionFlow.FlowValue createConstant(final Object value) {

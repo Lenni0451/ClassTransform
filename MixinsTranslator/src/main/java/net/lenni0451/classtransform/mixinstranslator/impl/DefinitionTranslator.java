@@ -44,6 +44,7 @@ class DefinitionTranslator implements AnnotationTranslator {
         this.move(values, result, "ordinal");
         this.move(values, result, "index");
         this.move(values, result, "argsOnly");
+        this.move(values, result, "print");
         Object name = values.get("name");
         if (name instanceof List) {
             result.add("names");

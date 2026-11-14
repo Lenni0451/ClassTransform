@@ -1,15 +1,19 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
+import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
+import net.lenni0451.classtransform.annotations.expression.CDefinition;
+import net.lenni0451.classtransform.annotations.expression.CLocalDefinition;
 import net.lenni0451.classtransform.annotations.injection.*;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
@@ -164,6 +168,11 @@ public class AnnotationTranslatorTest {
     @CModifyReceiver(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = 0, order = 100)
     @TestMarker(from = ModifyReceiver.class, to = CModifyReceiver.class)
     private native void modifyReceiverTest();
+
+    @Definition(id = "local", local = @Local(type = int.class, name = "local", argsOnly = true, print = true))
+    @CDefinition(id = "local", local = @CLocalDefinition(type = int.class, names = {"local"}, argsOnly = true, print = true))
+    @TestMarker(from = Definition.class, to = CDefinition.class)
+    private native void definitionLocalPrintTest();
 
     @Test
     void test() throws ClassNotFoundException {

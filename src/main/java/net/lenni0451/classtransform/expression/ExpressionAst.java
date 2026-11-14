@@ -390,10 +390,16 @@ public abstract class ExpressionAst implements Expression {
         @Override
         public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
             LMFInfo info = ctx.getIdentifiers().getLMFInfo(node);
-            if (info == null || info.type != LMFInfo.Type.BOUND_METHOD) return false;
+            if (info == null) return false;
             if (!this.member.matches(ctx, info.impl)) return false;
-            if (node.inputCount() < 1) return false;
-            return this.receiver.matches(LMFInfo.unwrapReceiver(node.getInput(0)), ctx);
+            if (info.type == LMFInfo.Type.BOUND_METHOD) {
+                if (node.inputCount() < 1) return false;
+                return this.receiver.matches(LMFInfo.unwrapReceiver(node.getInput(0)), ctx);
+            }
+            if (info.type != LMFInfo.Type.FREE_METHOD || !(this.receiver instanceof IdentifierExpression)) return false;
+            String identifier = ((IdentifierExpression) this.receiver).getIdentifier();
+            return ctx.getIdentifiers().typeExists(identifier)
+                    && ctx.getIdentifiers().matchesType(identifier, Type.getObjectType(info.impl.getOwner()));
         }
     }
 

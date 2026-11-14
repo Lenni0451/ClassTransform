@@ -8,6 +8,7 @@ import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.DescMatcher;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -45,6 +46,10 @@ public class NewTarget implements IInjectionTarget {
             if (!this.isTarget(methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc, target)) continue;
             if (target.ordinal() == -1 || target.ordinal() == i) targets.add(instruction);
             i++;
+        }
+        CDesc selector = target.desc();
+        if (!selector.value().isEmpty() || Type.getType(selector.owner()).getSort() != Type.VOID || selector.args().length > 0) {
+            DescMatcher.checkMatchCount(selector, i);
         }
         return targets;
     }

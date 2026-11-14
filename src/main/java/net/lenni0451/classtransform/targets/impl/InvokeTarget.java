@@ -42,6 +42,7 @@ public class InvokeTarget implements IInjectionTarget {
                 i++;
             }
         }
+        if (useDesc) DescMatcher.checkMatchCount(desc, i);
         return targets;
     }
 
