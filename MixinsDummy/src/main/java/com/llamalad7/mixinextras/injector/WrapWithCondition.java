@@ -32,7 +32,6 @@ public @interface WrapWithCondition {
      */
     Slice[] slice() default {};
 
-    @Deprecated
     boolean remap() default true;
 
 }

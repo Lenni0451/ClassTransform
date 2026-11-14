@@ -13,7 +13,6 @@ public @interface Overwrite {
 
     String[] aliases() default {};
 
-    @Deprecated
     boolean remap() default true;
 
 }

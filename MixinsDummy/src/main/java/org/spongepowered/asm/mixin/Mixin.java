@@ -15,7 +15,6 @@ public @interface Mixin {
 
     int priority() default 1000;
 
-    @Deprecated
     boolean remap() default true;
 
 }

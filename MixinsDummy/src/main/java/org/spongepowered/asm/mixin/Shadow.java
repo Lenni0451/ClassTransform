@@ -13,7 +13,6 @@ public @interface Shadow {
 
     String[] aliases() default {};
 
-    @Deprecated
     boolean remap() default true;
 
 }
