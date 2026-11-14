@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.annotations.CCoerce;
 import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CDescs;
 import net.lenni0451.classtransform.annotations.CShadow;
+import net.lenni0451.classtransform.annotations.CSurrogate;
 import net.lenni0451.classtransform.annotations.injection.COverride;
 import org.objectweb.asm.Type;
 
@@ -25,6 +26,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyArg;"), new ModifyArgTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyArgs;"), new ModifyArgsTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Coerce;"), Type.getType(CCoerce.class));
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Surrogate;"), Type.getType(CSurrogate.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/Overwrite;"), Type.getType(COverride.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/At;"), new AtTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Desc;"), Type.getType(CDesc.class));

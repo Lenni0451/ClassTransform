@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.annotations.injection;
 
 import net.lenni0451.classtransform.InjectionCallback;
 import net.lenni0451.classtransform.annotations.CDesc;
+import net.lenni0451.classtransform.annotations.CLocalCapture;
 import net.lenni0451.classtransform.annotations.CLocalVariable;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
@@ -162,5 +163,12 @@ public @interface CInject {
      * @return If the original method can be cancelled
      */
     boolean cancellable() default false;
+
+    /**
+     * Capture local variables at the injection point and pass them to the handler after the callback.
+     *
+     * @return The local capture behaviour
+     */
+    CLocalCapture locals() default CLocalCapture.NO_CAPTURE;
 
 }

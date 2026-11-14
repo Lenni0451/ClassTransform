@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
+import net.lenni0451.classtransform.annotations.CLocalCapture;
 import net.lenni0451.classtransform.annotations.injection.CInject;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -33,6 +34,11 @@ class InjectTranslator implements AnnotationTranslator {
                     target.values.add(optional);
                 }
             }
+        }
+        Object locals = values.get("locals");
+        if (locals instanceof String[]) {
+            String[] enumValue = (String[]) locals;
+            enumValue[0] = Type.getDescriptor(CLocalCapture.class);
         }
         this.translateInjection(values);
     }

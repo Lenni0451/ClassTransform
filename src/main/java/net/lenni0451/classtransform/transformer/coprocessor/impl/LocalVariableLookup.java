@@ -107,6 +107,22 @@ public class LocalVariableLookup {
                 .help("Set name, ordinal or index to select one of them");
     }
 
+    /**
+     * Get all local variables in scope at the given instruction.
+     *
+     * @param transformedClass The transformed class, or null if unknown
+     * @param targetMethod     The target method
+     * @param position         The instruction index
+     * @return The local variables sorted by their variable index
+     */
+    public static List<Local> getLocalsInScope(@Nullable final ClassNode transformedClass, final MethodNode targetMethod, final int position) {
+        List<Local> locals = new ArrayList<>();
+        for (Candidate candidate : candidates(transformedClass, targetMethod, position, false, false)) {
+            locals.add(new Local(candidate));
+        }
+        return locals;
+    }
+
     public static void print(final ClassNode transformedClass, final MethodNode targetMethod, final int position, final Type targetType, final boolean argsOnly) {
         Logger.info("Local variables at {}.{}{} (instruction {}):", transformedClass.name, targetMethod.name, targetMethod.desc, position);
         List<Candidate> candidates = getInScope(targetMethod, position, argsOnly);

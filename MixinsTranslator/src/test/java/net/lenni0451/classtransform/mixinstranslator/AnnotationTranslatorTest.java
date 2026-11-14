@@ -9,8 +9,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.lenni0451.classtransform.annotations.CCoerce;
 import net.lenni0451.classtransform.annotations.CDesc;
+import net.lenni0451.classtransform.annotations.CLocalCapture;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
+import net.lenni0451.classtransform.annotations.CSurrogate;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
 import net.lenni0451.classtransform.annotations.expression.CDefinition;
@@ -114,6 +116,16 @@ public class AnnotationTranslatorTest {
     @CInject(method = "compare", target = @CTarget(value = "CONSTANT", target = "int 0", shift = CTarget.Shift.BEFORE, args = {"expandZeroConditions=LESS_THAN_ZERO", "log=true"}), require = -1)
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectConstantArgsTest();
+
+    @Inject(method = "method", at = @At("HEAD"), locals = org.spongepowered.asm.mixin.injection.callback.LocalCapture.CAPTURE_FAILHARD)
+    @CInject(method = "method", target = @CTarget("HEAD"), locals = CLocalCapture.CAPTURE_FAILHARD)
+    @TestMarker(from = Inject.class, to = CInject.class)
+    private native void injectLocalsTest();
+
+    @Surrogate
+    @CSurrogate
+    @TestMarker(from = Surrogate.class, to = CSurrogate.class)
+    private native void surrogateTest();
 
     @Inject(method = "add", at = @At("HEAD"), target = @Desc(value = "add", ret = int.class, args = {int.class, int.class}))
     @CInject(method = "add", target = @CTarget("HEAD"), desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}), require = -1)
