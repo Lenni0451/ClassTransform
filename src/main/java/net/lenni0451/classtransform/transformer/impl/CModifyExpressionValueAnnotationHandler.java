@@ -6,6 +6,7 @@ import net.lenni0451.classtransform.annotations.injection.CModifyExpressionValue
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.expression.ExpressionMatch;
+import net.lenni0451.classtransform.expression.ExpressionTypes;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
@@ -62,9 +63,20 @@ public class CModifyExpressionValueAnnotationHandler extends InjectionAnnotation
             ExpressionMatch expressionMatch = InjectionPlan.getExpressionMatch(injectionInstruction);
             if (expressionMatch != null) {
                 Type wrappedType = expressionMatch.getValueType();
+                if (wrappedType.equals(ExpressionTypes.INT_LIKE_TYPE)) {
+                    wrappedType = returnType(transformerMethod);
+                    if (!ExpressionTypes.isIntLike(wrappedType)) {
+                        throw new TransformerException(transformerMethod, transformer, "must return an int-like type when modifying an int-like expression");
+                    }
+                }
                 if (!wrappedType.equals(Type.VOID_TYPE)) {
                     boolean castReturnValue = this.checkDescriptor(transformer, transformerMethod, target, wrappedType);
+                    boolean insertedDup = false;
+                    if (injectionInstruction instanceof MethodInsnNode && ((MethodInsnNode) injectionInstruction).name.equals("<init>")) {
+                        insertedDup = this.ensureNewDup(target, (MethodInsnNode) injectionInstruction);
+                    }
                     InsnList insns = this.getModifyInstructions(transformedClass, target, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls);
+                    if (insertedDup) insns.add(new InsnNode(Opcodes.POP));
                     this.insertAfter(target, injectionInstruction, insns);
                 }
                 continue;
@@ -115,8 +127,25 @@ public class CModifyExpressionValueAnnotationHandler extends InjectionAnnotation
     private void modifyNew(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final MethodInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls) {
         Type wrappedType = type(targetNode.owner);
         boolean castReturnValue = this.checkDescriptor(transformer, transformerMethod, targetMethod, wrappedType);
+        boolean insertedDup = this.ensureNewDup(targetMethod, targetNode);
         InsnList insns = this.getModifyInstructions(targetClass, targetMethod, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls);
+        if (insertedDup) insns.add(new InsnNode(Opcodes.POP));
         this.insertAfter(targetMethod, targetNode, insns);
+    }
+
+    private boolean ensureNewDup(final MethodNode targetMethod, final MethodInsnNode initNode) {
+        AbstractInsnNode instruction = initNode.getPrevious();
+        while (instruction != null) {
+            if (instruction instanceof TypeInsnNode && instruction.getOpcode() == Opcodes.NEW && ((TypeInsnNode) instruction).desc.equals(initNode.owner)) {
+                AbstractInsnNode next = instruction.getNext();
+                while (next != null && next.getOpcode() < 0) next = next.getNext();
+                if (next != null && next.getOpcode() == Opcodes.DUP) return false;
+                targetMethod.instructions.insert(instruction, new InsnNode(Opcodes.DUP));
+                return true;
+            }
+            instruction = instruction.getPrevious();
+        }
+        return false;
     }
 
     private void modifyConstant(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final AbstractInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls) {

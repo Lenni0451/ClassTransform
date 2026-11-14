@@ -22,6 +22,7 @@ import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -107,6 +108,19 @@ class ExpressionAnnotationHandlerTest {
     public void binaryExpression() throws Exception {
         Class<?> target = this.transform(BinaryExpressionTest.class);
         assertEquals(15, target.getMethod("add", int.class, int.class).invoke(null, 2, 3));
+    }
+
+    @Test
+    public void intLikeBinaryExpression() throws Exception {
+        Class<?> target = this.transform(IntLikeExpressionTest.class);
+        assertEquals(0, target.getMethod("literal").invoke(null));
+    }
+
+    @Test
+    public void modifyUnusedInstantiation() throws Exception {
+        Class<?> target = this.transform(UnusedInstantiationTest.class);
+        assertDoesNotThrow(() -> target.getMethod("unusedNew").invoke(null));
+        assertEquals(1, target.getField("creations").get(null));
     }
 
     @Test
@@ -244,6 +258,18 @@ class ExpressionAnnotationHandlerTest {
 
         public static int add(final int left, final int right) {
             return left + right;
+        }
+
+        public static int creations;
+
+        public static int literal() {
+            return 5;
+        }
+
+        public static Holder unusedNew() {
+            new Holder(4);
+            creations++;
+            return null;
         }
 
         public static int[] createArray(final int size) {
@@ -392,6 +418,29 @@ class ExpressionAnnotationHandlerTest {
         @CModifyExpressionValue(method = "add", target = @CTarget(value = "EXPRESSION"))
         private static int add(final int original) {
             return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class IntLikeExpressionTest {
+
+        @CExpression("5")
+        @CModifyExpressionValue(method = "literal", target = @CTarget(value = "EXPRESSION"))
+        private static boolean literal(final boolean original) {
+            return false;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class UnusedInstantiationTest {
+
+        @CDefinition(id = "Holder", type = Holder.class)
+        @CExpression("new Holder(?)")
+        @CModifyExpressionValue(method = "unusedNew", target = @CTarget(value = "EXPRESSION"))
+        private static Holder modify(final Holder original) {
+            return original;
         }
 
     }
