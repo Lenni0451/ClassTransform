@@ -77,6 +77,11 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = ModifyConstant.class, to = CModifyConstant.class)
     private native void modifyExpandedConstantTest();
 
+    @ModifyConstant(method = "sum", constant = {@Constant(intValue = 10), @Constant(intValue = 20)})
+    @CModifyConstant(method = "sum", constants = {@CModifyConstant.CConstant(intValue = 10), @CModifyConstant.CConstant(intValue = 20)}, require = -1)
+    @TestMarker(from = ModifyConstant.class, to = CModifyConstant.class)
+    private native void modifyMultipleConstantsTest();
+
     @Inject(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")), cancellable = true, require = 0)
     @CInject(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10, optional = true), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), cancellable = true, require = 0)
     @TestMarker(from = Inject.class, to = CInject.class)

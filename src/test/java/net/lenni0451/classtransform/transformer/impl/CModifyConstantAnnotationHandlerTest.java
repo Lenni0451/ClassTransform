@@ -100,6 +100,26 @@ public class CModifyConstantAnnotationHandlerTest extends AnnotationHandlerTest 
         assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("zero").invoke(null)));
     }
 
+    @Test
+    @DisplayName("ModifyConstant multiple selectors")
+    public void modifyConstantMultipleSelectors() throws ClassNotFoundException {
+        ClassNode targetClass = ASMUtils.fromBytes(this.classProvider.getClass(ExpandTarget.class.getName()));
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CModifyConstantAnnotationHandlerTest$SMultipleConstantsTestTransformer");
+        this.transformer.transform(this.transformerManager, targetClass, transformer);
+        Class<?> clazz = TestClassLoader.load(targetClass);
+        assertEquals(230, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("sum", int.class, int.class).invoke(null, 0, 0)));
+    }
+
+    @Test
+    @DisplayName("ModifyConstant overlapping selectors")
+    public void modifyConstantOverlappingSelectors() throws ClassNotFoundException {
+        ClassNode targetClass = ASMUtils.fromBytes(this.classProvider.getClass(ExpandTarget.class.getName()));
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CModifyConstantAnnotationHandlerTest$SOverlappingConstantsTestTransformer");
+        this.transformer.transform(this.transformerManager, targetClass, transformer);
+        Class<?> clazz = TestClassLoader.load(targetClass);
+        assertEquals(110, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("ten").invoke(null)));
+    }
+
 
     @CTransformer(SCalculator.class)
     private static class SInvalidTestTransformer {
@@ -161,6 +181,42 @@ public class CModifyConstantAnnotationHandlerTest extends AnnotationHandlerTest 
 
         public static int zero() {
             return 0;
+        }
+
+        public static int ten() {
+            return 10;
+        }
+
+        public static int sum(final int left, final int right) {
+            int first = left + 10;
+            int second = right + 20;
+            return first + second;
+        }
+
+    }
+
+    @CTransformer(ExpandTarget.class)
+    private static class SMultipleConstantsTestTransformer {
+
+        @CModifyConstant(method = "sum", constants = {
+                @CModifyConstant.CConstant(intValue = 10),
+                @CModifyConstant.CConstant(intValue = 20)
+        })
+        public static int modifySum(final int original) {
+            return original + 100;
+        }
+
+    }
+
+    @CTransformer(ExpandTarget.class)
+    private static class SOverlappingConstantsTestTransformer {
+
+        @CModifyConstant(method = "ten", constants = {
+                @CModifyConstant.CConstant(intValue = 10),
+                @CModifyConstant.CConstant(intValue = 10)
+        })
+        public static int modifyTen(final int original) {
+            return original + 100;
         }
 
     }

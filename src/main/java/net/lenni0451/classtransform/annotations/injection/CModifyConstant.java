@@ -58,6 +58,15 @@ public @interface CModifyConstant {
     String[] method();
 
     /**
+     * Multiple constant selectors for one transformer method.<br>
+     * If this is set, the flattened constant members on this annotation must not be used.
+     *
+     * @return The constant selectors
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CConstant[] constants() default {};
+
+    /**
      * The ordinal of target constant.
      *
      * @return The ordinal
@@ -223,6 +232,72 @@ public @interface CModifyConstant {
          * Match {@code x > 0} and {@code x <= 0}.
          */
         GREATER_THAN_ZERO
+    }
+
+
+    /**
+     * A single constant selector for {@link #constants()}.
+     */
+    @Retention(RetentionPolicy.CLASS)
+    @Target({})
+    @interface CConstant {
+
+        /**
+         * @return If {@code ACONST_NULL} should be modified
+         */
+        boolean nullValue() default false;
+
+        /**
+         * @return The int constant to modify
+         */
+        int intValue() default 0;
+
+        /**
+         * @return The long constant to modify
+         */
+        long longValue() default 0L;
+
+        /**
+         * @return The float constant to modify
+         */
+        float floatValue() default 0F;
+
+        /**
+         * @return The double constant to modify
+         */
+        double doubleValue() default 0D;
+
+        /**
+         * @return The String constant to modify
+         */
+        String stringValue() default "";
+
+        /**
+         * @return The class constant to modify
+         */
+        @AnnotationRemap(RemapType.DESCRIPTOR)
+        Class<?> typeValue() default Object.class;
+
+        /**
+         * @return The ordinal of the target constant
+         */
+        int ordinal() default -1;
+
+        /**
+         * @return The id of the slice to use
+         */
+        String slice() default "";
+
+        /**
+         * @return The zero conditions to expand
+         */
+        Condition[] expandZeroConditions() default {};
+
+        /**
+         * @return If debug logging should be enabled
+         */
+        boolean log() default false;
+
     }
 
 }

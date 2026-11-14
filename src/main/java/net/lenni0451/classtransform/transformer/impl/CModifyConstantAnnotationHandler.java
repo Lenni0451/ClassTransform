@@ -21,10 +21,12 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
@@ -34,6 +36,9 @@ import static net.lenni0451.classtransform.utils.Types.*;
 @ParametersAreNonnullByDefault
 public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler<CModifyConstant> implements IInjectionTarget {
 
+    private static final String[] CONSTANT_MEMBERS = {"nullValue", "intValue", "longValue", "floatValue", "doubleValue", "stringValue", "typeValue"};
+    private static final String[] CONSTANT_TYPES = {"null", "int", "long", "float", "double", "string", "type"};
+
     public CModifyConstantAnnotationHandler() {
         super(CModifyConstant.class, CModifyConstant::method);
     }
@@ -42,70 +47,53 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
     public void transform(CModifyConstant annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
         AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
         transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
-        IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
-        boolean hasNullValue = parsedAnnotation.wasSet("nullValue");
-        boolean hasIntValue = parsedAnnotation.wasSet("intValue");
-        boolean hasLongValue = parsedAnnotation.wasSet("longValue");
-        boolean hasFloatValue = parsedAnnotation.wasSet("floatValue");
-        boolean hasDoubleValue = parsedAnnotation.wasSet("doubleValue");
-        boolean hasStringValue = parsedAnnotation.wasSet("stringValue");
-        boolean hasTypeValue = parsedAnnotation.wasSet("typeValue");
-        boolean expandZeroConditions = annotation.expandZeroConditions().length > 0;
-        if (expandZeroConditions && !hasNullValue && !hasIntValue && !hasLongValue && !hasFloatValue && !hasDoubleValue && !hasStringValue && !hasTypeValue) {
-            hasIntValue = true;
-        }
-
-        if (this.getTrueCount(hasNullValue, hasIntValue, hasLongValue, hasFloatValue, hasDoubleValue, hasStringValue, hasTypeValue) != 1) {
-            throw new TransformerException(transformerMethod, transformer, "must have exactly one target constant");
-        }
-        Type constantType;
-        if (hasNullValue) constantType = null;
-        else if (hasIntValue) constantType = Type.INT_TYPE;
-        else if (hasLongValue) constantType = Type.LONG_TYPE;
-        else if (hasFloatValue) constantType = Type.FLOAT_TYPE;
-        else if (hasDoubleValue) constantType = Type.DOUBLE_TYPE;
-        else if (hasStringValue) constantType = type(String.class);
-        else if (hasTypeValue) constantType = type(Class.class);
-        else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
-        if (expandZeroConditions && !Type.INT_TYPE.equals(constantType)) {
-            throw new TransformerException(transformerMethod, transformer, "must target an int constant to expand zero conditions");
-        }
-
+        List<CTarget> injectionTargets = this.getInjectionTargets(annotation, transformerManager);
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
         Type[] transformerArguments = argumentTypes(transformerMethod.desc);
-        if (expandZeroConditions && (transformerArguments.length != 1 || !Type.INT_TYPE.equals(transformerArguments[0]))) {
-            throw new TransformerException(transformerMethod, transformer, "must have the int constant as argument to expand zero conditions")
-                    .help(Codifier.of(transformerMethod).param(Type.INT_TYPE));
-        }
-        if (constantType != null) {
-            if (transformerArguments.length != 0 && (transformerArguments.length != 1 || !transformerArguments[0].equals(constantType))) {
-                throw new TransformerException(transformerMethod, transformer, "must have no arguments or the constant as argument")
-                        .help(Codifier.of(transformerMethod).param(null).param(constantType));
+        for (CTarget injectionTarget : injectionTargets) {
+            Type constantType = this.getConstantType(injectionTarget.target());
+            boolean expandZeroConditions = this.hasArgument(injectionTarget.args(), "expandZeroConditions=");
+            if (expandZeroConditions && !Type.INT_TYPE.equals(constantType)) {
+                throw new TransformerException(transformerMethod, transformer, "must target an int constant to expand zero conditions");
             }
-            if (!returnType(transformerMethod.desc).equals(constantType)) {
-                throw new TransformerException(transformerMethod, transformer, "must have return type of modified constant")
-                        .help(Codifier.of(transformerMethod).returnType(constantType));
+            if (expandZeroConditions && (transformerArguments.length != 1 || !Type.INT_TYPE.equals(transformerArguments[0]))) {
+                throw new TransformerException(transformerMethod, transformer, "must have the int constant as argument to expand zero conditions")
+                        .help(Codifier.of(transformerMethod).param(Type.INT_TYPE));
             }
-        } else {
-            if (transformerArguments.length != 0) {
-                throw new TransformerException(transformerMethod, transformer, "must have no arguments")
-                        .help(Codifier.of(transformerMethod).param(null));
-            }
-            Type methodReturnType = returnType(transformerMethod.desc);
-            if (methodReturnType.equals(Type.VOID_TYPE) || methodReturnType.getDescriptor().length() == 1) {
-                throw new TransformerException(transformerMethod, transformer, "must have any object return type")
-                        .help(Codifier.of(transformerMethod).returnType(type(Object.class)));
+            if (constantType != null) {
+                if (transformerArguments.length != 0 && (transformerArguments.length != 1 || !transformerArguments[0].equals(constantType))) {
+                    throw new TransformerException(transformerMethod, transformer, "must have no arguments or the constant as argument")
+                            .help(Codifier.of(transformerMethod).param(null).param(constantType));
+                }
+                if (!returnType(transformerMethod.desc).equals(constantType)) {
+                    throw new TransformerException(transformerMethod, transformer, "must have return type of modified constant")
+                            .help(Codifier.of(transformerMethod).returnType(constantType));
+                }
+            } else {
+                if (transformerArguments.length != 0) {
+                    throw new TransformerException(transformerMethod, transformer, "must have no arguments")
+                            .help(Codifier.of(transformerMethod).param(null));
+                }
+                Type methodReturnType = returnType(transformerMethod.desc);
+                if (methodReturnType.equals(Type.VOID_TYPE) || methodReturnType.getDescriptor().length() == 1) {
+                    throw new TransformerException(transformerMethod, transformer, "must have any object return type")
+                            .help(Codifier.of(transformerMethod).returnType(type(Object.class)));
+                }
             }
         }
 
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyConstant");
-        List<AbstractInsnNode> toReplace = InjectionPlan.select(transformerManager, target, this.getInjectionTargets(annotation, transformerManager).get(0), annotation.slice());
+        Set<AbstractInsnNode> selected = new LinkedHashSet<>();
+        for (CTarget injectionTarget : injectionTargets) {
+            selected.addAll(InjectionPlan.select(transformerManager, target, injectionTarget, annotation.slice()));
+        }
+        List<AbstractInsnNode> toReplace = new ArrayList<>(selected);
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         for (int i = 0; i < toReplace.size(); i++) {
             AbstractInsnNode instruction = toReplace.get(i);
-            if (expandZeroConditions && instruction instanceof JumpInsnNode) {
+            if (instruction instanceof JumpInsnNode) {
                 JumpInsnNode jump = (JumpInsnNode) instruction;
                 int opcode = jump.getOpcode();
                 if (opcode < Opcodes.IFLT || opcode > Opcodes.IFLE) {
@@ -152,29 +140,43 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
     }
 
     @Override
-    protected List<CTarget> getInjectionTargets(CModifyConstant annotation, TransformerManager manager) {
+    protected List<CTarget> getInjectionTargets(final CModifyConstant annotation, final TransformerManager manager) {
         IParsedAnnotation parsed = (IParsedAnnotation) annotation;
+        CModifyConstant.CConstant[] constants = annotation.constants();
+        List<CTarget> targets = new ArrayList<>();
+        if (constants.length == 0) {
+            targets.add(this.getConstantTarget(parsed, annotation.ordinal(), annotation.sliceId(), annotation.expandZeroConditions(), annotation.log(), annotation.optional(), manager));
+            return targets;
+        }
+        for (String member : CONSTANT_MEMBERS) {
+            if (parsed.wasSet(member)) throw new IllegalArgumentException("Constant selectors can not be combined with '" + member + "'");
+        }
+        for (CModifyConstant.CConstant constant : constants) {
+            if (!(constant instanceof IParsedAnnotation)) throw new IllegalArgumentException("Unsupported constant selector");
+            targets.add(this.getConstantTarget((IParsedAnnotation) constant, constant.ordinal(), constant.slice(), constant.expandZeroConditions(), constant.log(), annotation.optional(), manager));
+        }
+        return targets;
+    }
+
+    private CTarget getConstantTarget(final IParsedAnnotation parsed, final int ordinal, final String slice, final CModifyConstant.Condition[] expandZeroConditions, final boolean log, final boolean optional, final TransformerManager manager) {
         Map<String, Object> values = new HashMap<>();
         String constant = null;
-        String[] names = {"nullValue", "intValue", "longValue", "floatValue", "doubleValue", "stringValue", "typeValue"};
-        String[] types = {"null", "int", "long", "float", "double", "string", "type"};
-        for (int i = 0; i < names.length; i++) {
-            if (!parsed.wasSet(names[i])) continue;
+        for (int i = 0; i < CONSTANT_MEMBERS.length; i++) {
+            if (!parsed.wasSet(CONSTANT_MEMBERS[i])) continue;
             if (constant != null) throw new IllegalArgumentException("Exactly one constant discriminator is required");
-            Object value = parsed.getValues().get(names[i]);
+            Object value = parsed.getValues().get(CONSTANT_MEMBERS[i]);
             if (i == 0) constant = Boolean.TRUE.equals(value) ? "null" : "null false";
             else if (i == 6) constant = "type " + type(value).getDescriptor();
-            else constant = types[i] + " " + value;
+            else constant = CONSTANT_TYPES[i] + " " + value;
         }
-        CModifyConstant.Condition[] expandZeroConditions = annotation.expandZeroConditions();
         boolean implicitZero = constant == null && expandZeroConditions.length > 0;
         if (implicitZero) constant = "int 0";
         if (constant == null) throw new IllegalArgumentException("Exactly one constant discriminator is required");
         values.put("value", "CONSTANT");
         values.put("target", constant);
-        values.put("ordinal", annotation.ordinal());
-        values.put("optional", annotation.optional());
-        values.put("slice", annotation.sliceId());
+        values.put("ordinal", ordinal);
+        values.put("optional", optional);
+        values.put("slice", slice);
         List<String> args = new ArrayList<>();
         if (expandZeroConditions.length > 0) {
             StringBuilder conditions = new StringBuilder();
@@ -185,15 +187,28 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
             args.add("expandZeroConditions=" + conditions);
             if (implicitZero) args.add("implicitZero=true");
         }
-        if (annotation.log()) args.add("log=true");
+        if (log) args.add("log=true");
         if (!args.isEmpty()) values.put("args", args.toArray(new String[0]));
-        return Collections.singletonList(AnnotationParser.parse(CTarget.class, manager, values));
+        return AnnotationParser.parse(CTarget.class, manager, values);
     }
 
-    private int getTrueCount(final boolean... booleans) {
-        int count = 0;
-        for (boolean b : booleans) if (b) count++;
-        return count;
+    private Type getConstantType(final String target) {
+        String value = target.toLowerCase(Locale.ROOT);
+        if (value.equals("null") || value.equals("null false")) return null;
+        if (value.startsWith("int")) return Type.INT_TYPE;
+        if (value.startsWith("long")) return Type.LONG_TYPE;
+        if (value.startsWith("float")) return Type.FLOAT_TYPE;
+        if (value.startsWith("double")) return Type.DOUBLE_TYPE;
+        if (value.startsWith("string")) return type(String.class);
+        if (value.startsWith("type")) return type(Class.class);
+        throw new IllegalArgumentException("Unknown constant type '" + target + "'");
+    }
+
+    private boolean hasArgument(final String[] args, final String prefix) {
+        for (String argument : args) {
+            if (argument.startsWith(prefix)) return true;
+        }
+        return false;
     }
 
     @Override

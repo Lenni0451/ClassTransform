@@ -13,10 +13,6 @@ public @interface ModifyConstant {
 
     Slice[] slice() default {};
 
-    /**
-     * An array of constants is not supported. Only the first constant will be used.<br>
-     * An exception will be thrown during the translation process if more than one constant is specified.
-     */
     Constant[] constant();
 
     int require() default -1;
