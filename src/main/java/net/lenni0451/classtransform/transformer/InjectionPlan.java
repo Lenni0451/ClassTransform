@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.transformer;
 
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.annotations.CGroup;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.exceptions.TransformerException;
@@ -8,7 +9,10 @@ import net.lenni0451.classtransform.expression.ExpressionMatch;
 import net.lenni0451.classtransform.targets.InjectionTargets;
 import net.lenni0451.classtransform.targets.impl.ExpressionTarget;
 import net.lenni0451.classtransform.utils.InjectionSettings;
+import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
+import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -174,6 +178,10 @@ public class InjectionPlan {
     private final InjectionSettings settings;
     private final ClassNode transformer;
     private final MethodNode method;
+    @Nullable
+    private final String groupName;
+    private final int groupMin;
+    private final int groupMax;
     private final Map<MethodNode, Map<List<Object>, List<Target>>> selections = new LinkedHashMap<>();
     private final Map<AbstractInsnNode, Target> registry;
     private final Consumer<MethodNode> injection;
@@ -197,6 +205,19 @@ public class InjectionPlan {
         this.method = method;
         this.registry = registry;
         this.injection = injection;
+        Optional<AnnotationNode> groupAnnotation = AnnotationUtils.findAnnotation(method, CGroup.class);
+        if (groupAnnotation.isPresent()) {
+            CGroup group = AnnotationParser.parse(CGroup.class, manager.getClassTree(), manager.getClassProvider(), AnnotationUtils.listToMap(groupAnnotation.get().values));
+            if (group.min() != -1 && group.min() < 1) throw new IllegalArgumentException("Group min must be at least 1");
+            if (group.max() != -1 && group.max() < 1) throw new IllegalArgumentException("Group max must be at least 1");
+            this.groupName = group.name().isEmpty() ? "default" : group.name();
+            this.groupMin = group.min();
+            this.groupMax = group.max();
+        } else {
+            this.groupName = null;
+            this.groupMin = -1;
+            this.groupMax = -1;
+        }
         if (injectionTargets.isEmpty()) throw new TransformerException(method, transformer, "does not have any injection targets");
         for (MethodNode target : targets) {
             Map<List<Object>, List<Target>> selections = new LinkedHashMap<>();
@@ -231,6 +252,33 @@ public class InjectionPlan {
     }
 
     /**
+     * Validate the aggregated injection counts of all groups.
+     *
+     * @param plans The applied plans
+     */
+    public static void validateGroups(final Collection<InjectionPlan> plans) {
+        Map<String, GroupValidation> groups = new LinkedHashMap<>();
+        for (InjectionPlan plan : plans) {
+            if (plan.groupName == null) continue;
+            GroupValidation group = groups.computeIfAbsent(plan.groupName, name -> new GroupValidation(plan.transformer, plan.method));
+            if (plan.groupMin > 0) group.min = Math.max(group.min, plan.groupMin);
+            if (plan.groupMax > 0) group.max = group.max < 0 ? plan.groupMax : Math.min(group.max, plan.groupMax);
+            group.total += plan.count;
+        }
+        for (Map.Entry<String, GroupValidation> entry : groups.entrySet()) {
+            GroupValidation group = entry.getValue();
+            int min = group.min > 0 ? group.min : 1;
+            int max = group.max > 0 ? group.max : Integer.MAX_VALUE;
+            if (group.total < min) {
+                throw new TransformerException(group.method, group.transformer, "group '" + entry.getKey() + "' required at least " + min + " injections but performed " + group.total);
+            }
+            if (group.total > max) {
+                throw new TransformerException(group.method, group.transformer, "group '" + entry.getKey() + "' allowed at most " + max + " injections but performed " + group.total);
+            }
+        }
+    }
+
+    /**
      * @return The injection phase
      */
     public InjectionPhase getPhase() {
@@ -254,10 +302,24 @@ public class InjectionPlan {
             for (Map.Entry<MethodNode, Map<List<Object>, List<Target>>> entry : this.selections.entrySet()) {
                 if (entry.getValue().values().stream().anyMatch(points -> !points.isEmpty())) this.injection.accept(entry.getKey());
             }
-            this.settings.validate(this.manager, this.transformer, this.method, this.count);
+            this.settings.validate(this.manager, this.transformer, this.method, this.count, this.groupName == null);
         } finally {
             if (previous == null) ACTIVE.remove();
             else ACTIVE.set(previous);
+        }
+    }
+
+
+    private static class GroupValidation {
+        private final ClassNode transformer;
+        private final MethodNode method;
+        private int min = -1;
+        private int max = -1;
+        private int total;
+
+        private GroupValidation(final ClassNode transformer, final MethodNode method) {
+            this.transformer = transformer;
+            this.method = method;
         }
     }
 

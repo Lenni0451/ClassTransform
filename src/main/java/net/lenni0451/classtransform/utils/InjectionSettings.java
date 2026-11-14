@@ -94,9 +94,22 @@ public class InjectionSettings {
      * @param count       The number of successfully injected calls
      */
     public void validate(final TransformerManager manager, final ClassNode transformer, final MethodNode method, final int count) {
+        this.validate(manager, transformer, method, count, true);
+    }
+
+    /**
+     * Validate successful injections across all target methods.
+     *
+     * @param manager          The transformer manager
+     * @param transformer      The transformer class
+     * @param method           The handler method
+     * @param count            The number of successfully injected calls
+     * @param enforceImplicit  If the implicit mandatory-target behavior should be applied
+     */
+    public void validate(final TransformerManager manager, final ClassNode transformer, final MethodNode method, final int count, final boolean enforceImplicit) {
         int require = this.get("require", -1);
         if (require < 0) require = manager.getDefaultRequiredInjections();
-        if (!this.hasExplicitRequire() && !this.get("optional", false)) {
+        if (enforceImplicit && !this.hasExplicitRequire() && !this.get("optional", false)) {
             List<CTarget> targets = this.getTargets();
             if (targets.isEmpty() || targets.stream().anyMatch(target -> !target.optional())) require = Math.max(1, require);
         }

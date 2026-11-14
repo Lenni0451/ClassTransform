@@ -727,6 +727,14 @@ public class TransformerManager implements ClassFileTransformer {
                         timings.end();
                     }
                 }
+                timings.start(TimedGroup.ANNOTATION_HANDLER, InjectionPlan.class.getName());
+                try {
+                    InjectionPlan.validateGroups(plans);
+                } catch (Throwable t) {
+                    if (!this.handleAnnotationFailure(name, bytecode, InjectionPlan.class.getName(), t)) return false;
+                } finally {
+                    timings.end();
+                }
                 i = end;
             } else {
                 for (ClassNode transformer : transformers) {

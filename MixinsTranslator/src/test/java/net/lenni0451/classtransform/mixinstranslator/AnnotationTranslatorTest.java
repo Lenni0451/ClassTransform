@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.lenni0451.classtransform.annotations.CCoerce;
 import net.lenni0451.classtransform.annotations.CDesc;
+import net.lenni0451.classtransform.annotations.CGroup;
 import net.lenni0451.classtransform.annotations.CLocalCapture;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
@@ -126,6 +127,11 @@ public class AnnotationTranslatorTest {
     @CSurrogate
     @TestMarker(from = Surrogate.class, to = CSurrogate.class)
     private native void surrogateTest();
+
+    @Group(name = "test", min = 2, max = 3)
+    @CGroup(name = "test", min = 2, max = 3)
+    @TestMarker(from = Group.class, to = CGroup.class)
+    private native void groupTest();
 
     @Inject(method = "add", at = @At("HEAD"), target = @Desc(value = "add", ret = int.class, args = {int.class, int.class}))
     @CInject(method = "add", target = @CTarget("HEAD"), desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}), require = -1)
