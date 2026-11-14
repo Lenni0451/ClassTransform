@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.transformer.impl;
 
+import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.CTransformer;
@@ -32,6 +33,16 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     @DisplayName("Redirect static invoke")
     public void redirectStaticInvoke() {
         ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SInvokeTestTransformer");
+        this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
+        Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
+        int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null));
+        assertEquals(rint, 1234);
+    }
+
+    @Test
+    @DisplayName("Redirect static invoke selected by descriptor")
+    public void redirectStaticInvokeSelectedByDescriptor() {
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandlerTest$SInvokeDescTestTransformer");
         this.transformer.transform(this.transformerManager, this.staticCalculatorClass, transformer);
         Class<?> clazz = TestClassLoader.load(this.staticCalculatorClass);
         int rint = assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("rint").invoke(null));
@@ -133,6 +144,16 @@ class CRedirectAnnotationHandlerTest extends AnnotationHandlerTest {
     private static class SInvokeTestTransformer {
 
         @CRedirect(method = "rint", target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"))
+        public static int add(final Random rnd) {
+            return 1234;
+        }
+
+    }
+
+    @CTransformer(SCalculator.class)
+    private static class SInvokeDescTestTransformer {
+
+        @CRedirect(desc = @CDesc(value = "rint", ret = int.class), target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"))
         public static int add(final Random rnd) {
             return 1234;
         }

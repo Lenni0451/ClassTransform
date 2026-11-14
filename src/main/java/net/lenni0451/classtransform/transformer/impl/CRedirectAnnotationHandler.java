@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.transformer.impl;
 
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.injection.CRedirect;
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
@@ -11,6 +12,7 @@ import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectInvoke;
 import net.lenni0451.classtransform.transformer.impl.redirect.CRedirectNew;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
+import net.lenni0451.classtransform.utils.DescMatcher;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -33,7 +35,16 @@ public class CRedirectAnnotationHandler extends InjectionAnnotationHandler<CRedi
     }
 
     @Override
+    protected Set<MethodNode> getTargetMethods(final CRedirect annotation, final ClassNode target, final ClassNode transformer, final MethodNode method) {
+        Set<MethodNode> targets = super.getTargetMethods(annotation, target, transformer, method);
+        CDesc[] descs = annotation.desc();
+        if (descs.length > 0) DescMatcher.addMethods(targets, target, descs);
+        return targets;
+    }
+
+    @Override
     public void transform(CRedirect annotation, TransformerManager transformerManager, ClassNode transformedClass, ClassNode transformer, MethodNode transformerMethod, MethodNode target) {
+        this.checkConstraints(transformerManager, annotation.constraints(), transformerMethod, transformer);
         AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
         transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
         Map<String, IInjectionTarget> injectionTargets = transformerManager.getInjectionTargets();

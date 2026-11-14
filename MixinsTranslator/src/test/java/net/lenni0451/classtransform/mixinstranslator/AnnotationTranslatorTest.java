@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
@@ -91,6 +92,21 @@ public class AnnotationTranslatorTest {
     @CInject(method = "compare", target = @CTarget(value = "CONSTANT", target = "int 0", shift = CTarget.Shift.BEFORE, args = {"expandZeroConditions=LESS_THAN_ZERO", "log=true"}), require = -1)
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectConstantArgsTest();
+
+    @Inject(method = "add", at = @At("HEAD"), target = @Desc(value = "add", ret = int.class, args = {int.class, int.class}))
+    @CInject(method = "add", target = @CTarget("HEAD"), desc = @CDesc(value = "add", ret = int.class, args = {int.class, int.class}), require = -1)
+    @TestMarker(from = Inject.class, to = CInject.class)
+    private native void injectDescTargetTest();
+
+    @Inject(method = "add", at = @At(value = "HEAD", id = "head"))
+    @CInject(method = "add", target = @CTarget(value = "HEAD", id = "head"), require = -1)
+    @TestMarker(from = Inject.class, to = CInject.class)
+    private native void injectTargetIdTest();
+
+    @Redirect(method = "rint", at = @At(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"), target = @Desc(value = "rint", ret = int.class))
+    @CRedirect(method = "rint", target = @CTarget(value = "INVOKE", target = "Ljava/util/Random;nextInt()I"), desc = @CDesc(value = "rint", ret = int.class), require = -1)
+    @TestMarker(from = Redirect.class, to = CRedirect.class)
+    private native void redirectDescTargetTest();
 
     @WrapWithCondition(method = {"method1", "method2"}, at = {@At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), @At(value = "test2", target = "target2", shift = At.Shift.BEFORE, ordinal = 20)}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
     @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BY, by = -1, ordinal = 20)}, slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)

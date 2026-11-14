@@ -9,11 +9,15 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Inject {
 
-    String[] method();
+    String[] method() default {};
+
+    Desc[] target() default {};
 
     At[] at();
 
     Slice[] slice() default @Slice;
+
+    String constraints() default "";
 
     boolean cancellable() default false;
 

@@ -72,6 +72,7 @@ public class TransformerManager implements ClassFileTransformer {
     private final List<AnnotationHandler> annotationHandler = new ArrayList<>();
     private final AnnotationCoprocessorList coprocessors = new AnnotationCoprocessorList();
     private final Map<String, IInjectionTarget> injectionTargets = new HashMap<>();
+    private final Map<String, Integer> constraintTokens = new HashMap<>();
     private final TransformerDebugger debugger = new TransformerDebugger(this);
     private FailStrategy failStrategy = FailStrategy.EXIT;
     private int defaultRequiredInjections;
@@ -103,6 +104,11 @@ public class TransformerManager implements ClassFileTransformer {
         this.classProvider = classProvider;
         this.mapper = mapper;
         this.mapper.load();
+        for (String property : System.getProperties().stringPropertyNames()) {
+            String prefix = "classtransform.constraint.";
+            if (!property.startsWith(prefix)) continue;
+            this.registerConstraintToken(property.substring(prefix.length()), Integer.parseInt(System.getProperty(property)));
+        }
 
         //Annotation handler
         this.annotationHandler.add(new CASMAnnotationHandler(CASM.Shift.TOP));
@@ -200,6 +206,25 @@ public class TransformerManager implements ClassFileTransformer {
      */
     public void setCheckInjectionCounts(final boolean checkInjectionCounts) {
         this.checkInjectionCounts = checkInjectionCounts;
+    }
+
+    /**
+     * Register a token which can be used by Mixin style constraints.
+     *
+     * @param token The token name
+     * @param value The token value
+     */
+    public void registerConstraintToken(final String token, final int value) {
+        this.constraintTokens.put(token.toUpperCase(Locale.ROOT), value);
+    }
+
+    /**
+     * @param token The token name
+     * @return The registered token value or null
+     */
+    @Nullable
+    public Integer getConstraintToken(final String token) {
+        return this.constraintTokens.get(token.toUpperCase(Locale.ROOT));
     }
 
     /**

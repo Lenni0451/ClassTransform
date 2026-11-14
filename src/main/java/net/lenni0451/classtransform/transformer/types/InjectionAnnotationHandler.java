@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.Constraints;
 import net.lenni0451.classtransform.utils.InjectionSettings;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
 import org.objectweb.asm.tree.ClassNode;
@@ -65,6 +66,29 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
 
     private InjectionPlan prepare(final T annotation, final TransformerManager manager, final ClassNode target, final ClassNode transformer, final MethodNode method, final Map<AbstractInsnNode, InjectionPlan.Target> registry) {
         InjectionSettings settings = new InjectionSettings(annotation);
+        Set<MethodNode> targets = this.getTargetMethods(annotation, target, transformer, method);
+        List<CTarget> injectionTargets = this.getInjectionTargets(annotation, manager);
+        return new InjectionPlan(manager, target, settings, transformer, method, targets, injectionTargets, registry, targetMethod -> {
+            try {
+                this.transform(annotation, manager, target, transformer, ASMUtils.cloneMethod(method), targetMethod);
+            } catch (TransformerException e) {
+                throw e.targetClass(target.name).targetMethod(targetMethod);
+            } catch (Throwable t) {
+                throw new TransformerException(method, transformer, "failed").targetClass(target.name).targetMethod(targetMethod).cause(t);
+            }
+        });
+    }
+
+    /**
+     * Resolve the target methods for the given annotation.
+     *
+     * @param annotation  The injection annotation
+     * @param target      The target class
+     * @param transformer The transformer class
+     * @param method      The handler method
+     * @return The target methods
+     */
+    protected Set<MethodNode> getTargetMethods(final T annotation, final ClassNode target, final ClassNode transformer, final MethodNode method) {
         Set<MethodNode> targets = new LinkedHashSet<>();
         for (String selector : this.methodTargets.apply(annotation)) {
             if (selector.isEmpty()) throw new TransformerException(method, transformer, "Target is empty");
@@ -76,16 +100,23 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
             }
             targets.addAll(ASMUtils.getMethodsFromCombi(target, selector));
         }
-        List<CTarget> injectionTargets = this.getInjectionTargets(annotation, manager);
-        return new InjectionPlan(manager, target, settings, transformer, method, targets, injectionTargets, registry, targetMethod -> {
-            try {
-                this.transform(annotation, manager, target, transformer, ASMUtils.cloneMethod(method), targetMethod);
-            } catch (TransformerException e) {
-                throw e.targetClass(target.name).targetMethod(targetMethod);
-            } catch (Throwable t) {
-                throw new TransformerException(method, transformer, "failed").targetClass(target.name).targetMethod(targetMethod).cause(t);
-            }
-        });
+        return targets;
+    }
+
+    /**
+     * Validate Mixin style constraints before applying an injection.
+     *
+     * @param manager     The transformer manager
+     * @param constraints The constraint expression
+     * @param method      The handler method
+     * @param transformer The transformer class
+     */
+    protected void checkConstraints(final TransformerManager manager, final String constraints, final MethodNode method, final ClassNode transformer) {
+        try {
+            Constraints.check(manager, constraints);
+        } catch (IllegalArgumentException e) {
+            throw new TransformerException(method, transformer, "constraint violation").cause(e);
+        }
     }
 
     /**

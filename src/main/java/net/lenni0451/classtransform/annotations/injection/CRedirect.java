@@ -1,9 +1,11 @@
 package net.lenni0451.classtransform.annotations.injection;
 
+import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.InjectionType;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
+import net.lenni0451.classtransform.mappings.annotation.FillType;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 
 import java.lang.annotation.ElementType;
@@ -67,8 +69,24 @@ public @interface CRedirect {
      *
      * @return The method name and descriptor
      */
-    @AnnotationRemap(value = RemapType.SHORT_MEMBER, allowClassPrefix = true)
-    String[] method();
+    @AnnotationRemap(value = RemapType.SHORT_MEMBER, allowClassPrefix = true, fill = FillType.KEEP_EMPTY)
+    String[] method() default {};
+
+    /**
+     * The target methods described by their owner, name, return type and arguments.<br>
+     * This can be used instead of or in addition to {@link #method()}.
+     *
+     * @return The target method descriptors
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CDesc[] desc() default {};
+
+    /**
+     * Constraints which have to pass for this injection to be applied.
+     *
+     * @return The constraints
+     */
+    String constraints() default "";
 
     /**
      * The target for the redirect.

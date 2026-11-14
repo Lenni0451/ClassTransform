@@ -211,7 +211,8 @@ public class InjectionPlan {
                         throw new TransformerException(method, transformer, "invalid injection target").targetMethod(target).cause(e);
                     }
                     if (found.isEmpty() && !injectionTarget.optional() && !settings.hasExplicitRequire()) {
-                        throw new TransformerException(method, transformer, "target '" + injectionTarget.value() + "' could not be found").targetMethod(target);
+                        String description = injectionTarget.id().isEmpty() ? injectionTarget.value() : injectionTarget.value() + " '" + injectionTarget.id() + "'";
+                        throw new TransformerException(method, transformer, "target '" + description + "' could not be found").targetMethod(target);
                     }
                     List<Target> selected = new ArrayList<>();
                     for (AbstractInsnNode instruction : found) {
