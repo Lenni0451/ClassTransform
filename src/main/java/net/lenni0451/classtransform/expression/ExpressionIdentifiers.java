@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
+import net.lenni0451.classtransform.utils.log.Logger;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -58,8 +59,34 @@ public class ExpressionIdentifiers {
             this.addType(id, candidate -> candidate.equals(type));
         }
         for (AnnotationNode local : locals) {
+            Map<String, Object> values = AnnotationUtils.listToMap(local.values);
+            if (Boolean.TRUE.equals(values.get("print"))) {
+                this.printLocals(Boolean.TRUE.equals(values.get("argsOnly")));
+                throw new IllegalArgumentException("Injection aborted because local variables are being printed");
+            }
             this.addMember(id, new LocalDefinition(local, this.targetMethod));
         }
+    }
+
+    private void printLocals(final boolean argsOnly) {
+        Logger.info("Local variables of {}.{}{}:", this.targetClass.name, this.targetMethod.name, this.targetMethod.desc);
+        if (this.targetMethod.localVariables == null || this.targetMethod.localVariables.isEmpty()) {
+            Logger.info("  no local variable table found");
+            return;
+        }
+        for (LocalVariableNode local : this.targetMethod.localVariables) {
+            if (argsOnly && !this.isArgument(local.index)) continue;
+            int start = this.targetMethod.instructions.indexOf(local.start);
+            int end = this.targetMethod.instructions.indexOf(local.end);
+            Logger.info("  index={} name={} type={} scope=[{}, {}] parameter={}", local.index, local.name, Type.getType(local.desc).getClassName(), start, end, this.isArgument(local.index));
+        }
+    }
+
+    private boolean isArgument(final int index) {
+        int first = (this.targetMethod.access & Opcodes.ACC_STATIC) != 0 ? 0 : 1;
+        int end = first;
+        for (Type argument : Type.getArgumentTypes(this.targetMethod.desc)) end += argument.getSize();
+        return index >= first && index < end;
     }
 
     public boolean memberExists(final String id) {

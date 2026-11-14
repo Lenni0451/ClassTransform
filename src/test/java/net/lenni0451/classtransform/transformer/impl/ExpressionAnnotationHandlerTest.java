@@ -15,6 +15,7 @@ import net.lenni0451.classtransform.annotations.injection.CModifyReturnValue;
 import net.lenni0451.classtransform.annotations.injection.CRedirect;
 import net.lenni0451.classtransform.annotations.injection.CWrapCondition;
 import net.lenni0451.classtransform.annotations.injection.CWrapOperation;
+import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.operation.COperation;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.utils.ASMUtils;
@@ -28,6 +29,7 @@ import java.util.function.IntSupplier;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ExpressionAnnotationHandlerTest {
 
@@ -175,6 +177,14 @@ class ExpressionAnnotationHandlerTest {
     public void incrementExpression() throws Exception {
         Class<?> target = this.transform(IncrementExpressionTest.class);
         assertEquals(12, target.getMethod("increment", int.class).invoke(null, 1));
+    }
+
+    @Test
+    public void printLocalDefinition() throws Exception {
+        TransformerManager manager = new TransformerManager(this.classProvider);
+        manager.setFailStrategy(FailStrategy.THROW);
+        manager.addTransformer(ASMUtils.fromBytes(this.classProvider.getClass(PrintLocalDefinitionTest.class.getName())));
+        assertThrows(TransformerException.class, () -> manager.transform(Target.class.getName(), this.classProvider.getClass(Target.class.getName())));
     }
 
     @Test
@@ -677,6 +687,18 @@ class ExpressionAnnotationHandlerTest {
         @CExpression("?.baseMethod()")
         @CModifyExpressionValue(method = "inherited", target = @CTarget(value = "EXPRESSION"))
         private static int inherited(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class PrintLocalDefinitionTest {
+
+        @CDefinition(id = "local", local = @CLocalDefinition(type = int.class, name = "local", print = true))
+        @CExpression("local + 1")
+        @CModifyExpressionValue(method = "increment", target = @CTarget(value = "EXPRESSION"))
+        private static int increment(final int original) {
             return original + 10;
         }
 

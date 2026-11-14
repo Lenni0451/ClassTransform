@@ -46,4 +46,11 @@ public @interface CLocalDefinition {
      */
     boolean argsOnly() default false;
 
+    /**
+     * Print all available local variables of the target method and abort the injection.
+     *
+     * @return If the local variables should be printed
+     */
+    boolean print() default false;
+
 }
