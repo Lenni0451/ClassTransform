@@ -15,9 +15,9 @@ public @interface WrapWithCondition {
     String[] method();
 
     /**
-     * An array of targets is not supported. Only the first target will be used.<br>
-     * An exception will be thrown during the translation process if more than one target is specified.<br>
-     * <b>The only supported targets are {@code INVOKE} and {@code FIELD}.</b>
+     * The supported targets are {@code INVOKE} and {@code FIELD}.
+     *
+     * @return The operations to wrap
      */
     At[] at();
 

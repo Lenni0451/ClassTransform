@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 /**
  * This annotation is used to wrap a method call or a field with a condition (if statement).<br>
  * The return type of the transformer method must always be a boolean.<br>
+ * The operation arguments may be followed by a prefix of the enclosing method arguments.<br>
+ * A transformer method without arguments is also supported.<br>
  * <p>When wrapping a method call:</p>
  * <ul>
  *     <li>If the wrapped method is not static, the instance of the method owner should be the first argument.</li>

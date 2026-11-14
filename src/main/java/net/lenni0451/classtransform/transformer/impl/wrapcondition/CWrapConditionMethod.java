@@ -1,8 +1,7 @@
 package net.lenni0451.classtransform.transformer.impl.wrapcondition;
 
-import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.Codifier;
+import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -19,6 +18,7 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         boolean hasArgs = argumentTypes(transformerMethod).length > 0;
         Type[] argumentTypes = argumentTypes(insnNode.desc);
         boolean isStatic = insnNode.getOpcode() == Opcodes.INVOKESTATIC;
+        int capturedArguments = 0;
 
         if (hasArgs) {
             Type[] expectedArgs;
@@ -29,20 +29,15 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
                 expectedArgs[0] = type(insnNode.owner);
                 System.arraycopy(argumentTypes, 0, expectedArgs, 1, argumentTypes.length);
             }
-            if (!ASMUtils.compareTypes(expectedArgs, argumentTypes(transformerMethod))) {
-                String message = "must have ";
-                if (expectedArgs.length == 1) message += "the arguments of the target method";
-                else message += "the instance of the method owner and the arguments of the target method";
-                throw new TransformerException(transformerMethod, transformer, message + " as arguments")
-                        .help(Codifier.of(transformerMethod).param(null).params(expectedArgs));
-            }
+            capturedArguments = InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, target, expectedArgs);
         }
 
         int instanceIndex = ASMUtils.getFreeVarIndex(target);
         int[] argIndices = new int[argumentTypes.length];
+        int nextIndex = instanceIndex + (isStatic ? 0 : 1);
         for (int i = 0; i < argumentTypes.length; i++) {
-            int last = i == 0 ? instanceIndex : argIndices[i - 1];
-            argIndices[i] = last + argumentTypes[i].getSize();
+            argIndices[i] = nextIndex;
+            nextIndex += argumentTypes[i].getSize();
         }
         LabelNode end = new LabelNode();
         InsnList insns = new InsnList();
@@ -57,8 +52,9 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         if (Modifier.isStatic(target.access)) {
             transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
         } else {
-            transformerCall = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
+            transformerCall = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
         }
+        insns.add(InjectionUtils.loadCapturedArguments(target, capturedArguments));
         insns.add(transformerCall);
         insns.add(new JumpInsnNode(Opcodes.IFEQ, end));
         if (!isStatic) insns.add(new VarInsnNode(Opcodes.ALOAD, instanceIndex));

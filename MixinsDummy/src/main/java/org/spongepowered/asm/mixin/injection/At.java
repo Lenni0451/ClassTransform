@@ -12,6 +12,14 @@ public @interface At {
 
     String target() default "";
 
+    /**
+     * Named arguments for the injection point.<br>
+     * Constant value discriminators are supported for {@code CONSTANT}.
+     *
+     * @return The injection point arguments
+     */
+    String[] args() default {};
+
     Shift shift() default Shift.BEFORE;
 
     int ordinal() default -1;

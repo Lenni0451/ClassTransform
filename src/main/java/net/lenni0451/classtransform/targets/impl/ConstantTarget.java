@@ -28,7 +28,8 @@ import java.util.function.Function;
  * <br>
  * The constant is defined in {@link CTarget#target()}.<br>
  * e.g. {@code "int 1"} or {@code "String Hello World"}<br>
- * The constant type is case-insensitive.
+ * The constant type is case-insensitive.<br>
+ * {@code "string "} matches the empty string and {@code "null false"} matches no constants.
  */
 @ParametersAreNonnullByDefault
 public class ConstantTarget implements IInjectionTarget {
@@ -38,7 +39,8 @@ public class ConstantTarget implements IInjectionTarget {
         List<AbstractInsnNode> targets = new ArrayList<>();
         List<AbstractInsnNode> instructions = this.getSlice(injectionTargets, method, slice);
 
-        if (target.target().equalsIgnoreCase("null")) this.findNull(targets, instructions);
+        if (target.target().equalsIgnoreCase("null false")) return targets;
+        else if (target.target().equalsIgnoreCase("null")) this.findNull(targets, instructions);
         else if (target.target().toLowerCase(Locale.ROOT).startsWith("int")) this.findInt(targets, instructions, target.target());
         else if (target.target().toLowerCase(Locale.ROOT).startsWith("long")) this.findLong(targets, instructions, target.target());
         else if (target.target().toLowerCase(Locale.ROOT).startsWith("float")) this.findFloat(targets, instructions, target.target());
@@ -83,7 +85,7 @@ public class ConstantTarget implements IInjectionTarget {
 
         for (AbstractInsnNode instruction : instructions) {
             Number number = ASMUtils.getNumber(instruction);
-            if (number instanceof Float && number.floatValue() == val) targets.add(instruction);
+            if (number instanceof Float && Float.compare(number.floatValue(), val) == 0) targets.add(instruction);
         }
     }
 
@@ -92,12 +94,14 @@ public class ConstantTarget implements IInjectionTarget {
 
         for (AbstractInsnNode instruction : instructions) {
             Number number = ASMUtils.getNumber(instruction);
-            if (number instanceof Double && number.doubleValue() == val) targets.add(instruction);
+            if (number instanceof Double && Double.compare(number.doubleValue(), val) == 0) targets.add(instruction);
         }
     }
 
     private void findString(final List<AbstractInsnNode> targets, final List<AbstractInsnNode> instructions, final String value) {
-        String val = this.parse(value, "String", len -> len >= 2, s -> s);
+        int separator = value.indexOf(' ');
+        if (separator == -1) throw new IllegalArgumentException("String constant does not have a String as argument");
+        String val = value.substring(separator + 1);
 
         for (AbstractInsnNode instruction : instructions) {
             if (instruction instanceof LdcInsnNode && val.equals(((LdcInsnNode) instruction).cst)) targets.add(instruction);

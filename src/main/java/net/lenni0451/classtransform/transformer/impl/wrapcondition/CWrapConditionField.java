@@ -1,8 +1,7 @@
 package net.lenni0451.classtransform.transformer.impl.wrapcondition;
 
-import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
-import net.lenni0451.classtransform.utils.Codifier;
+import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -19,17 +18,12 @@ public class CWrapConditionField implements IWrapConditionTarget<FieldInsnNode> 
         boolean hasArgs = argumentTypes(transformerMethod).length > 0;
         Type fieldType = type(insnNode.desc);
         boolean isStatic = insnNode.getOpcode() == Opcodes.PUTSTATIC;
+        int capturedArguments = 0;
         if (hasArgs) {
             Type[] expectedArgs;
             if (isStatic) expectedArgs = new Type[]{fieldType};
             else expectedArgs = new Type[]{type(insnNode.owner), fieldType};
-            if (!ASMUtils.compareTypes(expectedArgs, argumentTypes(transformerMethod))) {
-                String message = "must have ";
-                if (expectedArgs.length == 1) message += "the new value for the field";
-                else message += "the instance of the field owner and the new value for the field";
-                throw new TransformerException(transformerMethod, transformer, message + " as arguments")
-                        .help(Codifier.of(transformerMethod).param(null).params(expectedArgs));
-            }
+            capturedArguments = InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, target, expectedArgs);
         }
 
         int instanceIndex = ASMUtils.getFreeVarIndex(target);
@@ -47,8 +41,9 @@ public class CWrapConditionField implements IWrapConditionTarget<FieldInsnNode> 
         if (Modifier.isStatic(target.access)) {
             transformerCall = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
         } else {
-            transformerCall = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
+            transformerCall = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
         }
+        insns.add(InjectionUtils.loadCapturedArguments(target, capturedArguments));
         insns.add(transformerCall);
         insns.add(new JumpInsnNode(Opcodes.IFEQ, end));
         if (!isStatic) insns.add(new VarInsnNode(Opcodes.ALOAD, instanceIndex));

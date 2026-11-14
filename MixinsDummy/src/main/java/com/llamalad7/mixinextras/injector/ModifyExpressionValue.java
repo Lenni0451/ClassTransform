@@ -8,9 +8,9 @@ public @interface ModifyExpressionValue {
     String[] method();
 
     /**
-     * An array of targets is not supported. Only the first target will be used.<br>
-     * An exception will be thrown during the translation process if more than one target is specified.<br>
-     * <b>The only supported targets are {@code INVOKE}, {@code FIELD} and {@code NEW}.</b>
+     * The supported targets are {@code INVOKE}, {@code FIELD}, {@code NEW} and {@code CONSTANT}.
+     *
+     * @return The target expressions
      */
     At[] at();
 

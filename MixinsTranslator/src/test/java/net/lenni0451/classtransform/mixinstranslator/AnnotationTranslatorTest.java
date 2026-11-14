@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.mixinstranslator;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
@@ -84,6 +85,16 @@ public class AnnotationTranslatorTest {
     @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.AFTER, ordinal = 10), slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
     @TestMarker(from = ModifyExpressionValue.class, to = CModifyExpressionValue.class)
     private native void modifyExpressionValueTest();
+
+    @ModifyExpressionValue(method = "method", at = {@At(value = "CONSTANT", target = "intValue=1"), @At(value = "CONSTANT", target = "intValue=2")})
+    @CModifyExpressionValue(method = "method", targets = {@CTarget(value = "CONSTANT", target = "int 1", shift = CTarget.Shift.BEFORE), @CTarget(value = "CONSTANT", target = "int 2", shift = CTarget.Shift.BEFORE)})
+    @TestMarker(from = ModifyExpressionValue.class, to = CModifyExpressionValue.class)
+    private native void modifyMultipleExpressionValuesTest();
+
+    @ModifyReturnValue(method = {"method1", "method2"}, at = {@At("RETURN"), @At(value = "RETURN", ordinal = 1)}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
+    @CModifyReturnValue(method = {"method1", "method2"}, target = {@CTarget(value = "RETURN", shift = CTarget.Shift.BEFORE), @CTarget(value = "RETURN", ordinal = 1, shift = CTarget.Shift.BEFORE)}, slice = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")))
+    @TestMarker(from = ModifyReturnValue.class, to = CModifyReturnValue.class)
+    private native void modifyReturnValueTest();
 
     @Test
     void test() throws ClassNotFoundException {

@@ -11,13 +11,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Modify the value of an expression (method call/field access/new object creation).<br>
+ * Modify the value of an expression (method call/field access/new object creation/constant).<br>
  * <br>
  * When modifying the value (return value) of a method call, the target method must return a value and not be void.<br>
  * Field values can be modified with field gets ({@code GETFIELD}/{@code GETSTATIC}) and field sets ({@code PUTFIELD}/{@code PUTSTATIC}).<br>
  * New object creations can be modified with the {@code NEW} target.<br>
+ * Constants can be modified with the {@code CONSTANT} target.<br>
  * <br>
- * The transformer method must have the modified value type as the only parameter and return type.<br>
+ * The transformer method must accept the modified value and return a value of the same type.<br>
+ * The modified value may be followed by a prefix of the target method arguments.<br>
  * If the transformer target method is static, the transformer method must be static as well.<br>
  * <br>
  * Modify the return value of a method call:<br>
@@ -61,12 +63,23 @@ public @interface CModifyExpressionValue {
     String[] method();
 
     /**
-     * The target expression to modify the value of.
+     * The target expression to modify the value of.<br>
+     * This may be omitted when {@link #targets()} is used.
      *
      * @return The target
      */
     @AnnotationRemap(RemapType.ANNOTATION)
-    CTarget target();
+    CTarget target() default @CTarget("");
+
+    /**
+     * Additional target expressions to modify the value of.<br>
+     * This can be used instead of or together with {@link #target()}.<br>
+     * Overlapping targets only modify each expression once per transformer method.
+     *
+     * @return The targets
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CTarget[] targets() default {};
 
     /**
      * The slice to narrow down the search for the target.

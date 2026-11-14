@@ -24,8 +24,9 @@ public class TailTarget implements IInjectionTarget {
 
     @Override
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
-        for (int i = method.instructions.size() - 1; i >= 0; i--) {
-            AbstractInsnNode instruction = method.instructions.get(i);
+        List<AbstractInsnNode> instructions = this.getSlice(injectionTargets, method, slice);
+        for (int i = instructions.size() - 1; i >= 0; i--) {
+            AbstractInsnNode instruction = instructions.get(i);
             if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN) return Collections.singletonList(instruction);
         }
         return Collections.emptyList();

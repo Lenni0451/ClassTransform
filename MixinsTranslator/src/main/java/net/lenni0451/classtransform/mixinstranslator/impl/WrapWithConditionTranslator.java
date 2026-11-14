@@ -21,7 +21,10 @@ public class WrapWithConditionTranslator implements AnnotationTranslator {
         }
         if (values.containsKey("slice")) {
             AnnotationNode slice = this.getSingleAnnotation("slice", values, "CWrapCondition");
-            if (slice != null) this.dynamicTranslate(slice);
+            if (slice != null) {
+                this.dynamicTranslate(slice);
+                values.put("slice", slice);
+            }
         }
     }
 

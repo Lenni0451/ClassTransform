@@ -4,6 +4,7 @@ import net.lenni0451.classtransform.annotations.injection.CModifyExpressionValue
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
+import java.util.List;
 import java.util.Map;
 
 public class ModifyExpressionValueTranslator implements AnnotationTranslator {
@@ -12,15 +13,17 @@ public class ModifyExpressionValueTranslator implements AnnotationTranslator {
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CModifyExpressionValue.class);
         if (values.containsKey("at")) {
-            AnnotationNode at = this.getSingleAnnotation("at", values, "At");
-            if (at != null) {
-                this.dynamicTranslate(at);
-                values.put("target", at);
-            }
+            List<AnnotationNode> targets = (List<AnnotationNode>) values.remove("at");
+            for (AnnotationNode target : targets) this.dynamicTranslate(target);
+            if (targets.size() == 1) values.put("target", targets.get(0));
+            else values.put("targets", targets);
         }
         if (values.containsKey("slice")) {
-            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CWrapCondition");
-            if (slice != null) this.dynamicTranslate(slice);
+            AnnotationNode slice = this.getSingleAnnotation("slice", values, "CModifyExpressionValue");
+            if (slice != null) {
+                this.dynamicTranslate(slice);
+                values.put("slice", slice);
+            }
         }
     }
 

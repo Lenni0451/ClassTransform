@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
@@ -15,11 +16,30 @@ class AtTranslator implements AnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CTarget.class);
+        if ("CONSTANT".equalsIgnoreCase((String) values.get("value")) && values.containsKey("args")) {
+            String discriminator = null;
+            for (String argument : (List<String>) values.remove("args")) {
+                if (argument.startsWith("log=")) continue;
+                if (!argument.matches("(?s)(nullValue|intValue|floatValue|longValue|doubleValue|stringValue|classValue)=.*")) {
+                    throw new IllegalArgumentException("Unsupported CONSTANT argument: " + argument);
+                }
+                if (discriminator != null) throw new IllegalArgumentException("Multiple constant discriminators are not supported");
+                discriminator = argument;
+            }
+            if (discriminator != null) {
+                if (discriminator.startsWith("classValue=")) {
+                    String className = discriminator.substring(11).replace('.', '/');
+                    discriminator = "classValue=" + Type.getObjectType(className).getDescriptor();
+                }
+                values.put("target", discriminator);
+            }
+        }
         if (values.containsKey("value") && values.containsKey("target")) {
             String value = (String) values.get("value");
             String target = (String) values.get("target");
             if (value.equalsIgnoreCase("CONSTANT")) {
-                if (target.startsWith("nullValue")) target = "null";
+                if (target.equals("nullValue=false")) target = "null false";
+                else if (target.startsWith("nullValue")) target = "null";
                 else if (target.startsWith("intValue=")) target = "int " + target.substring(9);
                 else if (target.startsWith("floatValue=")) target = "float " + target.substring(11);
                 else if (target.startsWith("longValue=")) target = "long " + target.substring(10);
