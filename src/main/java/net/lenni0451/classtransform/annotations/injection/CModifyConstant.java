@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.annotations.injection;
 
 import net.lenni0451.classtransform.annotations.CSlice;
+import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.InjectionType;
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
@@ -65,6 +66,15 @@ public @interface CModifyConstant {
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CConstant[] constants() default {};
+
+    /**
+     * Explicit injection targets.<br>
+     * This can be used to select constants with an {@code EXPRESSION} target.
+     *
+     * @return The injection targets
+     */
+    @AnnotationRemap(RemapType.ANNOTATION)
+    CTarget[] targets() default {};
 
     /**
      * The ordinal of target constant.

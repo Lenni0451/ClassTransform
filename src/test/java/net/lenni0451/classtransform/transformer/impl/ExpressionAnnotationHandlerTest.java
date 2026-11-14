@@ -9,6 +9,7 @@ import net.lenni0451.classtransform.annotations.expression.CDefinition;
 import net.lenni0451.classtransform.annotations.expression.CExpression;
 import net.lenni0451.classtransform.annotations.expression.CLocalDefinition;
 import net.lenni0451.classtransform.annotations.injection.CInject;
+import net.lenni0451.classtransform.annotations.injection.CModifyConstant;
 import net.lenni0451.classtransform.annotations.injection.CModifyExpressionValue;
 import net.lenni0451.classtransform.annotations.injection.CModifyReceiver;
 import net.lenni0451.classtransform.annotations.injection.CModifyReturnValue;
@@ -177,6 +178,12 @@ class ExpressionAnnotationHandlerTest {
     public void incrementExpression() throws Exception {
         Class<?> target = this.transform(IncrementExpressionTest.class);
         assertEquals(12, target.getMethod("increment", int.class).invoke(null, 1));
+    }
+
+    @Test
+    public void modifyConstantExpression() throws Exception {
+        Class<?> target = this.transform(ModifyConstantExpressionTest.class);
+        assertEquals(17, target.getMethod("expressionConstant").invoke(null));
     }
 
     @Test
@@ -405,6 +412,10 @@ class ExpressionAnnotationHandlerTest {
 
         public static int inherited() {
             return new Target().baseMethod();
+        }
+
+        public static int expressionConstant() {
+            return 7;
         }
 
         public static int merge(final boolean flag, final int left, final int right) {
@@ -687,6 +698,17 @@ class ExpressionAnnotationHandlerTest {
         @CExpression("?.baseMethod()")
         @CModifyExpressionValue(method = "inherited", target = @CTarget(value = "EXPRESSION"))
         private static int inherited(final int original) {
+            return original + 10;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class ModifyConstantExpressionTest {
+
+        @CExpression("7")
+        @CModifyConstant(method = "expressionConstant", targets = @CTarget(value = "EXPRESSION"))
+        private static int modify(final int original) {
             return original + 10;
         }
 

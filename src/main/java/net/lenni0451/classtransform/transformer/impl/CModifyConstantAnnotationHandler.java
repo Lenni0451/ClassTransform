@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,6 +54,18 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
         }
         Type[] transformerArguments = argumentTypes(transformerMethod.desc);
         for (CTarget injectionTarget : injectionTargets) {
+            if (injectionTarget.value().equalsIgnoreCase("EXPRESSION")) {
+                Type methodReturnType = returnType(transformerMethod.desc);
+                if (methodReturnType.equals(Type.VOID_TYPE)) {
+                    throw new TransformerException(transformerMethod, transformer, "must have a return type")
+                            .help(Codifier.of(transformerMethod).returnType(type(Object.class)));
+                }
+                if (transformerArguments.length > 1 || (transformerArguments.length == 1 && !transformerArguments[0].equals(methodReturnType))) {
+                    throw new TransformerException(transformerMethod, transformer, "must have no arguments or the modified value as argument")
+                            .help(Codifier.of(transformerMethod).param(null).param(methodReturnType));
+                }
+                continue;
+            }
             Type constantType = this.getConstantType(injectionTarget.target());
             boolean expandZeroConditions = this.hasArgument(injectionTarget.args(), "expandZeroConditions=");
             if (expandZeroConditions && !Type.INT_TYPE.equals(constantType)) {
@@ -144,6 +157,14 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
         IParsedAnnotation parsed = (IParsedAnnotation) annotation;
         CModifyConstant.CConstant[] constants = annotation.constants();
         List<CTarget> targets = new ArrayList<>();
+        if (annotation.targets().length > 0) {
+            for (String member : CONSTANT_MEMBERS) {
+                if (parsed.wasSet(member)) throw new IllegalArgumentException("Explicit targets can not be combined with '" + member + "'");
+            }
+            if (constants.length > 0) throw new IllegalArgumentException("Explicit targets can not be combined with constants");
+            targets.addAll(Arrays.asList(annotation.targets()));
+            return targets;
+        }
         if (constants.length == 0) {
             targets.add(this.getConstantTarget(parsed, annotation.ordinal(), annotation.sliceId(), annotation.expandZeroConditions(), annotation.log(), annotation.optional(), manager));
             return targets;
