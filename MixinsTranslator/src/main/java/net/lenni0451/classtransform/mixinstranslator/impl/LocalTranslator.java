@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,25 +15,34 @@ public class LocalTranslator implements AnnotationTranslator {
     @Override
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CLocalVariable.class);
-        this.map(values, "name", "name", o -> {
-            if (o instanceof String) {
-                return (String) o;
-            } else if (o instanceof List<?>) {
-                List<?> names = (List<?>) o;
-                if (names.isEmpty()) {
-                    return null; //Remove the name if none is given
-                } else if (names.size() == 1) {
-                    return names.get(0);
-                } else {
-                    throw new UnsupportedOperationException("Multiple names are not supported: " + names);
-                }
-            } else {
-                throw new UnsupportedOperationException("Unsupported name type: " + o.getClass().getName());
+        List<String> names = new ArrayList<>();
+        Object nameValue = values.remove("name");
+        if (nameValue instanceof String) {
+            if (!((String) nameValue).isEmpty()) names.add((String) nameValue);
+        } else if (nameValue instanceof List<?>) {
+            for (Object name : (List<?>) nameValue) {
+                if (!((String) name).isEmpty()) names.add((String) name);
             }
-        });
-        values.remove("print");
-        values.remove("argsOnly");
-        values.put("modifiable", true); //In MixinExtras this does not exist/is always true
+        } else if (nameValue != null) {
+            throw new UnsupportedOperationException("Unsupported name type: " + nameValue.getClass().getName());
+        }
+        if (names.size() == 1) values.put("name", names.get(0));
+        else if (!names.isEmpty()) values.put("names", names);
+
+        this.removeNegative(values, "ordinal");
+        this.removeNegative(values, "index");
+        this.move(values, "argsOnly", "argsOnly");
+        this.move(values, "print", "print");
+        values.put("strict", true);
+        values.remove("type");
+        if (!values.containsKey("name") && !values.containsKey("names") && !values.containsKey("ordinal") && !values.containsKey("index")) {
+            values.put("implicit", true);
+        }
+    }
+
+    private void removeNegative(final Map<String, Object> values, final String key) {
+        Object value = values.get(key);
+        if (value instanceof Integer && (Integer) value < 0) values.remove(key);
     }
 
 }

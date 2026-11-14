@@ -26,7 +26,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ParameterAnnotationTest {
 
     private native void testLocal(
-            @Local(ordinal = 10, index = 5, name = "test") @CLocalVariable(name = "test", ordinal = 10, index = 5, modifiable = true) @TestMarker(from = Local.class, to = CLocalVariable.class) String test
+            @Local(ordinal = 10, index = 5, name = "test") @CLocalVariable(name = "test", ordinal = 10, index = 5, strict = true) @TestMarker(from = Local.class, to = CLocalVariable.class) String test
+    );
+
+    private native void testLocalNames(
+            @Local(name = {"first", "second"}) @CLocalVariable(names = {"first", "second"}, strict = true) @TestMarker(from = Local.class, to = CLocalVariable.class) String test
+    );
+
+    private native void testLocalOptions(
+            @Local(argsOnly = true, print = true) @CLocalVariable(argsOnly = true, print = true, strict = true, implicit = true) @TestMarker(from = Local.class, to = CLocalVariable.class) String test
+    );
+
+    private native void testLocalImplicit(
+            @Local @CLocalVariable(strict = true, implicit = true) @TestMarker(from = Local.class, to = CLocalVariable.class) String test
     );
 
     private native void testShare(

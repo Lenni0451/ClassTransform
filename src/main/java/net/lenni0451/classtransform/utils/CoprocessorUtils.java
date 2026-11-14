@@ -3,6 +3,8 @@ package net.lenni0451.classtransform.utils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 import org.objectweb.asm.tree.*;
 
 import javax.annotation.Nullable;
@@ -52,6 +54,38 @@ public class CoprocessorUtils {
             annotatedParameters[i] = new AnnotatedParameter(x++, indices[i], name, types[i], annotation);
         }
         return annotatedParameters;
+    }
+
+    /**
+     * Get the index of the first local variable which is not a method parameter.
+     *
+     * @param methodNode The method to get the index for
+     * @return The first local variable index after all method parameters
+     */
+    public static int getFirstNonArgIndex(final MethodNode methodNode) {
+        int index = Modifier.isStatic(methodNode.access) ? 0 : 1;
+        for (Type argumentType : Types.argumentTypes(methodNode)) index += argumentType.getSize();
+        return index;
+    }
+
+    /**
+     * Get the first generic type argument of a method parameter.<br>
+     * This can be used to get the target type of a {@code CLocalRef<T>} parameter.
+     *
+     * @param methodNode     The method to get the type argument from
+     * @param parameterIndex The index of the parameter
+     * @return The type argument or null if the method has no signature, the parameter is not parameterized or the type argument is not concrete
+     */
+    @Nullable
+    public static Type getTypeArgument(final MethodNode methodNode, final int parameterIndex) {
+        if (methodNode.signature == null) return null;
+        try {
+            TypeArgumentFinder finder = new TypeArgumentFinder(parameterIndex);
+            new SignatureReader(methodNode.signature).accept(finder);
+            return finder.getTypeArgument();
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     /**
@@ -139,6 +173,94 @@ public class CoprocessorUtils {
                 }
             }
         }
+    }
+
+
+    private static SignatureVisitor ignoredVisitor() {
+        return new SignatureVisitor(Opcodes.ASM9) {
+        };
+    }
+
+
+    private static class TypeArgumentFinder extends SignatureVisitor {
+
+        private final int targetIndex;
+        private int currentIndex = -1;
+        private Type typeArgument;
+
+        private TypeArgumentFinder(final int targetIndex) {
+            super(Opcodes.ASM9);
+            this.targetIndex = targetIndex;
+        }
+
+        private Type getTypeArgument() {
+            return this.typeArgument;
+        }
+
+        private void setTypeArgument(final Type typeArgument) {
+            this.typeArgument = typeArgument;
+        }
+
+        @Override
+        public SignatureVisitor visitParameterType() {
+            this.currentIndex++;
+            if (this.currentIndex == this.targetIndex) return new ParameterTypeVisitor(this);
+            return ignoredVisitor();
+        }
+
+    }
+
+    private static class ParameterTypeVisitor extends SignatureVisitor {
+
+        private final TypeArgumentFinder finder;
+        private boolean typeArgument;
+        private int arrayDimensions;
+        private String className;
+        private Type primitiveType;
+
+        private ParameterTypeVisitor(final TypeArgumentFinder finder) {
+            super(Opcodes.ASM9);
+            this.finder = finder;
+        }
+
+        @Override
+        public void visitClassType(final String name) {
+            if (this.typeArgument) this.className = name;
+        }
+
+        @Override
+        public void visitInnerClassType(final String name) {
+            if (this.typeArgument) this.className += "$" + name;
+        }
+
+        @Override
+        public void visitBaseType(final char descriptor) {
+            if (this.typeArgument) this.primitiveType = Type.getType(String.valueOf(descriptor));
+        }
+
+        @Override
+        public SignatureVisitor visitArrayType() {
+            if (this.typeArgument) this.arrayDimensions++;
+            return this;
+        }
+
+        @Override
+        public SignatureVisitor visitTypeArgument(final char wildcard) {
+            if (this.typeArgument) return ignoredVisitor();
+            this.typeArgument = true;
+            return this;
+        }
+
+        @Override
+        public void visitEnd() {
+            if (!this.typeArgument || this.finder.getTypeArgument() != null) return;
+            Type type = this.primitiveType;
+            if (type == null && this.className != null) type = Type.getObjectType(this.className);
+            if (type == null) return;
+            for (int i = 0; i < this.arrayDimensions; i++) type = Type.getType("[" + type.getDescriptor());
+            this.finder.setTypeArgument(type);
+        }
+
     }
 
 

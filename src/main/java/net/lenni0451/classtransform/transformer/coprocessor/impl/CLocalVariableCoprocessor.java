@@ -9,24 +9,47 @@ import net.lenni0451.classtransform.utils.CoprocessorUtils;
 import net.lenni0451.classtransform.utils.Types;
 import net.lenni0451.classtransform.utils.annotations.AnnotationParser;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
-import net.lenni0451.classtransform.utils.annotations.IParsedAnnotation;
+import net.lenni0451.classtransform.utils.local.LocalRefUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * The coprocessor for {@link CLocalVariable} parameters.<br>
+ * Annotated parameters are removed from the transformer method and passed through an object array.
+ */
 public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
 
     private CoprocessorUtils.AnnotatedParameter[] parameters;
-    private boolean isAnyModifiable;
+    private ParameterInfo[] parameterInfos;
 
     @Override
     public MethodNode preprocess(TransformerManager transformerManager, ClassNode transformedClass, MethodNode transformedMethod, ClassNode transformer, MethodNode transformerMethod) {
         this.parameters = CoprocessorUtils.getAnnotatedParameters(transformerMethod, CLocalVariable.class);
         if (this.parameters == null) return transformerMethod; //No annotated parameters found
+        List<ParameterInfo> parameterInfos = new ArrayList<>();
+        for (int i = 0; i < this.parameters.length; i++) {
+            CoprocessorUtils.AnnotatedParameter parameter = this.parameters[i];
+            if (parameter == null) continue;
+            CLocalVariable annotation = AnnotationParser.parse(CLocalVariable.class, transformerManager, AnnotationUtils.listToMap(parameter.getAnnotation().values));
+            Type targetType = parameter.getType();
+            boolean reference = LocalRefUtils.isRef(parameter.getType());
+            if (reference) {
+                Type typeArgument = CoprocessorUtils.getTypeArgument(transformerMethod, i);
+                targetType = LocalRefUtils.getTargetType(parameter.getType(), typeArgument);
+                if (targetType == null) {
+                    throw new TransformerException(transformerMethod, transformer, "reference parameter " + parameter.getAnnotationIndex() + " must have a concrete type argument")
+                            .help("e.g. CLocalRef<String>");
+                }
+            }
+            parameterInfos.add(new ParameterInfo(parameter, annotation, targetType, reference));
+        }
+        this.parameterInfos = parameterInfos.toArray(new ParameterInfo[0]);
         transformedMethod.signature = null; //Remove the signature as it is no longer valid
         CoprocessorUtils.mergeParametersToArray(transformerMethod, this.parameters);
         return transformerMethod;
@@ -44,187 +67,128 @@ public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
         if (this.parameters == null) return;
         ASMUtils.addParameters(transformerMethod, Types.type(Object[].class)); //Add the object array parameter again
 
-        LocalVariable[] localVariables = this.getLocalVariables(transformerManager, transformer, transformerMethod, transformedMethod);
-        int targetArrayIndex = ASMUtils.getFreeVarIndex(transformedMethod);
-        InsnList before = new InsnList();
-        InsnList after = new InsnList();
-
-        { //Instructions inserted before the method call
-            before.add(ASMUtils.intPush(localVariables.length)); //Push the array size
-            before.add(new TypeInsnNode(Opcodes.ANEWARRAY, Types.internalName(Object.class))); //Create the array
-            if (this.isAnyModifiable) {
-                //If any parameter is modifiable, we need to store the array in a local variable for later use
-                before.add(new InsnNode(Opcodes.DUP)); //Duplicate the array
-                before.add(new VarInsnNode(Opcodes.ASTORE, targetArrayIndex)); //Store the array in a local variable
-            }
-            for (int i = 0; i < localVariables.length; i++) {
-                //Go through all parameters and add them to the array
-                LocalVariable localVariable = localVariables[i];
-                before.add(new InsnNode(Opcodes.DUP)); //Duplicate the array
-                before.add(ASMUtils.intPush(i)); //Push the array index
-                before.add(new VarInsnNode(localVariable.type.getOpcode(Opcodes.ILOAD), localVariable.variableIndex)); //Load the variable
-                AbstractInsnNode cast = ASMUtils.getPrimitiveToObject(localVariable.parameter.getType());
-                if (cast != null) before.add(cast); //Convert primitive to object (if needed)
-                before.add(new InsnNode(Opcodes.AASTORE)); //Store the variable in the array
-            }
-        }
-        if (this.isAnyModifiable) { //Instructions inserted after the method call
-            for (int i = 0; i < localVariables.length; i++) {
-                LocalVariable localVariable = localVariables[i];
-                if (localVariable.annotation.modifiable()) {
-                    after.add(new VarInsnNode(Opcodes.ALOAD, targetArrayIndex)); //Load the array
-                    after.add(ASMUtils.intPush(i)); //Push the array index
-                    after.add(new InsnNode(Opcodes.AALOAD)); //Load the variable from the array
-                    InsnList cast = ASMUtils.getCast(localVariable.parameter.getType());
-                    after.add(cast);
-                    after.add(new VarInsnNode(localVariable.type.getOpcode(Opcodes.ISTORE), localVariable.variableIndex)); //Store the variable back
-                }
-            }
-        }
         for (MethodInsnNode transformerCall : transformerMethodCalls) {
-            transformerCall.desc = transformerMethod.desc; //Set the correct method descriptor (with the array parameter)
-            transformedMethod.instructions.insertBefore(transformerCall, ASMUtils.cloneInsnList(before));
-            transformedMethod.instructions.insert(transformerCall, ASMUtils.cloneInsnList(after));
+            transformerCall.desc = transformerMethod.desc;
+            int position = transformedMethod.instructions.indexOf(transformerCall);
+            ResolvedParameter[] resolvedParameters = this.resolveParameters(transformedClass, transformer, transformerMethod, transformedMethod, position);
+            InsnList before = new InsnList();
+            InsnList after = new InsnList();
+            this.buildInstructions(transformedMethod, resolvedParameters, before, after);
+            transformedMethod.instructions.insertBefore(transformerCall, before);
+            transformedMethod.instructions.insert(transformerCall, after);
         }
     }
 
-    private LocalVariable[] getLocalVariables(final TransformerManager transformerManager, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode methodNode) {
-        List<LocalVariable> localVariables = new ArrayList<>();
-        for (CoprocessorUtils.AnnotatedParameter parameter : this.parameters) {
-            if (parameter == null) continue;
-            CLocalVariable annotation = AnnotationParser.parse(CLocalVariable.class, transformerManager, AnnotationUtils.listToMap(parameter.getAnnotation().values));
-            IParsedAnnotation parsedAnnotation = (IParsedAnnotation) annotation;
-            this.isAnyModifiable |= annotation.modifiable();
+    private ResolvedParameter[] resolveParameters(final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode transformedMethod, final int position) {
+        ResolvedParameter[] resolvedParameters = new ResolvedParameter[this.parameterInfos.length];
+        for (int i = 0; i < this.parameterInfos.length; i++) {
+            ParameterInfo parameterInfo = this.parameterInfos[i];
+            if (parameterInfo.annotation.print()) {
+                LocalVariableLookup.print(transformedClass, transformedMethod, position, parameterInfo.targetType, parameterInfo.annotation.argsOnly());
+                throw new TransformerException(transformerMethod, transformer, "injection aborted because local variables are being printed")
+                        .help("Set print = false after choosing the local variable");
+            }
+            LocalVariableLookup.Local local = LocalVariableLookup.find(transformedClass, transformer, transformerMethod, transformedMethod, position, parameterInfo.annotation, parameterInfo.parameter.getType(), parameterInfo.targetType, parameterInfo.parameter.getName());
+            resolvedParameters[i] = new ResolvedParameter(parameterInfo, local);
+        }
+        return resolvedParameters;
+    }
 
-            boolean nameSet = parsedAnnotation.wasSet("name");
-            boolean ordinalSet = parsedAnnotation.wasSet("ordinal");
-            boolean indexSet = parsedAnnotation.wasSet("index");
-            Integer variableIndex = null;
-            if (nameSet || (!ordinalSet && !indexSet && parameter.getName() != null)) {
-                String name = nameSet ? annotation.name() : parameter.getName(); //Use the given name or the original parameter name
-                if (methodNode.localVariables == null) {
-                    // If no local variable table is present, we can't get the index by name
-                    // Only throw an exception if the index was not set manually
-                    if (!indexSet) {
-                        throw new TransformerException(transformerMethod, transformer, "can not get the local variable index by name because no local variable table is present")
-                                .help("Compile the target class with debug information or specify the index/ordinal manually");
-                    }
-                } else {
-                    // Try to get the index by name
-                    for (LocalVariableNode localVariable : methodNode.localVariables) {
-                        if (localVariable.name.equals(name)) {
-                            // Found the local variable
-                            variableIndex = localVariable.index;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (ordinalSet && variableIndex == null) {
-                if (methodNode.localVariables == null) {
-                    // If no local variable table is present, we can't get the index by ordinal
-                    // Only throw an exception if the index was not set manually
-                    if (!indexSet) {
-                        throw new TransformerException(transformerMethod, transformer, "can not get the local variable index by ordinal because no local variable table is present")
-                                .help("Compile the target class with debug information or specify the index/ordinal manually");
-                    }
-                } else {
-                    // Try to get the index by ordinal
-                    int ordinal = annotation.ordinal();
-                    int i = 0;
-                    for (LocalVariableNode localVariable : methodNode.localVariables.stream().sorted(Comparator.comparingInt(o -> o.index)).toArray(LocalVariableNode[]::new)) {
-                        if (!localVariable.desc.equals(parameter.getType().getDescriptor())) continue;
-                        if (i == ordinal) {
-                            // Found the local variable
-                            variableIndex = localVariable.index;
-                            break;
-                        }
-                        i++;
-                    }
-                }
-            }
-            if (indexSet && variableIndex == null) {
-                // The index was set manually (and the name was not found/set)
-                variableIndex = annotation.index();
-            }
-            if (variableIndex == null) {
-                throw new TransformerException(transformerMethod, transformer, "does not have an index, ordinal or name set for annotated parameter " + parameter.getAnnotationIndex())
-                        .help("e.g. @CLocalVariable(index = 1)");
-            }
+    private void buildInstructions(final MethodNode transformedMethod, final ResolvedParameter[] resolvedParameters, final InsnList before, final InsnList after) {
+        Map<Integer, RefSlot> refSlots = new LinkedHashMap<>();
+        int nextSlot = resolvedParameters.length;
+        for (ResolvedParameter resolvedParameter : resolvedParameters) {
+            if (!resolvedParameter.parameterInfo.reference) continue;
+            int localIndex = resolvedParameter.local.getIndex();
+            if (!refSlots.containsKey(localIndex)) refSlots.put(localIndex, new RefSlot(nextSlot++, resolvedParameter.local.getType()));
+        }
 
-            Type variableType = null;
-            if (parsedAnnotation.wasSet("loadOpcode")) {
-                //A load opcode was set, so we can get the type from that
-                variableType = this.getType(annotation.loadOpcode());
+        int arrayIndex = ASMUtils.getFreeVarIndex(transformedMethod);
+        before.add(ASMUtils.intPush(resolvedParameters.length + refSlots.size()));
+        before.add(new TypeInsnNode(Opcodes.ANEWARRAY, Types.internalName(Object.class)));
+        before.add(new InsnNode(Opcodes.DUP));
+        before.add(new VarInsnNode(Opcodes.ASTORE, arrayIndex));
+
+        for (Map.Entry<Integer, RefSlot> entry : refSlots.entrySet()) {
+            RefSlot refSlot = entry.getValue();
+            before.add(new InsnNode(Opcodes.DUP));
+            before.add(ASMUtils.intPush(refSlot.slot));
+            before.add(new VarInsnNode(refSlot.type.getOpcode(Opcodes.ILOAD), entry.getKey()));
+            AbstractInsnNode box = ASMUtils.getPrimitiveToObject(refSlot.type);
+            if (box != null) before.add(box);
+            before.add(new InsnNode(Opcodes.AASTORE));
+        }
+
+        for (ResolvedParameter resolvedParameter : resolvedParameters) {
+            ParameterInfo parameterInfo = resolvedParameter.parameterInfo;
+            before.add(new InsnNode(Opcodes.DUP));
+            before.add(ASMUtils.intPush(parameterInfo.parameter.getAnnotationIndex()));
+            if (parameterInfo.reference) {
+                String refClass = parameterInfo.parameter.getType().getInternalName();
+                before.add(new TypeInsnNode(Opcodes.NEW, refClass));
+                before.add(new InsnNode(Opcodes.DUP));
+                before.add(new VarInsnNode(Opcodes.ALOAD, arrayIndex));
+                before.add(ASMUtils.intPush(refSlots.get(resolvedParameter.local.getIndex()).slot));
+                before.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, refClass, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object[].class), Type.INT_TYPE), false));
             } else {
-                //Go through all instructions and try to find the variable type
-                //If a type is found multiple times and is not the same, we can not be sure which one is the correct one
-                for (AbstractInsnNode instruction : methodNode.instructions) {
-                    if (instruction instanceof VarInsnNode && ((VarInsnNode) instruction).var == variableIndex) {
-                        //Found a variable instruction
-                        Type opcodeType = this.getType(instruction.getOpcode());
-                        if (variableType == null) {
-                            variableType = opcodeType;
-                        } else if (!opcodeType.equals(variableType)) {
-                            throw new TransformerException(transformerMethod, transformer, "accesses local variable " + variableIndex + " which has multiple types")
-                                    .help("Specify the load opcode manually, e.g. @CLocalVariable(loadOpcode = Opcodes.ALOAD)");
-                        }
-                    } else if (instruction instanceof IincInsnNode && ((IincInsnNode) instruction).var == variableIndex) {
-                        //IInc instructions are always int
-                        if (variableType == null) {
-                            variableType = Type.INT_TYPE;
-                        } else if (!Type.INT_TYPE.equals(variableType)) {
-                            throw new TransformerException(transformerMethod, transformer, "accesses local variable " + variableIndex + " which has multiple types")
-                                    .help("Specify the load opcode manually, e.g. @CLocalVariable(loadOpcode = Opcodes.ILOAD)");
-                        }
-                    }
-                }
-                if (variableType == null) {
-                    throw new TransformerException(transformerMethod, transformer, "accesses local variable " + variableIndex + " but its type could not be found")
-                            .help("Specify the load opcode manually, e.g. @CLocalVariable(loadOpcode = Opcodes.ALOAD)");
-                }
+                before.add(new VarInsnNode(resolvedParameter.local.getType().getOpcode(Opcodes.ILOAD), resolvedParameter.local.getIndex()));
+                AbstractInsnNode box = ASMUtils.getPrimitiveToObject(resolvedParameter.local.getType());
+                if (box != null) before.add(box);
             }
-
-            //Index and type have been resolved
-            localVariables.add(new LocalVariable(variableIndex, variableType, parameter, annotation));
+            before.add(new InsnNode(Opcodes.AASTORE));
         }
-        localVariables.sort(Comparator.comparingInt(o -> o.parameter.getAnnotationIndex()));
-        return localVariables.toArray(new LocalVariable[0]);
-    }
 
-    private Type getType(final int opcode) {
-        switch (opcode) {
-            case Opcodes.ILOAD:
-            case Opcodes.ISTORE:
-                return Type.INT_TYPE;
-            case Opcodes.LLOAD:
-            case Opcodes.LSTORE:
-                return Type.LONG_TYPE;
-            case Opcodes.FLOAD:
-            case Opcodes.FSTORE:
-                return Type.FLOAT_TYPE;
-            case Opcodes.DLOAD:
-            case Opcodes.DSTORE:
-                return Type.DOUBLE_TYPE;
-            case Opcodes.ALOAD:
-            case Opcodes.ASTORE:
-                return Types.type(Object.class);
+        for (ResolvedParameter resolvedParameter : resolvedParameters) {
+            ParameterInfo parameterInfo = resolvedParameter.parameterInfo;
+            if (parameterInfo.reference || !parameterInfo.annotation.modifiable()) continue;
+            after.add(new VarInsnNode(Opcodes.ALOAD, arrayIndex));
+            after.add(ASMUtils.intPush(parameterInfo.parameter.getAnnotationIndex()));
+            after.add(new InsnNode(Opcodes.AALOAD));
+            after.add(ASMUtils.getCast(parameterInfo.parameter.getType()));
+            after.add(new VarInsnNode(ASMUtils.getStoreOpcode(parameterInfo.parameter.getType()), resolvedParameter.local.getIndex()));
         }
-        throw new IllegalStateException("Unknown opcode " + opcode);
+        for (Map.Entry<Integer, RefSlot> entry : refSlots.entrySet()) {
+            RefSlot refSlot = entry.getValue();
+            after.add(new VarInsnNode(Opcodes.ALOAD, arrayIndex));
+            after.add(ASMUtils.intPush(refSlot.slot));
+            after.add(new InsnNode(Opcodes.AALOAD));
+            after.add(ASMUtils.getCast(refSlot.type));
+            after.add(new VarInsnNode(ASMUtils.getStoreOpcode(refSlot.type), entry.getKey()));
+        }
     }
 
 
-    private static class LocalVariable {
-        private final int variableIndex;
-        private final Type type;
+    private static class ParameterInfo {
         private final CoprocessorUtils.AnnotatedParameter parameter;
         private final CLocalVariable annotation;
+        private final Type targetType;
+        private final boolean reference;
 
-        private LocalVariable(final int variableIndex, final Type type, final CoprocessorUtils.AnnotatedParameter parameter, final CLocalVariable annotation) {
-            this.variableIndex = variableIndex;
-            this.type = type;
+        private ParameterInfo(final CoprocessorUtils.AnnotatedParameter parameter, final CLocalVariable annotation, final Type targetType, final boolean reference) {
             this.parameter = parameter;
             this.annotation = annotation;
+            this.targetType = targetType;
+            this.reference = reference;
+        }
+    }
+
+    private static class ResolvedParameter {
+        private final ParameterInfo parameterInfo;
+        private final LocalVariableLookup.Local local;
+
+        private ResolvedParameter(final ParameterInfo parameterInfo, final LocalVariableLookup.Local local) {
+            this.parameterInfo = parameterInfo;
+            this.local = local;
+        }
+    }
+
+    private static class RefSlot {
+        private final int slot;
+        private final Type type;
+
+        private RefSlot(final int slot, final Type type) {
+            this.slot = slot;
+            this.type = type;
         }
     }
 

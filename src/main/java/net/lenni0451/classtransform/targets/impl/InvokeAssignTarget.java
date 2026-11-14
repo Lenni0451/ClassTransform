@@ -28,11 +28,18 @@ public class InvokeAssignTarget extends InvokeTarget {
         List<AbstractInsnNode> result = new ArrayList<>();
         for (AbstractInsnNode call : calls) {
             if (Type.getReturnType(((MethodInsnNode) call).desc).equals(Type.VOID_TYPE)) continue;
-            AbstractInsnNode next = call.getNext();
-            if (next != null && next.getOpcode() >= Opcodes.ISTORE && next.getOpcode() <= Opcodes.ASTORE) next = next.getNext();
+            AbstractInsnNode next = this.getNextInstruction(call);
+            if (next != null && next.getOpcode() >= Opcodes.ISTORE && next.getOpcode() <= Opcodes.ASTORE) next = this.getNextInstruction(next);
             if (next != null) result.add(next);
         }
         return result;
+    }
+
+    @Nullable
+    private AbstractInsnNode getNextInstruction(@Nullable final AbstractInsnNode instruction) {
+        AbstractInsnNode next = instruction == null ? null : instruction.getNext();
+        while (next != null && next.getOpcode() < 0) next = next.getNext();
+        return next;
     }
 
     @Override
