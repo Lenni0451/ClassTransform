@@ -62,16 +62,17 @@ public class CWrapOperationAnnotationHandler extends InjectionAnnotationHandler<
             List<AbstractInsnNode> instructions = InjectionPlan.select(transformerManager, target, wrapTarget, annotation.slice());
             if (instructions == null) throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, wrapTarget.target());
             boolean newOperation = wrapTarget.value().equalsIgnoreCase("NEW");
+            boolean expressionTarget = wrapTarget.value().equalsIgnoreCase("EXPRESSION");
             for (AbstractInsnNode instruction : instructions) {
                 AbstractInsnNode original = InjectionPlan.original(instruction);
                 boolean originalIsConstructor = original instanceof MethodInsnNode && ((MethodInsnNode) original).name.equals("<init>");
                 if (newOperation && !originalIsConstructor) {
                     throw new TransformerException(transformerMethod, transformer, "NEW target must select an object creation");
                 }
-                if (!newOperation && originalIsConstructor) {
+                if (!newOperation && originalIsConstructor && !expressionTarget) {
                     throw new TransformerException(transformerMethod, transformer, "constructor calls must be targeted with NEW");
                 }
-                selected.put(instruction, newOperation);
+                selected.put(instruction, newOperation || expressionTarget && originalIsConstructor);
             }
         }
 
@@ -81,7 +82,7 @@ public class CWrapOperationAnnotationHandler extends InjectionAnnotationHandler<
             boolean newOperation = entry.getValue();
             OperationSite site = (OperationSite) InjectionPlan.getOperationContext(instruction);
             if (site == null) {
-                site = OperationSite.of(transformedClass, InjectionPlan.original(instruction), newOperation);
+                site = OperationSite.of(transformedClass, InjectionPlan.original(instruction), newOperation, InjectionPlan.getExpressionMatch(instruction));
                 InjectionPlan.setOperationContext(instruction, site);
             } else if (site.isNewOperation() != newOperation) {
                 throw new TransformerException(transformerMethod, transformer, "operation was already wrapped with a different operation type");

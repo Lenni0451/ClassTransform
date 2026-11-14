@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.annotations.injection.CModifyExpressionValue;
 import net.lenni0451.classtransform.exceptions.InvalidTargetException;
 import net.lenni0451.classtransform.exceptions.TransformerException;
+import net.lenni0451.classtransform.expression.ExpressionMatch;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
@@ -58,6 +59,16 @@ public class CModifyExpressionValueAnnotationHandler extends InjectionAnnotation
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         MethodNode copiedTransformerMethod = this.renameAndCopy(transformerMethod, target, transformer, transformedClass, "CModifyExpressionValue");
         for (AbstractInsnNode injectionInstruction : injectionInstructions) {
+            ExpressionMatch expressionMatch = InjectionPlan.getExpressionMatch(injectionInstruction);
+            if (expressionMatch != null) {
+                Type wrappedType = expressionMatch.getValueType();
+                if (!wrappedType.equals(Type.VOID_TYPE)) {
+                    boolean castReturnValue = this.checkDescriptor(transformer, transformerMethod, target, wrappedType);
+                    InsnList insns = this.getModifyInstructions(transformedClass, target, transformerMethod, wrappedType, castReturnValue, transformerMethodCalls);
+                    this.insertAfter(target, injectionInstruction, insns);
+                }
+                continue;
+            }
             if (injectionInstruction instanceof MethodInsnNode) {
                 MethodInsnNode methodInsnNode = (MethodInsnNode) injectionInstruction;
                 if (injectionInstruction.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) injectionInstruction).name.equals("<init>")) {

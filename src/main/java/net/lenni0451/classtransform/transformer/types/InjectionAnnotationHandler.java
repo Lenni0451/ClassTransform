@@ -77,7 +77,7 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
             targets.addAll(ASMUtils.getMethodsFromCombi(target, selector));
         }
         List<CTarget> injectionTargets = this.getInjectionTargets(annotation, manager);
-        return new InjectionPlan(manager, settings, transformer, method, targets, injectionTargets, registry, targetMethod -> {
+        return new InjectionPlan(manager, target, settings, transformer, method, targets, injectionTargets, registry, targetMethod -> {
             try {
                 this.transform(annotation, manager, target, transformer, ASMUtils.cloneMethod(method), targetMethod);
             } catch (TransformerException e) {

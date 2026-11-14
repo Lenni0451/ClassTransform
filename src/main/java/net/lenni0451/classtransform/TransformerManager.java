@@ -8,6 +8,7 @@ import net.lenni0451.classtransform.annotations.injection.CASM;
 import net.lenni0451.classtransform.debugger.TransformerTimings;
 import net.lenni0451.classtransform.debugger.timings.TimedGroup;
 import net.lenni0451.classtransform.exceptions.TransformerLoadException;
+import net.lenni0451.classtransform.expression.ExpressionEngine;
 import net.lenni0451.classtransform.mappings.AMapper;
 import net.lenni0451.classtransform.mappings.impl.VoidMapper;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
@@ -151,6 +152,7 @@ public class TransformerManager implements ClassFileTransformer {
         this.injectionTargets.put("OPCODE", new OpcodeTarget());
         this.injectionTargets.put("CONSTANT", new ConstantTarget());
         this.injectionTargets.put("INSTANCEOF", new InstanceofTarget());
+        this.injectionTargets.put("EXPRESSION", new ExpressionTarget());
     }
 
     /**
@@ -649,6 +651,7 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     private boolean applyAnnotationHandlers(final String name, final byte[] bytecode, final ClassNode target, final List<ClassNode> transformers, final TransformerTimings timings) throws AlreadyLoggedException {
+        ExpressionEngine.clear();
         Map<AbstractInsnNode, InjectionPlan.Target> registry = new IdentityHashMap<>();
         for (int i = 0; i < this.annotationHandler.size(); ) {
             AnnotationHandler handler = this.annotationHandler.get(i);
@@ -708,6 +711,7 @@ public class TransformerManager implements ClassFileTransformer {
                 timings.end();
             }
         }
+        ExpressionEngine.clear();
         return true;
     }
 

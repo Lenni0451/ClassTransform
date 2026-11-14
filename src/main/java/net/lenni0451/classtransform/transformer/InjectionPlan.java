@@ -4,7 +4,9 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.annotations.CSlice;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.exceptions.TransformerException;
+import net.lenni0451.classtransform.expression.ExpressionMatch;
 import net.lenni0451.classtransform.targets.InjectionTargets;
+import net.lenni0451.classtransform.targets.impl.ExpressionTarget;
 import net.lenni0451.classtransform.utils.InjectionSettings;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -121,6 +123,19 @@ public class InjectionPlan {
     }
 
     /**
+     * Get the expression match attached to the given instruction.
+     *
+     * @param instruction The instruction
+     * @return The expression match or null
+     */
+    @Nullable
+    public static ExpressionMatch getExpressionMatch(final AbstractInsnNode instruction) {
+        InjectionPlan plan = ACTIVE.get();
+        Target target = plan == null ? null : plan.registry.get(instruction);
+        return target == null ? null : target.expressionMatch;
+    }
+
+    /**
      * @param instruction The current operation
      * @return The insertion anchor after existing modifiers and required casts
      */
@@ -166,6 +181,7 @@ public class InjectionPlan {
 
     /**
      * @param manager          The transformer manager
+     * @param targetClass      The transformed class
      * @param settings         The shared injection settings
      * @param transformer      The transformer class
      * @param method           The handler method
@@ -174,7 +190,7 @@ public class InjectionPlan {
      * @param registry         The class-wide instruction registry
      * @param injection        The action to apply to each matched method
      */
-    public InjectionPlan(final TransformerManager manager, final InjectionSettings settings, final ClassNode transformer, final MethodNode method, final Collection<MethodNode> targets, final List<CTarget> injectionTargets, final Map<AbstractInsnNode, Target> registry, final Consumer<MethodNode> injection) {
+    public InjectionPlan(final TransformerManager manager, final ClassNode targetClass, final InjectionSettings settings, final ClassNode transformer, final MethodNode method, final Collection<MethodNode> targets, final List<CTarget> injectionTargets, final Map<AbstractInsnNode, Target> registry, final Consumer<MethodNode> injection) {
         this.manager = manager;
         this.settings = settings;
         this.transformer = transformer;
@@ -184,19 +200,30 @@ public class InjectionPlan {
         if (injectionTargets.isEmpty()) throw new TransformerException(method, transformer, "does not have any injection targets");
         for (MethodNode target : targets) {
             Map<List<Object>, List<Target>> selections = new LinkedHashMap<>();
-            for (CTarget injectionTarget : injectionTargets) {
-                List<AbstractInsnNode> found;
-                try {
-                    found = InjectionTargets.find(manager.getInjectionTargets(), target, injectionTarget, settings.getSlice(injectionTarget.slice()));
-                } catch (RuntimeException e) {
-                    throw new TransformerException(method, transformer, "invalid injection target").targetMethod(target).cause(e);
+            ExpressionTarget.BuildContext expressionContext = new ExpressionTarget.BuildContext(targetClass, method);
+            ExpressionTarget.setContext(expressionContext);
+            try {
+                for (CTarget injectionTarget : injectionTargets) {
+                    List<AbstractInsnNode> found;
+                    try {
+                        found = InjectionTargets.find(manager.getInjectionTargets(), target, injectionTarget, settings.getSlice(injectionTarget.slice()));
+                    } catch (RuntimeException e) {
+                        throw new TransformerException(method, transformer, "invalid injection target").targetMethod(target).cause(e);
+                    }
+                    if (found.isEmpty() && !injectionTarget.optional() && !settings.hasExplicitRequire()) {
+                        throw new TransformerException(method, transformer, "target '" + injectionTarget.value() + "' could not be found").targetMethod(target);
+                    }
+                    List<Target> selected = new ArrayList<>();
+                    for (AbstractInsnNode instruction : found) {
+                        Target selectedTarget = registry.computeIfAbsent(instruction, Target::new);
+                        ExpressionMatch expressionMatch = expressionContext.getMatches().get(instruction);
+                        if (expressionMatch != null) selectedTarget.expressionMatch = expressionMatch;
+                        selected.add(selectedTarget);
+                    }
+                    selections.put(key(injectionTarget), selected);
                 }
-                if (found.isEmpty() && !injectionTarget.optional() && !settings.hasExplicitRequire()) {
-                    throw new TransformerException(method, transformer, "target '" + injectionTarget.value() + "' could not be found").targetMethod(target);
-                }
-                List<Target> selected = new ArrayList<>();
-                for (AbstractInsnNode instruction : found) selected.add(registry.computeIfAbsent(instruction, Target::new));
-                selections.put(key(injectionTarget), selected);
+            } finally {
+                ExpressionTarget.clearContext();
             }
             this.selections.put(target, selections);
         }
@@ -245,6 +272,8 @@ public class InjectionPlan {
         private Object context;
         @Nullable
         private Object operationContext;
+        @Nullable
+        private ExpressionMatch expressionMatch;
 
         private Target(final AbstractInsnNode instruction) {
             this.original = instruction;

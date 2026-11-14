@@ -17,11 +17,19 @@ class AtTranslator implements AnnotationTranslator {
     public void translate(AnnotationNode annotation, Map<String, Object> values) {
         annotation.desc = Type.getDescriptor(CTarget.class);
         String point = (String) values.get("value");
-        int suffix = point.lastIndexOf(':');
-        if (suffix >= 0) {
-            values.put("selector", point.substring(suffix + 1));
-            point = point.substring(0, suffix);
-            values.put("value", point);
+        if ("MIXINEXTRAS:EXPRESSION".equalsIgnoreCase(point)) {
+            values.put("value", "EXPRESSION");
+            Object id = values.remove("id");
+            if (id instanceof String) values.put("target", id);
+            values.put("remap", false);
+            point = "EXPRESSION";
+        } else {
+            int suffix = point.lastIndexOf(':');
+            if (suffix >= 0) {
+                values.put("selector", point.substring(suffix + 1));
+                point = point.substring(0, suffix);
+                values.put("value", point);
+            }
         }
         if ("CONSTANT".equalsIgnoreCase((String) values.get("value")) && values.containsKey("args")) {
             String discriminator = null;

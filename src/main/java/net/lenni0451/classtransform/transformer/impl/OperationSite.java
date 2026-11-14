@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.transformer.impl;
 
+import net.lenni0451.classtransform.expression.ExpressionMatch;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -57,11 +58,29 @@ class OperationSite {
     }
 
     static OperationSite of(final ClassNode targetClass, final AbstractInsnNode original, final boolean newOperation) {
-        OperationInfo info = describe(targetClass, original);
+        return of(targetClass, original, newOperation, null);
+    }
+
+    static OperationSite of(final ClassNode targetClass, final AbstractInsnNode original, final boolean newOperation, @Nullable final ExpressionMatch expressionMatch) {
+        OperationInfo info;
+        if (expressionMatch != null && isArrayOperation(original.getOpcode())) {
+            info = new OperationInfo(expressionMatch.getArgumentTypes(), expressionMatch.getValueType(), false, null);
+        } else {
+            info = describe(targetClass, original);
+        }
         if (!newOperation && info.newOperation) {
             throw new IllegalArgumentException("Constructor call operations must be targeted with NEW");
         }
         return new OperationSite(original, info.arguments, info.returnType, newOperation, info.newOperation ? info.newOwner : null);
+    }
+
+    private static boolean isArrayOperation(final int opcode) {
+        return opcode >= Opcodes.IALOAD && opcode <= Opcodes.SALOAD
+                || opcode >= Opcodes.IASTORE && opcode <= Opcodes.SASTORE
+                || opcode == Opcodes.ARRAYLENGTH
+                || opcode == Opcodes.NEWARRAY
+                || opcode == Opcodes.ANEWARRAY
+                || opcode == Opcodes.MULTIANEWARRAY;
     }
 
     static OperationInfo describe(final ClassNode targetClass, final AbstractInsnNode instruction) {
@@ -100,7 +119,61 @@ class OperationSite {
         } else if (instruction instanceof TypeInsnNode && instruction.getOpcode() == Opcodes.CHECKCAST) {
             return new OperationInfo(new Type[]{Type.getType(Object.class)}, Type.getObjectType(((TypeInsnNode) instruction).desc), false, null);
         }
-        return simpleOperation(instruction.getOpcode());
+        int opcode = instruction.getOpcode();
+        if (opcode >= Opcodes.IALOAD && opcode <= Opcodes.SALOAD) {
+            Type arrayType = loadArrayType(opcode);
+            return new OperationInfo(new Type[]{arrayType, Type.INT_TYPE}, loadElementType(opcode), false, null);
+        }
+        if (opcode >= Opcodes.IASTORE && opcode <= Opcodes.SASTORE) {
+            Type arrayType = storeArrayType(opcode);
+            return new OperationInfo(new Type[]{arrayType, Type.INT_TYPE, loadElementType(opcode - (Opcodes.IASTORE - Opcodes.IALOAD))}, Type.VOID_TYPE, false, null);
+        }
+        if (opcode == Opcodes.ARRAYLENGTH) {
+            return new OperationInfo(new Type[]{Type.getType(Object.class)}, Type.INT_TYPE, false, null);
+        }
+        return simpleOperation(opcode);
+    }
+
+    private static Type loadArrayType(final int opcode) {
+        switch (opcode) {
+            case Opcodes.IALOAD: return Type.getType("[I");
+            case Opcodes.LALOAD: return Type.getType("[J");
+            case Opcodes.FALOAD: return Type.getType("[F");
+            case Opcodes.DALOAD: return Type.getType("[D");
+            case Opcodes.AALOAD: return Type.getType("[Ljava/lang/Object;");
+            case Opcodes.BALOAD: return Type.getType("[B");
+            case Opcodes.CALOAD: return Type.getType("[C");
+            case Opcodes.SALOAD: return Type.getType("[S");
+            default: throw new IllegalArgumentException("Unknown array load opcode " + opcode);
+        }
+    }
+
+    private static Type storeArrayType(final int opcode) {
+        switch (opcode) {
+            case Opcodes.IASTORE: return Type.getType("[I");
+            case Opcodes.LASTORE: return Type.getType("[J");
+            case Opcodes.FASTORE: return Type.getType("[F");
+            case Opcodes.DASTORE: return Type.getType("[D");
+            case Opcodes.AASTORE: return Type.getType("[Ljava/lang/Object;");
+            case Opcodes.BASTORE: return Type.getType("[B");
+            case Opcodes.CASTORE: return Type.getType("[C");
+            case Opcodes.SASTORE: return Type.getType("[S");
+            default: throw new IllegalArgumentException("Unknown array store opcode " + opcode);
+        }
+    }
+
+    private static Type loadElementType(final int opcode) {
+        switch (opcode) {
+            case Opcodes.IALOAD: return Type.INT_TYPE;
+            case Opcodes.LALOAD: return Type.LONG_TYPE;
+            case Opcodes.FALOAD: return Type.FLOAT_TYPE;
+            case Opcodes.DALOAD: return Type.DOUBLE_TYPE;
+            case Opcodes.AALOAD: return Type.getType(Object.class);
+            case Opcodes.BALOAD: return Type.BYTE_TYPE;
+            case Opcodes.CALOAD: return Type.CHAR_TYPE;
+            case Opcodes.SALOAD: return Type.SHORT_TYPE;
+            default: throw new IllegalArgumentException("Unknown array load opcode " + opcode);
+        }
     }
 
     private static OperationInfo simpleOperation(final int opcode) {
