@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.lenni0451.classtransform.annotations.CCoerce;
 import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CShadow;
 import net.lenni0451.classtransform.annotations.CSlice;
@@ -198,6 +199,11 @@ public class AnnotationTranslatorTest {
     @CModifyArgs(method = "call", target = @CTarget(value = "INVOKE", target = "Ljava/lang/String;valueOf(I)Ljava/lang/String;"), constraints = "TEST(1)", require = 0)
     @TestMarker(from = ModifyArgs.class, to = CModifyArgs.class)
     private native void modifyArgsTest();
+
+    @Coerce
+    @CCoerce
+    @TestMarker(from = Coerce.class, to = CCoerce.class)
+    private native void coerceTest();
 
     @Test
     void test() throws ClassNotFoundException {

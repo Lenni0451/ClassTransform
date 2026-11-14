@@ -10,6 +10,7 @@ import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocesso
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CoerceUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
@@ -43,7 +44,8 @@ public class CModifyReturnValueAnnotationHandler extends InjectionAnnotationHand
         Type returnType = returnType(target);
         if (returnType.equals(Type.VOID_TYPE)) throw new TransformerException(transformerMethod, transformer, "target method returns void");
         int capturedArguments = InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, target, returnType);
-        if (!ASMUtils.compareType(returnType, returnType(transformerMethod))) {
+        Type handlerReturnType = returnType(transformerMethod);
+        if (!CoerceUtils.canCoerceReturn(returnType, handlerReturnType, CoerceUtils.hasCoerceReturn(transformerMethod))) {
             throw new TransformerException(transformerMethod, transformer, "must accept and return the target method return type")
                     .help(Codifier.of(transformerMethod).returnType(returnType).params(null, returnType));
         }
@@ -78,7 +80,7 @@ public class CModifyReturnValueAnnotationHandler extends InjectionAnnotationHand
             MethodInsnNode call = new MethodInsnNode(opcode, transformedClass.name, copiedTransformerMethod.name, copiedTransformerMethod.desc, isInterface);
             insns.add(call);
             transformerMethodCalls.add(call);
-            if (!returnType.equals(returnType(transformerMethod))) insns.add(ASMUtils.getCast(returnType));
+            if (!returnType.equals(handlerReturnType) && returnType.getSort() >= Type.ARRAY) insns.add(ASMUtils.getCast(returnType));
             target.instructions.insertBefore(instruction, insns);
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);

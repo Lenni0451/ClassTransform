@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.mixinstranslator.impl;
 
+import net.lenni0451.classtransform.annotations.CCoerce;
 import net.lenni0451.classtransform.annotations.CDesc;
 import net.lenni0451.classtransform.annotations.CDescs;
 import net.lenni0451.classtransform.annotations.CShadow;
@@ -23,6 +24,7 @@ public class AnnotationTranslatorManager {
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyVariable;"), new ModifyVariableTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyArg;"), new ModifyArgTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/ModifyArgs;"), new ModifyArgsTranslator());
+        register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Coerce;"), Type.getType(CCoerce.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/Overwrite;"), Type.getType(COverride.class));
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/At;"), new AtTranslator());
         register(Type.getType("Lorg/spongepowered/asm/mixin/injection/Desc;"), Type.getType(CDesc.class));

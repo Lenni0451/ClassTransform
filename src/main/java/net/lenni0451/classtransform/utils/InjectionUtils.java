@@ -36,13 +36,49 @@ public class InjectionUtils {
         boolean valid = captured >= 0 && captured <= targetArguments.length;
         for (int i = 0; valid && i < arguments.length; i++) {
             Type expected = i < requiredArguments.length ? requiredArguments[i] : targetArguments[i - requiredArguments.length];
-            valid = ASMUtils.compareType(expected, arguments[i]);
+            if (i < requiredArguments.length) {
+                valid = CoerceUtils.canCoerce(expected, arguments[i], CoerceUtils.hasCoerce(transformerMethod, i));
+            } else {
+                valid = CoerceUtils.canCoerce(expected, arguments[i], true);
+            }
         }
         if (!valid) {
             throw new TransformerException(transformerMethod, transformer, "must have the required arguments followed by an optional prefix of the target method arguments")
                     .help(Codifier.of(transformerMethod).param(null).params(requiredArguments));
         }
         return captured;
+    }
+
+    /**
+     * Compare a prefix of target values with handler arguments.
+     *
+     * @param transformerMethod The handler method
+     * @param expected          The target value types
+     * @param handler           The handler argument types
+     * @param handlerOffset     The offset of the compared arguments in the handler descriptor
+     * @return If all compared arguments are compatible
+     */
+    public static boolean compareTypes(final MethodNode transformerMethod, final Type[] expected, final Type[] handler, final int handlerOffset) {
+        if (expected.length != handler.length - handlerOffset) return false;
+        for (int i = 0; i < expected.length; i++) {
+            int handlerIndex = handlerOffset + i;
+            if (!CoerceUtils.canCoerce(expected[i], handler[handlerIndex], CoerceUtils.hasCoerce(transformerMethod, handlerIndex))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Compare target values with handler arguments.
+     *
+     * @param transformerMethod The handler method
+     * @param expected          The target value types
+     * @param handler           The handler argument types
+     * @return If all arguments are compatible
+     */
+    public static boolean compareTypes(final MethodNode transformerMethod, final Type[] expected, final Type[] handler) {
+        return compareTypes(transformerMethod, expected, handler, 0);
     }
 
     /**

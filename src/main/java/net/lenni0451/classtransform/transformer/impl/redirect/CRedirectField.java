@@ -2,7 +2,9 @@ package net.lenni0451.classtransform.transformer.impl.redirect;
 
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CoerceUtils;
 import net.lenni0451.classtransform.utils.Codifier;
+import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -33,12 +35,12 @@ public class CRedirectField implements IRedirectTarget {
         Type[] argumentTypes = argumentTypes(transformerMethod.desc);
         Type originalType = type(fieldInsnNode.desc);
         Type originalOwnerType = type(fieldInsnNode.owner);
-        if (!ASMUtils.compareType(originalType, returnType)) {
+        if (!CoerceUtils.canCoerceReturn(originalType, returnType, CoerceUtils.hasCoerceReturn(transformerMethod))) {
             throw new TransformerException(transformerMethod, transformer, "does not have same return type as field")
                     .help(Codifier.of(transformerMethod).returnType(originalType));
         }
         if (fieldInsnNode.getOpcode() != Opcodes.GETSTATIC) {
-            if (!ASMUtils.compareTypes(new Type[]{originalOwnerType}, argumentTypes)) {
+            if (!InjectionUtils.compareTypes(transformerMethod, new Type[]{originalOwnerType}, argumentTypes)) {
                 throw new TransformerException(transformerMethod, transformer, "does not have first argument type as field owner")
                         .help(Codifier.of(transformerMethod).param(null).param(originalOwnerType));
             }
@@ -55,7 +57,7 @@ public class CRedirectField implements IRedirectTarget {
         if (fieldInsnNode.getOpcode() != Opcodes.GETSTATIC && !Modifier.isStatic(transformerMethod.access)) {
             targetMethod.instructions.insertBefore(fieldInsnNode, new InsnNode(Opcodes.SWAP));
         }
-        if (!originalType.equals(returnType)) {
+        if (!originalType.equals(returnType) && originalType.getSort() >= Type.ARRAY) {
             targetMethod.instructions.insert(fieldInsnNode, new TypeInsnNode(Opcodes.CHECKCAST, originalType.getInternalName()));
         }
 
@@ -72,12 +74,12 @@ public class CRedirectField implements IRedirectTarget {
                     .help(Codifier.of(transformerMethod).returnType(Type.VOID_TYPE));
         }
         if (fieldInsnNode.getOpcode() != Opcodes.PUTSTATIC) {
-            if (!ASMUtils.compareTypes(new Type[]{originalOwnerType, originalType}, argumentTypes)) {
+            if (!InjectionUtils.compareTypes(transformerMethod, new Type[]{originalOwnerType, originalType}, argumentTypes)) {
                 throw new TransformerException(transformerMethod, transformer, "does not have owner and value as arguments")
                         .help(Codifier.of(transformerMethod).param(null).params(originalOwnerType, originalType));
             }
         } else {
-            if (!ASMUtils.compareTypes(new Type[]{originalType}, argumentTypes)) {
+            if (!InjectionUtils.compareTypes(transformerMethod, new Type[]{originalType}, argumentTypes)) {
                 throw new TransformerException(transformerMethod, transformer, "does not have value as argument")
                         .help(Codifier.of(transformerMethod).param(null).param(originalType));
             }

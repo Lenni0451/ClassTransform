@@ -10,6 +10,7 @@ import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CoerceUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
@@ -125,7 +126,7 @@ public class CModifyReceiverAnnotationHandler extends InjectionAnnotationHandler
         System.arraycopy(operationArguments, 0, handlerArguments, 1, operationArguments.length);
         int capturedArguments = InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, targetMethod, handlerArguments);
         Type handlerReturnType = returnType(transformerMethod);
-        if (!ASMUtils.compareType(receiverType, handlerReturnType)) {
+        if (!CoerceUtils.canCoerceReturn(receiverType, handlerReturnType, CoerceUtils.hasCoerceReturn(transformerMethod))) {
             throw new TransformerException(transformerMethod, transformer, "must accept and return the receiver type")
                     .help(Codifier.of(transformerMethod).returnType(receiverType).params(handlerArguments));
         }

@@ -55,6 +55,10 @@ public class ParameterAnnotationTest {
             @Cancellable @CCancellable @TestMarker(from = Cancellable.class, to = CCancellable.class) org.spongepowered.asm.mixin.injection.callback.CallbackInfo callback
     );
 
+    private native void testCoerce(
+            @org.spongepowered.asm.mixin.injection.Coerce @net.lenni0451.classtransform.annotations.CCoerce @TestMarker(from = org.spongepowered.asm.mixin.injection.Coerce.class, to = net.lenni0451.classtransform.annotations.CCoerce.class) Object value
+    );
+
     @Test
     void test() throws ClassNotFoundException {
         ClassNode classNode = ASMUtils.fromBytes(new BasicClassProvider().getClass(ParameterAnnotationTest.class.getName()));

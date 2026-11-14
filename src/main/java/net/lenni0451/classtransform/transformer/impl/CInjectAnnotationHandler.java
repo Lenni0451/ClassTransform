@@ -15,6 +15,7 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.CDescResolver;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.DescMatcher;
+import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -22,6 +23,7 @@ import org.objectweb.asm.tree.*;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -68,10 +70,12 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
             } else if (arguments.length == 1 && ASMUtils.compareType(arguments[0], type(InjectionCallback.class))) {
                 hasArgs = false;
                 hasCallback = true;
-            } else if (ASMUtils.compareTypes(targetArguments, arguments)) {
+            } else if (InjectionUtils.compareTypes(transformerMethod, targetArguments, arguments)) {
                 hasArgs = true;
                 hasCallback = false;
-            } else if (ASMUtils.compareTypes(targetArguments, arguments, false, type(InjectionCallback.class))) {
+            } else if (arguments.length == targetArguments.length + 1
+                    && InjectionUtils.compareTypes(transformerMethod, targetArguments, Arrays.copyOf(arguments, targetArguments.length))
+                    && ASMUtils.compareType(arguments[targetArguments.length], type(InjectionCallback.class))) {
                 hasArgs = true;
                 hasCallback = true;
             } else {

@@ -2,7 +2,9 @@ package net.lenni0451.classtransform.transformer.impl.redirect;
 
 import net.lenni0451.classtransform.exceptions.TransformerException;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CoerceUtils;
 import net.lenni0451.classtransform.utils.Codifier;
+import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -29,12 +31,12 @@ public class CRedirectNew implements IRedirectTarget {
             Type[] argumentTypes = argumentTypes(transformerMethod.desc);
             Type originalReturnType = type(methodInsnNode.owner);
             Type[] originalArgumentTypes = argumentTypes(methodInsnNode.desc);
-            if (!ASMUtils.compareType(originalReturnType, returnType)) {
+            if (!CoerceUtils.canCoerceReturn(originalReturnType, returnType, CoerceUtils.hasCoerceReturn(transformerMethod))) {
                 throw new TransformerException(transformerMethod, transformer, "does not have same return type as original object")
                         .help(Codifier.of(transformerMethod).returnType(originalReturnType).param(null).params(originalArgumentTypes));
             }
             cast = !originalReturnType.equals(returnType);
-            if (!ASMUtils.compareTypes(originalArgumentTypes, argumentTypes)) {
+            if (!InjectionUtils.compareTypes(transformerMethod, originalArgumentTypes, argumentTypes)) {
                 throw new TransformerException(transformerMethod, transformer, "does not have same argument types as original constructor")
                         .help(Codifier.of(transformerMethod).param(null).params(originalArgumentTypes));
             }

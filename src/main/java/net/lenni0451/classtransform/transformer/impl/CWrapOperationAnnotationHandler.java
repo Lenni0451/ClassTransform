@@ -12,6 +12,7 @@ import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocessorList;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CoerceUtils;
 import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
@@ -103,7 +104,7 @@ public class CWrapOperationAnnotationHandler extends InjectionAnnotationHandler<
             requiredArguments[requiredArguments.length - 1] = COPERATION_TYPE;
             int capturedArguments = InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, target, requiredArguments);
             Type handlerReturnType = returnType(transformerMethod.desc);
-            if (!ASMUtils.compareType(site.getReturnType(), handlerReturnType)) {
+            if (!CoerceUtils.canCoerceReturn(site.getReturnType(), handlerReturnType, CoerceUtils.hasCoerceReturn(transformerMethod))) {
                 throw new TransformerException(transformerMethod, transformer, "must return the operation return type")
                         .help("Expected " + site.getReturnType().getClassName());
             }
@@ -166,7 +167,7 @@ public class CWrapOperationAnnotationHandler extends InjectionAnnotationHandler<
         }
         instructions.add(transformerCall);
         transformerMethodCalls.add(transformerCall);
-        if (!plan.site.getReturnType().equals(plan.handlerReturnType) && !plan.site.getReturnType().equals(Type.VOID_TYPE)) {
+        if (!plan.site.getReturnType().equals(plan.handlerReturnType) && !plan.site.getReturnType().equals(Type.VOID_TYPE) && plan.site.getReturnType().getSort() >= Type.ARRAY) {
             instructions.add(ASMUtils.getCast(plan.site.getReturnType()));
         }
 

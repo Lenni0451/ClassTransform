@@ -12,6 +12,7 @@ import net.lenni0451.classtransform.transformer.coprocessor.AnnotationCoprocesso
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.CoerceUtils;
 import net.lenni0451.classtransform.utils.Codifier;
 import net.lenni0451.classtransform.utils.InjectionUtils;
 import org.objectweb.asm.Opcodes;
@@ -187,11 +188,11 @@ public class CModifyExpressionValueAnnotationHandler extends InjectionAnnotation
     private boolean checkDescriptor(final ClassNode transformer, final MethodNode transformerMethod, final MethodNode targetMethod, final Type expectedType) {
         Type returnType = returnType(transformerMethod);
         InjectionUtils.getCapturedArgumentCount(transformer, transformerMethod, targetMethod, expectedType);
-        if (!ASMUtils.compareType(expectedType, returnType)) {
+        if (!CoerceUtils.canCoerceReturn(expectedType, returnType, CoerceUtils.hasCoerceReturn(transformerMethod))) {
             throw new TransformerException(transformerMethod, transformer, "does not have the right return type")
                     .help(Codifier.of(transformerMethod).returnType(expectedType).params(null, expectedType));
         }
-        return !returnType.equals(expectedType);
+        return !returnType.equals(expectedType) && expectedType.getSort() >= Type.ARRAY;
     }
 
     private InsnList getModifyInstructions(final ClassNode targetClass, final MethodNode targetMethod, final MethodNode transformerMethod, final Type wrappedType, final boolean castReturnValue, final List<MethodInsnNode> transformerMethodCalls) {
