@@ -42,8 +42,9 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
             if (annotation == null) continue;
             it.remove();
 
-            List<FieldNode> targets = ASMUtils.getFieldsFromCombi(target, annotation.value());
-            if (targets.isEmpty()) throw new FieldNotFoundException(target, transformer, annotation.value());
+            String selector = annotation.value().isEmpty() ? field.name + ":" + field.desc : annotation.value();
+            List<FieldNode> targets = this.findFields(target, selector, annotation.aliases());
+            if (targets.isEmpty()) throw new FieldNotFoundException(target, transformer, selector);
             for (FieldNode targetField : targets) {
                 if (annotation.makePublic()) targetField.access = ASMUtils.setAccess(targetField.access, Opcodes.ACC_PUBLIC);
                 if (annotation.makeMutable()) targetField.access = ASMUtils.setModifier(targetField.access, Opcodes.ACC_FINAL, false);
@@ -61,8 +62,10 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
             if (annotation == null) continue;
             it.remove();
 
-            List<MethodNode> targets = ASMUtils.getMethodsFromCombi(target, annotation.value());
-            if (targets.isEmpty()) throw new MethodNotFoundException(target, transformer, annotation.value());
+            String selector = annotation.value().isEmpty() ? method.name + method.desc : annotation.value();
+            if (!annotation.prefix().isEmpty() && selector.startsWith(annotation.prefix())) selector = selector.substring(annotation.prefix().length());
+            List<MethodNode> targets = this.findMethods(target, selector, annotation.aliases());
+            if (targets.isEmpty()) throw new MethodNotFoundException(target, transformer, selector);
             for (MethodNode targetMethod : targets) {
                 if (annotation.makePublic()) targetMethod.access = ASMUtils.setAccess(targetMethod.access, Opcodes.ACC_PUBLIC);
                 if (annotation.makeMutable()) targetMethod.access = ASMUtils.setModifier(targetMethod.access, Opcodes.ACC_FINAL, false);
@@ -70,6 +73,24 @@ public class CShadowAnnotationHandler extends AnnotationHandler {
                 remapper.addMethodMapping(transformer.name, method.name, method.desc, targetMethod.name);
             }
         }
+    }
+
+    private List<FieldNode> findFields(final ClassNode target, final String selector, final String[] aliases) {
+        List<FieldNode> targets = ASMUtils.getFieldsFromCombi(target, selector);
+        for (String alias : aliases) {
+            if (!targets.isEmpty()) break;
+            if (!alias.isEmpty()) targets = ASMUtils.getFieldsFromCombi(target, alias);
+        }
+        return targets;
+    }
+
+    private List<MethodNode> findMethods(final ClassNode target, final String selector, final String[] aliases) {
+        List<MethodNode> targets = ASMUtils.getMethodsFromCombi(target, selector);
+        for (String alias : aliases) {
+            if (!targets.isEmpty()) break;
+            if (!alias.isEmpty()) targets = ASMUtils.getMethodsFromCombi(target, alias);
+        }
+        return targets;
     }
 
 }

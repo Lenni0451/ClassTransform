@@ -44,6 +44,11 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = Shadow.class, to = CShadow.class)
     private final String shadowTest = null;
 
+    @Shadow(prefix = "shadow$", aliases = {"first", "second"}, remap = false)
+    @CShadow(prefix = "shadow$", aliases = {"first", "second"}, remap = false)
+    @TestMarker(from = Shadow.class, to = CShadow.class)
+    private native void shadowOptionsTest();
+
     @Overwrite
     @COverride
     @TestMarker(from = Overwrite.class, to = COverride.class)

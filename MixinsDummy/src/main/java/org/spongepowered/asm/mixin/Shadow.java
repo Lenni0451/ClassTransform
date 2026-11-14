@@ -9,6 +9,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Shadow {
 
+    String prefix() default "shadow$";
+
+    String[] aliases() default {};
+
     @Deprecated
     boolean remap() default true;
 

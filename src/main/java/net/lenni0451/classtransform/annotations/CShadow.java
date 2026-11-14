@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.annotations;
 
 import net.lenni0451.classtransform.mappings.annotation.AnnotationRemap;
+import net.lenni0451.classtransform.mappings.annotation.FillType;
 import net.lenni0451.classtransform.mappings.annotation.RemapType;
 
 import java.lang.annotation.ElementType;
@@ -25,8 +26,28 @@ public @interface CShadow {
      *
      * @return The name of the member to shadow
      */
-    @AnnotationRemap(RemapType.SHORT_MEMBER)
+    @AnnotationRemap(value = RemapType.SHORT_MEMBER, fill = FillType.KEEP_EMPTY)
     String value() default "";
+
+    /**
+     * A prefix which is stripped from the start of shadow method names.<br>
+     * This is useful when the shadow method has the same arguments but a different return type than the target.
+     *
+     * @return The shadow method prefix
+     */
+    String prefix() default "shadow$";
+
+    /**
+     * Alternative target member names which are tried when the main target is not found.
+     *
+     * @return The aliases
+     */
+    String[] aliases() default {};
+
+    /**
+     * @return If the target member should be remapped
+     */
+    boolean remap() default true;
 
     /**
      * Make the shadow member public.
