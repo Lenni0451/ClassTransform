@@ -65,6 +65,13 @@ class CModifyArgsAnnotationHandlerTest {
     }
 
     @Test
+    public void modifyWithInstanceHandler() throws Exception {
+        Class<?> target = this.transform("instanceHandler");
+        Object instance = target.getConstructor().newInstance();
+        assertEquals(30, target.getMethod("callInstanceMethod").invoke(instance));
+    }
+
+    @Test
     public void rejectNonVoidHandler() {
         assertThrows(TransformerException.class, () -> this.transform("nonVoid"));
     }
@@ -140,6 +147,10 @@ class CModifyArgsAnnotationHandlerTest {
 
         public static int callInstance() {
             return new CallTarget().sum(1, 2);
+        }
+
+        public int callInstanceMethod() {
+            return sum(1, 2);
         }
 
         public static void callNoArguments() {
@@ -224,6 +235,12 @@ class CModifyArgsAnnotationHandlerTest {
 
         @CModifyArgs(method = "callInstance", target = @CTarget(value = "INVOKE", target = "Lnet/lenni0451/classtransform/transformer/impl/CModifyArgsAnnotationHandlerTest$CallTarget;sum(II)I"))
         public static void instance(CArgs args) {
+            args.set(0, 10);
+            args.set(1, 20);
+        }
+
+        @CModifyArgs(method = "callInstanceMethod", target = @CTarget(value = "INVOKE", target = "Lnet/lenni0451/classtransform/transformer/impl/CModifyArgsAnnotationHandlerTest$CallTarget;sum(II)I"))
+        public void instanceHandler(CArgs args) {
             args.set(0, 10);
             args.set(1, 20);
         }

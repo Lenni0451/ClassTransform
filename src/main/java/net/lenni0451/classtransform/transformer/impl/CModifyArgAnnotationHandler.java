@@ -57,9 +57,14 @@ public class CModifyArgAnnotationHandler extends InjectionAnnotationHandler<CMod
         this.checkConstraints(transformerManager, annotation.constraints(), transformerMethod, transformer);
         AnnotationCoprocessorList coprocessors = transformerManager.getCoprocessors();
         transformerMethod = coprocessors.preprocess(transformerManager, transformedClass, target, transformer, transformerMethod);
-        if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
-            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
+        boolean constructor = target.name.equals("<init>");
+        if (Modifier.isStatic(target.access) && !Modifier.isStatic(transformerMethod.access)) {
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, true);
         }
+        if (!constructor && Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
+            throw TransformerException.wrongStaticAccess(transformerMethod, transformer, false);
+        }
+        int delegateIndex = constructor ? this.findDelegateInit(target) : -1;
         Type handlerReturnType = returnType(transformerMethod);
         Type[] handlerArguments = argumentTypes(transformerMethod);
         if (handlerReturnType.equals(Type.VOID_TYPE)) {
@@ -83,6 +88,9 @@ public class CModifyArgAnnotationHandler extends InjectionAnnotationHandler<CMod
                 throw TransformerException.invalidMemberDeclaration(transformerMethod, transformer, injectionTarget.target());
             }
             for (AbstractInsnNode instruction : new LinkedHashSet<>(selected)) {
+                if (constructor && !Modifier.isStatic(transformerMethod.access) && (delegateIndex < 0 || target.instructions.indexOf(instruction) <= delegateIndex)) {
+                    throw new TransformerException(transformerMethod, transformer, "must be static when targeting a constructor before the super() or this() call");
+                }
                 if (!(instruction instanceof MethodInsnNode)) {
                     throw new TransformerException(transformerMethod, transformer, "target must be a method invocation");
                 }
@@ -176,6 +184,22 @@ public class CModifyArgAnnotationHandler extends InjectionAnnotationHandler<CMod
             instructions.add(new VarInsnNode(ASMUtils.getLoadOpcode(invocationArguments[i]), indices[i]));
         }
         return instructions;
+    }
+
+    private int findDelegateInit(final MethodNode target) {
+        if (!"<init>".equals(target.name)) return -1;
+        int allocations = 0;
+        int index = 0;
+        for (AbstractInsnNode instruction : target.instructions) {
+            if (instruction.getOpcode() == Opcodes.NEW) {
+                allocations++;
+            } else if (instruction.getOpcode() == Opcodes.INVOKESPECIAL && instruction instanceof MethodInsnNode && "<init>".equals(((MethodInsnNode) instruction).name)) {
+                if (allocations > 0) allocations--;
+                else return index;
+            }
+            index++;
+        }
+        return -1;
     }
 
     private boolean matches(final Type source, final Type handler) {

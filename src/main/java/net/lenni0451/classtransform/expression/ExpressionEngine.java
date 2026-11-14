@@ -6,7 +6,6 @@ import net.lenni0451.classtransform.annotations.expression.CDefinitions;
 import net.lenni0451.classtransform.annotations.expression.CExpression;
 import net.lenni0451.classtransform.annotations.expression.CExpressions;
 import net.lenni0451.classtransform.annotations.injection.*;
-import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

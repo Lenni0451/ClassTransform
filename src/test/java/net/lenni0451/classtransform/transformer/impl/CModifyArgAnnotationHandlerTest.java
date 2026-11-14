@@ -56,6 +56,19 @@ class CModifyArgAnnotationHandlerTest {
     }
 
     @Test
+    public void modifyWithInstanceHandler() throws Exception {
+        Class<?> target = this.transform("instanceHandler");
+        Object instance = target.getConstructor().newInstance();
+        assertEquals(12, target.getMethod("callInstanceMethod").invoke(instance));
+    }
+
+    @Test
+    public void modifyWithSupertypeReturn() throws Exception {
+        Class<?> target = this.transform("objectSupertype");
+        assertEquals("Abb", target.getMethod("callConcat").invoke(null));
+    }
+
+    @Test
     public void rejectOutOfBoundsIndex() {
         assertThrows(TransformerException.class, () -> this.transform("outOfBounds"));
     }
@@ -119,6 +132,14 @@ class CModifyArgAnnotationHandlerTest {
             return new CallTarget().sumInstance(1, 2);
         }
 
+        public int callInstanceMethod() {
+            return this.sumInstance(1, 2);
+        }
+
+        public static String callConcat() {
+            return concat("a", "b");
+        }
+
         public static int sum(int first, int second) {
             return first + second;
         }
@@ -129,6 +150,10 @@ class CModifyArgAnnotationHandlerTest {
 
         public static String echo(String value) {
             return value;
+        }
+
+        public static String concat(String first, String second) {
+            return first + second;
         }
 
     }
@@ -163,6 +188,16 @@ class CModifyArgAnnotationHandlerTest {
         @CModifyArg(method = "callInstance", target = @CTarget(value = "INVOKE", target = "Lnet/lenni0451/classtransform/transformer/impl/CModifyArgAnnotationHandlerTest$CallTarget;sumInstance(II)I"), index = 0)
         public static int instance(int value) {
             return value + 9;
+        }
+
+        @CModifyArg(method = "callInstanceMethod", target = @CTarget(value = "INVOKE", target = "Lnet/lenni0451/classtransform/transformer/impl/CModifyArgAnnotationHandlerTest$CallTarget;sumInstance(II)I"), index = 0)
+        public int instanceHandler(int value) {
+            return value + 9;
+        }
+
+        @CModifyArg(method = "callConcat", target = @CTarget(value = "INVOKE", target = "Lnet/lenni0451/classtransform/transformer/impl/CModifyArgAnnotationHandlerTest$CallTarget;concat(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"), index = 0)
+        public static Object objectSupertype(String first, String second) {
+            return first.toUpperCase() + second;
         }
 
         @CModifyArg(method = "call", target = @CTarget(value = "INVOKE", target = "Lnet/lenni0451/classtransform/transformer/impl/CModifyArgAnnotationHandlerTest$CallTarget;sum(II)I"), index = 3)

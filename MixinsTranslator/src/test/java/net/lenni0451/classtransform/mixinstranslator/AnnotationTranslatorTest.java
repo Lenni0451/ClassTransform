@@ -169,6 +169,11 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = WrapOperation.class, to = CWrapOperation.class)
     private native void wrapOperationConstantsTest();
 
+    @WrapOperation(method = "constant", constant = @Constant(intValue = 5, ordinal = 2, slice = "slice1", expandZeroConditions = {Constant.Condition.LESS_THAN_ZERO, Constant.Condition.GREATER_THAN_ZERO}, log = true))
+    @CWrapOperation(method = "constant", target = @CTarget(value = "CONSTANT", target = "int 5", ordinal = 2, slice = "slice1", args = {"expandZeroConditions=LESS_THAN_ZERO,GREATER_THAN_ZERO", "log=true"}), require = -1)
+    @TestMarker(from = WrapOperation.class, to = CWrapOperation.class)
+    private native void wrapOperationConstantOptionsTest();
+
     @ModifyExpressionValue(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
     @CModifyExpressionValue(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)
     @TestMarker(from = ModifyExpressionValue.class, to = CModifyExpressionValue.class)

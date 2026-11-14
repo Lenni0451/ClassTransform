@@ -44,6 +44,7 @@ public class MixinsTranslator implements IAnnotationHandlerPreprocessor {
             this.translate(method.invisibleParameterAnnotations);
 
             CallbackRewriter.rewrite(method);
+            ArgsRewriter.rewrite(method);
         }
     }
 

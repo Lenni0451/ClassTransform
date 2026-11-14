@@ -16,7 +16,6 @@ import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import org.junit.jupiter.api.Test;
-import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.InvocationTargetException;
 

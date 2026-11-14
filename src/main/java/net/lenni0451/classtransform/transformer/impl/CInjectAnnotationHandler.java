@@ -125,7 +125,9 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
             }
 
             InsnList instructions;
-            if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN || instruction.getOpcode() == Opcodes.ATHROW) {
+            if (instruction.getOpcode() == Opcodes.ATHROW) {
+                instructions = this.getThrowInstructions(transformedClass, target, source, annotation.cancellable(), handlerData.hasArgs, handlerData.hasCallback, this.loadCapturedLocals(capturedLocals), transformerMethodCalls);
+            } else if (instruction.getOpcode() >= Opcodes.IRETURN && instruction.getOpcode() <= Opcodes.RETURN) {
                 instructions = this.getReturnInstructions(transformedClass, target, source, annotation.cancellable(), handlerData.hasArgs, handlerData.hasCallback, this.loadCapturedLocals(capturedLocals), transformerMethodCalls);
             } else {
                 instructions = this.getCallInstructions(transformedClass, target, source, annotation.cancellable(), handlerData.hasArgs, handlerData.hasCallback, this.loadCapturedLocals(capturedLocals), transformerMethodCalls);
@@ -256,6 +258,33 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
         return instructions;
     }
 
+    private InsnList getThrowInstructions(final ClassNode classNode, final MethodNode target, final MethodNode source, final boolean cancellable, final boolean hasArgs, final boolean hasCallback, final InsnList capturedLocals, final List<MethodInsnNode> transformerMethodCalls) {
+        Type returnType = returnType(target.desc);
+        int callbackVar = ASMUtils.getFreeVarIndex(target);
+
+        InsnList instructions = this.getLoadInstructions(target, hasArgs);
+        this.createCallback(instructions, cancellable, hasCallback, callbackVar, returnType, -1);
+        instructions.add(capturedLocals);
+        this.callInjectionMethod(instructions, classNode, source, transformerMethodCalls);
+        if (cancellable && hasCallback) {
+            LabelNode jump = new LabelNode();
+            instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+            instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "isCancelled", methodDescriptor(boolean.class)));
+            instructions.add(new JumpInsnNode(Opcodes.IFEQ, jump));
+            instructions.add(new InsnNode(Opcodes.POP));
+            if (Type.VOID_TYPE.equals(returnType)) {
+                instructions.add(new InsnNode(Opcodes.RETURN));
+            } else {
+                instructions.add(new VarInsnNode(Opcodes.ALOAD, callbackVar));
+                instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, internalName(InjectionCallback.class), "getReturnValue", methodDescriptor(Object.class)));
+                instructions.add(ASMUtils.getCast(returnType));
+                instructions.add(new InsnNode(ASMUtils.getReturnOpcode(returnType)));
+            }
+            instructions.add(jump);
+        }
+        return instructions;
+    }
+
     private InsnList getLoadInstructions(final MethodNode methodNode, final boolean hasArgs) {
         if (!hasArgs) return new InsnList();
         InsnList instructions = new InsnList();
@@ -378,7 +407,7 @@ public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject
      */
     private void getCancelInstructions(final InsnList instructions, final boolean cancellable, final boolean hasCallback, final int callbackVar, final Type returnType, final int returnVar) {
         if (!cancellable || !hasCallback) return; //If the method is cancellable, check if the callback has been cancelled
-        boolean willCancel = returnVar >= 0;
+        boolean willCancel = returnVar >= 0 && !Type.VOID_TYPE.equals(returnType);
         InsnList cancelInstructions = new InsnList();
         //Check if the callback is cancelled
         LabelNode jump = new LabelNode();

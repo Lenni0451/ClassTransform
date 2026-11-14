@@ -12,7 +12,6 @@ import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditio
 import net.lenni0451.classtransform.transformer.impl.wrapcondition.CWrapConditionMethod;
 import net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler;
 import net.lenni0451.classtransform.transformer.InjectionPlan;
-import net.lenni0451.classtransform.utils.ASMUtils;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;

@@ -529,7 +529,7 @@ public abstract class ExpressionAst implements Expression {
             ctx.capture(node, this, type, null, new Type[]{Type.INT_TYPE}, null, null, false);
         }
 
-        static Type getPrimitiveType(final int operand) {
+        private static Type getPrimitiveType(final int operand) {
             switch (operand) {
                 case Opcodes.T_BOOLEAN: return Type.BOOLEAN_TYPE;
                 case Opcodes.T_CHAR: return Type.CHAR_TYPE;

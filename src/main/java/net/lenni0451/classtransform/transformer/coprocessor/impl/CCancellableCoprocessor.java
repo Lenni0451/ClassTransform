@@ -157,7 +157,7 @@ public class CCancellableCoprocessor implements IAnnotationCoprocessor {
     /**
      * The callback local shared by an operation wrapper chain.
      */
-    static class CancellableContext {
+    private static class CancellableContext {
         private final int callbackIndex;
 
         private CancellableContext(final int callbackIndex) {
