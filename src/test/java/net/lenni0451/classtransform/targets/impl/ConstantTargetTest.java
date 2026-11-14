@@ -2,6 +2,7 @@ package net.lenni0451.classtransform.targets.impl;
 
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.targets.ATargetTest;
+import net.lenni0451.classtransform.utils.CTargetImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,8 +10,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import java.util.List;
 
@@ -91,6 +96,88 @@ class ConstantTargetTest extends ATargetTest {
         assertEquals(1, insns.size());
         assertEquals(Opcodes.LDC, insns.get(0).getOpcode());
         assertEquals(Type.getType(Object.class), ((LdcInsnNode) insns.get(0)).cst);
+    }
+
+    @Test
+    @DisplayName("Expand zero conditions")
+    public void expandZeroConditions() {
+        MethodNode method = this.createComparisonMethod();
+        ConstantTarget constantTarget = new ConstantTarget();
+
+        List<AbstractInsnNode> lessThanZero = constantTarget.getTargets(this.injectionTargets, method, this.getExpandedTarget("LESS_THAN_ZERO"), this.emptySlice);
+        assertEquals(2, lessThanZero.size());
+        assertEquals(Opcodes.IFLT, lessThanZero.get(0).getOpcode());
+        assertEquals(Opcodes.IFGE, lessThanZero.get(1).getOpcode());
+
+        List<AbstractInsnNode> greaterThanZero = constantTarget.getTargets(this.injectionTargets, method, this.getExpandedTarget("GREATER_THAN_ZERO"), this.emptySlice);
+        assertEquals(2, greaterThanZero.size());
+        assertEquals(Opcodes.IFLE, greaterThanZero.get(0).getOpcode());
+        assertEquals(Opcodes.IFGT, greaterThanZero.get(1).getOpcode());
+    }
+
+    @Test
+    @DisplayName("Expand zero conditions with explicit zero constants")
+    public void expandZeroConditionsWithExplicitZeroConstants() {
+        MethodNode method = new MethodNode(0, "test", "()V", null, null);
+        method.instructions.add(new InsnNode(Opcodes.ICONST_0));
+        method.instructions.add(new InsnNode(Opcodes.ICONST_1));
+        method.instructions.add(new LdcInsnNode(0));
+        method.instructions.add(new InsnNode(Opcodes.RETURN));
+
+        ConstantTarget constantTarget = new ConstantTarget();
+        List<AbstractInsnNode> explicit = constantTarget.getTargets(this.injectionTargets, method, this.getExpandedTarget("LESS_THAN_ZERO"), this.emptySlice);
+        assertEquals(2, explicit.size());
+        assertEquals(Opcodes.ICONST_0, explicit.get(0).getOpcode());
+        assertEquals(Opcodes.LDC, explicit.get(1).getOpcode());
+
+        List<AbstractInsnNode> implicit = constantTarget.getTargets(this.injectionTargets, method, this.getExpandedTarget("LESS_THAN_ZERO", "implicitZero=true"), this.emptySlice);
+        assertEquals(0, implicit.size());
+    }
+
+    @Test
+    @DisplayName("Ignore conditional opcodes after comparisons")
+    public void ignoreConditionalOpcodesAfterComparisons() {
+        MethodNode method = new MethodNode(0, "test", "()V", null, null);
+        LabelNode label = new LabelNode();
+        method.instructions.add(new InsnNode(Opcodes.LCMP));
+        method.instructions.add(new JumpInsnNode(Opcodes.IFLE, label));
+        method.instructions.add(new JumpInsnNode(Opcodes.IFGT, label));
+        method.instructions.add(label);
+        method.instructions.add(new InsnNode(Opcodes.RETURN));
+
+        ConstantTarget constantTarget = new ConstantTarget();
+        List<AbstractInsnNode> insns = constantTarget.getTargets(this.injectionTargets, method, this.getExpandedTarget("LESS_THAN_OR_EQUAL_TO_ZERO"), this.emptySlice);
+        assertEquals(1, insns.size());
+        assertEquals(Opcodes.IFGT, insns.get(0).getOpcode());
+    }
+
+    @Test
+    @DisplayName("Expand zero conditions with ordinal and log")
+    public void expandZeroConditionsWithOrdinalAndLog() {
+        MethodNode method = this.createComparisonMethod();
+        ConstantTarget constantTarget = new ConstantTarget();
+        List<AbstractInsnNode> insns = constantTarget.getTargets(this.injectionTargets, method, CTargetImpl.of("CONSTANT", "int 0", CTarget.Shift.BEFORE, 1, false, new String[]{"expandZeroConditions=LESS_THAN_ZERO", "log=true"}), this.emptySlice);
+        assertEquals(1, insns.size());
+        assertEquals(Opcodes.IFGE, insns.get(0).getOpcode());
+    }
+
+    private MethodNode createComparisonMethod() {
+        MethodNode method = new MethodNode(0, "test", "()V", null, null);
+        LabelNode label = new LabelNode();
+        method.instructions.add(new JumpInsnNode(Opcodes.IFLT, label));
+        method.instructions.add(new JumpInsnNode(Opcodes.IFLE, label));
+        method.instructions.add(new JumpInsnNode(Opcodes.IFGE, label));
+        method.instructions.add(new JumpInsnNode(Opcodes.IFGT, label));
+        method.instructions.add(label);
+        method.instructions.add(new InsnNode(Opcodes.RETURN));
+        return method;
+    }
+
+    private CTarget getExpandedTarget(final String condition, final String... extraArgs) {
+        String[] args = new String[extraArgs.length + 1];
+        args[0] = "expandZeroConditions=" + condition;
+        System.arraycopy(extraArgs, 0, args, 1, extraArgs.length);
+        return CTargetImpl.of("CONSTANT", "int 0", CTarget.Shift.BEFORE, -1, false, args);
     }
 
 }

@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +34,19 @@ class AtTranslator implements AnnotationTranslator {
         }
         if ("CONSTANT".equalsIgnoreCase((String) values.get("value")) && values.containsKey("args")) {
             String discriminator = null;
+            List<String> extraArgs = new ArrayList<>();
             for (String argument : (List<String>) values.remove("args")) {
-                if (argument.startsWith("log=")) continue;
+                if (argument.startsWith("log=") || argument.startsWith("expandZeroConditions=")) {
+                    extraArgs.add(argument);
+                    continue;
+                }
                 if (!argument.matches("(?s)(nullValue|intValue|floatValue|longValue|doubleValue|stringValue|classValue)=.*")) {
                     throw new IllegalArgumentException("Unsupported CONSTANT argument: " + argument);
                 }
                 if (discriminator != null) throw new IllegalArgumentException("Multiple constant discriminators are not supported");
                 discriminator = argument;
             }
+            if (!extraArgs.isEmpty()) values.put("args", extraArgs);
             if (discriminator != null) {
                 if (discriminator.startsWith("classValue=")) {
                     String className = discriminator.substring(11).replace('.', '/');

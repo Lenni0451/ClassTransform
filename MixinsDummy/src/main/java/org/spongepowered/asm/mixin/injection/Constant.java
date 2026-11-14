@@ -26,4 +26,16 @@ public @interface Constant {
 
     String slice() default "";
 
+    Condition[] expandZeroConditions() default {};
+
+    boolean log() default false;
+
+
+    enum Condition {
+        LESS_THAN_ZERO,
+        LESS_THAN_OR_EQUAL_TO_ZERO,
+        GREATER_THAN_OR_EQUAL_TO_ZERO,
+        GREATER_THAN_ZERO
+    }
+
 }

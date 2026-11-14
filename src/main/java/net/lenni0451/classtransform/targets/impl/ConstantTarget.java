@@ -7,9 +7,12 @@ import net.lenni0451.classtransform.mappings.annotation.RemapType;
 import net.lenni0451.classtransform.annotations.CTarget;
 import net.lenni0451.classtransform.targets.IInjectionTarget;
 import net.lenni0451.classtransform.utils.ASMUtils;
+import net.lenni0451.classtransform.utils.log.Logger;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -53,8 +56,14 @@ public class ConstantTarget implements IInjectionTarget {
     public List<AbstractInsnNode> getTargets(Map<String, IInjectionTarget> injectionTargets, MethodNode method, CTarget target, @Nullable CSlice slice) {
         List<AbstractInsnNode> targets = new ArrayList<>();
         List<AbstractInsnNode> instructions = this.getSlice(injectionTargets, method, slice);
+        boolean log = this.hasArgument(target.args(), "log=true");
+        Set<Integer> expandOpcodes = this.getExpandOpcodes(target.args());
+        if (log) Logger.info("BeforeConstant is searching for constants in method {}{}", method.name, method.desc);
 
-        if (target.target().equalsIgnoreCase("null false")) return targets;
+        if (!expandOpcodes.isEmpty()) {
+            boolean matchZero = target.target().equalsIgnoreCase("int 0") && !this.hasArgument(target.args(), "implicitZero=true");
+            this.findExpanded(targets, instructions, matchZero, expandOpcodes, log);
+        } else if (target.target().equalsIgnoreCase("null false")) return targets;
         else if (target.target().equalsIgnoreCase("null")) this.findNull(targets, instructions);
         else if (target.target().toLowerCase(Locale.ROOT).startsWith("int")) this.findInt(targets, instructions, target.target());
         else if (target.target().toLowerCase(Locale.ROOT).startsWith("long")) this.findLong(targets, instructions, target.target());
@@ -69,6 +78,61 @@ public class ConstantTarget implements IInjectionTarget {
             return Collections.singletonList(targets.get(target.ordinal()));
         }
         return targets;
+    }
+
+    private void findExpanded(final List<AbstractInsnNode> targets, final List<AbstractInsnNode> instructions, final boolean matchZero, final Set<Integer> expandOpcodes, final boolean log) {
+        int last = -1;
+        int ordinal = 0;
+        for (AbstractInsnNode instruction : instructions) {
+            int opcode = instruction.getOpcode();
+            boolean match = expandOpcodes.contains(opcode);
+            if (match) {
+                if (last == Opcodes.LCMP || last == Opcodes.FCMPL || last == Opcodes.FCMPG || last == Opcodes.DCMPL || last == Opcodes.DCMPG) {
+                    if (log) Logger.info("  BeforeConstant is ignoring {} following {}", opcode, last);
+                    match = false;
+                }
+            } else if (matchZero) {
+                Number number = ASMUtils.getNumber(instruction);
+                match = (number instanceof Byte || number instanceof Short || number instanceof Integer) && number.intValue() == 0;
+            }
+            if (match) {
+                if (log) Logger.info("  BeforeConstant found a matching constant at ordinal {}", ordinal);
+                targets.add(instruction);
+                ordinal++;
+            }
+            if (!(instruction instanceof LabelNode) && !(instruction instanceof FrameNode)) last = opcode;
+        }
+    }
+
+    private Set<Integer> getExpandOpcodes(final String[] args) {
+        Set<Integer> opcodes = new HashSet<>();
+        for (String argument : args) {
+            if (!argument.startsWith("expandZeroConditions=")) continue;
+            for (String condition : argument.substring("expandZeroConditions=".length()).split(",")) {
+                switch (condition.trim().toUpperCase(Locale.ROOT)) {
+                    case "LESS_THAN_ZERO":
+                    case "GREATER_THAN_OR_EQUAL_TO_ZERO":
+                        opcodes.add(Opcodes.IFLT);
+                        opcodes.add(Opcodes.IFGE);
+                        break;
+                    case "LESS_THAN_OR_EQUAL_TO_ZERO":
+                    case "GREATER_THAN_ZERO":
+                        opcodes.add(Opcodes.IFLE);
+                        opcodes.add(Opcodes.IFGT);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown expand zero condition '" + condition + "'");
+                }
+            }
+        }
+        return opcodes;
+    }
+
+    private boolean hasArgument(final String[] args, final String argument) {
+        for (String arg : args) {
+            if (arg.equalsIgnoreCase(argument)) return true;
+        }
+        return false;
     }
 
     private void findNull(final List<AbstractInsnNode> targets, final List<AbstractInsnNode> instructions) {

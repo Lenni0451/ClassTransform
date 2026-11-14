@@ -50,6 +50,10 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
         boolean hasDoubleValue = parsedAnnotation.wasSet("doubleValue");
         boolean hasStringValue = parsedAnnotation.wasSet("stringValue");
         boolean hasTypeValue = parsedAnnotation.wasSet("typeValue");
+        boolean expandZeroConditions = annotation.expandZeroConditions().length > 0;
+        if (expandZeroConditions && !hasNullValue && !hasIntValue && !hasLongValue && !hasFloatValue && !hasDoubleValue && !hasStringValue && !hasTypeValue) {
+            hasIntValue = true;
+        }
 
         if (this.getTrueCount(hasNullValue, hasIntValue, hasLongValue, hasFloatValue, hasDoubleValue, hasStringValue, hasTypeValue) != 1) {
             throw new TransformerException(transformerMethod, transformer, "must have exactly one target constant");
@@ -63,11 +67,18 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
         else if (hasStringValue) constantType = type(String.class);
         else if (hasTypeValue) constantType = type(Class.class);
         else throw new IllegalStateException("Unknown return type wanted because of unknown constant. If you see this, please report this to the developer.");
+        if (expandZeroConditions && !Type.INT_TYPE.equals(constantType)) {
+            throw new TransformerException(transformerMethod, transformer, "must target an int constant to expand zero conditions");
+        }
 
         if (Modifier.isStatic(target.access) != Modifier.isStatic(transformerMethod.access)) {
             throw TransformerException.wrongStaticAccess(transformerMethod, transformer, Modifier.isStatic(target.access));
         }
         Type[] transformerArguments = argumentTypes(transformerMethod.desc);
+        if (expandZeroConditions && (transformerArguments.length != 1 || !Type.INT_TYPE.equals(transformerArguments[0]))) {
+            throw new TransformerException(transformerMethod, transformer, "must have the int constant as argument to expand zero conditions")
+                    .help(Codifier.of(transformerMethod).param(Type.INT_TYPE));
+        }
         if (constantType != null) {
             if (transformerArguments.length != 0 && (transformerArguments.length != 1 || !transformerArguments[0].equals(constantType))) {
                 throw new TransformerException(transformerMethod, transformer, "must have no arguments or the constant as argument")
@@ -94,16 +105,31 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
         List<MethodInsnNode> transformerMethodCalls = new ArrayList<>();
         for (int i = 0; i < toReplace.size(); i++) {
             AbstractInsnNode instruction = toReplace.get(i);
+            if (expandZeroConditions && instruction instanceof JumpInsnNode) {
+                JumpInsnNode jump = (JumpInsnNode) instruction;
+                int opcode = jump.getOpcode();
+                if (opcode < Opcodes.IFLT || opcode > Opcodes.IFLE) {
+                    throw new TransformerException(transformerMethod, transformer, "selected an invalid opcode to expand zero conditions").targetMethod(target);
+                }
+                InsnList instructions = new InsnList();
+                if (!Modifier.isStatic(transformerMethod.access)) instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                instructions.add(new InsnNode(Opcodes.ICONST_0));
+                MethodInsnNode invoke = this.createInvoke(transformedClass, transformerMethod);
+                instructions.add(invoke);
+                instructions.add(new JumpInsnNode(opcode + (Opcodes.IF_ICMPLT - Opcodes.IFLT), jump.label));
+                target.instructions.insertBefore(instruction, instructions);
+                target.instructions.remove(instruction);
+                InjectionPlan.replace(instruction, invoke);
+                transformerMethodCalls.add(invoke);
+                continue;
+            }
 
-            MethodInsnNode invoke;
             InsnList instructions = new InsnList();
             if (!Modifier.isStatic(transformerMethod.access)) {
                 instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
                 if (transformerArguments.length == 1) instructions.add(ASMUtils.swap(transformerArguments[0], Type.getType(Object.class)));
-                invoke = new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
-            } else {
-                invoke = new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
             }
+            MethodInsnNode invoke = this.createInvoke(transformedClass, transformerMethod);
             instructions.add(invoke);
             if (transformerArguments.length == 1) target.instructions.insert(InjectionPlan.after(instruction), instructions);
             else {
@@ -115,6 +141,14 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
         }
         coprocessors.postprocess(transformerManager, transformedClass, target, transformerMethodCalls, transformer, copiedTransformerMethod);
         InjectionPlan.record(transformerMethodCalls.size());
+    }
+
+    private MethodInsnNode createInvoke(final ClassNode transformedClass, final MethodNode transformerMethod) {
+        if (Modifier.isStatic(transformerMethod.access)) {
+            return new MethodInsnNode(Opcodes.INVOKESTATIC, transformedClass.name, transformerMethod.name, transformerMethod.desc, Modifier.isInterface(transformedClass.access));
+        } else {
+            return new MethodInsnNode(Modifier.isInterface(transformedClass.access) ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, transformedClass.name, transformerMethod.name, transformerMethod.desc);
+        }
     }
 
     @Override
@@ -132,12 +166,27 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
             else if (i == 6) constant = "type " + type(value).getDescriptor();
             else constant = types[i] + " " + value;
         }
+        CModifyConstant.Condition[] expandZeroConditions = annotation.expandZeroConditions();
+        boolean implicitZero = constant == null && expandZeroConditions.length > 0;
+        if (implicitZero) constant = "int 0";
         if (constant == null) throw new IllegalArgumentException("Exactly one constant discriminator is required");
         values.put("value", "CONSTANT");
         values.put("target", constant);
         values.put("ordinal", annotation.ordinal());
         values.put("optional", annotation.optional());
         values.put("slice", annotation.sliceId());
+        List<String> args = new ArrayList<>();
+        if (expandZeroConditions.length > 0) {
+            StringBuilder conditions = new StringBuilder();
+            for (CModifyConstant.Condition condition : expandZeroConditions) {
+                if (conditions.length() > 0) conditions.append(',');
+                conditions.append(condition.name());
+            }
+            args.add("expandZeroConditions=" + conditions);
+            if (implicitZero) args.add("implicitZero=true");
+        }
+        if (annotation.log()) args.add("log=true");
+        if (!args.isEmpty()) values.put("args", args.toArray(new String[0]));
         return Collections.singletonList(AnnotationParser.parse(CTarget.class, manager, values));
     }
 

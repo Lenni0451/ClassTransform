@@ -6,6 +6,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
@@ -28,6 +30,15 @@ class ModifyConstantTranslator implements AnnotationTranslator {
                 this.move(constantValues, values, "classValue");
                 this.move(values, "classValue", "typeValue");
                 this.move(constantValues, values, "ordinal");
+                this.move(constantValues, values, "log");
+                Object expandZeroConditions = constantValues.remove("expandZeroConditions");
+                if (expandZeroConditions instanceof List) {
+                    List<String[]> conditions = new ArrayList<>();
+                    for (Object condition : (List<?>) expandZeroConditions) {
+                        conditions.add(new String[]{Type.getDescriptor(CModifyConstant.Condition.class), ((String[]) condition)[1]});
+                    }
+                    values.put("expandZeroConditions", conditions);
+                }
                 if (constantValues.containsKey("slice")) values.put("sliceId", constantValues.get("slice"));
             }
         }

@@ -72,10 +72,20 @@ public class AnnotationTranslatorTest {
     @TestMarker(from = ModifyConstant.class, to = CModifyConstant.class)
     private native void modifyConstantTest();
 
+    @ModifyConstant(method = "compare", constant = @Constant(intValue = 0, expandZeroConditions = Constant.Condition.LESS_THAN_ZERO, log = true))
+    @CModifyConstant(method = "compare", intValue = 0, expandZeroConditions = CModifyConstant.Condition.LESS_THAN_ZERO, log = true, require = -1)
+    @TestMarker(from = ModifyConstant.class, to = CModifyConstant.class)
+    private native void modifyExpandedConstantTest();
+
     @Inject(method = {"method1", "method2"}, at = @At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), slice = @Slice(from = @At("HEAD"), to = @At("TAIL")), cancellable = true, require = 0)
     @CInject(method = {"method1", "method2"}, target = @CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10, optional = true), slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), cancellable = true, require = 0)
     @TestMarker(from = Inject.class, to = CInject.class)
     private native void injectTest();
+
+    @Inject(method = "compare", at = @At(value = "CONSTANT", args = {"intValue=0", "expandZeroConditions=LESS_THAN_ZERO", "log=true"}))
+    @CInject(method = "compare", target = @CTarget(value = "CONSTANT", target = "int 0", shift = CTarget.Shift.BEFORE, args = {"expandZeroConditions=LESS_THAN_ZERO", "log=true"}), require = -1)
+    @TestMarker(from = Inject.class, to = CInject.class)
+    private native void injectConstantArgsTest();
 
     @WrapWithCondition(method = {"method1", "method2"}, at = {@At(value = "test", target = "target", shift = At.Shift.AFTER, ordinal = 10), @At(value = "test2", target = "target2", shift = At.Shift.BEFORE, ordinal = 20)}, slice = @Slice(from = @At("HEAD"), to = @At("TAIL")))
     @CWrapCondition(method = {"method1", "method2"}, target = {@CTarget(value = "test", target = "target", shift = CTarget.Shift.BY, by = 1, ordinal = 10), @CTarget(value = "test2", target = "target2", shift = CTarget.Shift.BY, by = -1, ordinal = 20)}, slices = @CSlice(from = @CTarget("HEAD"), to = @CTarget("TAIL")), require = -1)

@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
  * The transformer method has to return the same type as the target constant and needs to be static if the target method is static.<br>
  * The transformer method can optionally take the same type as the target constant as the first argument (except for {@link #nullValue()}).
  * This argument will be the original value of the constant.<br>
+ * With {@link #expandZeroConditions()} comparisons with zero can be expanded to conditional opcodes.<br>
  * <br>
  * Modifying a constant in a method:<br>
  * <pre>
@@ -62,6 +63,21 @@ public @interface CModifyConstant {
      * @return The ordinal
      */
     int ordinal() default -1;
+
+    /**
+     * Expand comparisons with zero to the matching conditional opcodes.<br>
+     * The transformer method must return an int and take the original int constant as argument.
+     *
+     * @return The zero conditions to expand
+     */
+    Condition[] expandZeroConditions() default {};
+
+    /**
+     * Enable verbose debug logging when searching for constants.
+     *
+     * @return If debug logging should be enabled
+     */
+    boolean log() default false;
 
     /**
      * The slice to narrow down the search for the target.
@@ -185,5 +201,28 @@ public @interface CModifyConstant {
      */
     @AnnotationRemap(RemapType.DESCRIPTOR)
     Class<?> typeValue() default Object.class;
+
+
+    /**
+     * Comparison conditions with zero which can be expanded by {@link #expandZeroConditions()}.
+     */
+    enum Condition {
+        /**
+         * Match {@code x < 0} and {@code x >= 0}.
+         */
+        LESS_THAN_ZERO,
+        /**
+         * Match {@code x <= 0} and {@code x > 0}.
+         */
+        LESS_THAN_OR_EQUAL_TO_ZERO,
+        /**
+         * Match {@code x >= 0} and {@code x < 0}.
+         */
+        GREATER_THAN_OR_EQUAL_TO_ZERO,
+        /**
+         * Match {@code x > 0} and {@code x <= 0}.
+         */
+        GREATER_THAN_ZERO
+    }
 
 }

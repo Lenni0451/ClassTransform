@@ -7,6 +7,7 @@ import net.lenni0451.classtransform.test.SCalculator;
 import net.lenni0451.classtransform.test.TestClassLoader;
 import net.lenni0451.classtransform.test.VCalculator;
 import net.lenni0451.classtransform.transformer.AnnotationHandlerTest;
+import net.lenni0451.classtransform.utils.ASMUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.tree.ClassNode;
@@ -76,6 +77,29 @@ public class CModifyConstantAnnotationHandlerTest extends AnnotationHandlerTest 
         assertEquals(8, pow);
     }
 
+    @Test
+    @DisplayName("ModifyConstant expanded zero condition")
+    public void modifyConstantExpandedZeroCondition() throws ClassNotFoundException {
+        ClassNode targetClass = ASMUtils.fromBytes(this.classProvider.getClass(ExpandTarget.class.getName()));
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CModifyConstantAnnotationHandlerTest$SExpandTestTransformer");
+        this.transformer.transform(this.transformerManager, targetClass, transformer);
+        Class<?> clazz = TestClassLoader.load(targetClass);
+        assertEquals(0, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("compare", int.class).invoke(null, -5)));
+        assertEquals(-1, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("compare", int.class).invoke(null, -150)));
+        assertEquals(1, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("compare", int.class).invoke(null, 5)));
+        assertEquals(0, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("compare", int.class).invoke(null, 0)));
+    }
+
+    @Test
+    @DisplayName("ModifyConstant expanded explicit zero")
+    public void modifyConstantExpandedExplicitZero() throws ClassNotFoundException {
+        ClassNode targetClass = ASMUtils.fromBytes(this.classProvider.getClass(ExpandTarget.class.getName()));
+        ClassNode transformer = this.getTransformerClass("net.lenni0451.classtransform.transformer.impl.CModifyConstantAnnotationHandlerTest$SExplicitZeroExpandTestTransformer");
+        this.transformer.transform(this.transformerManager, targetClass, transformer);
+        Class<?> clazz = TestClassLoader.load(targetClass);
+        assertEquals(100, assertDoesNotThrow(() -> (int) clazz.getDeclaredMethod("zero").invoke(null)));
+    }
+
 
     @CTransformer(SCalculator.class)
     private static class SInvalidTestTransformer {
@@ -123,6 +147,40 @@ public class CModifyConstantAnnotationHandlerTest extends AnnotationHandlerTest 
         @CModifyConstant(method = "pow2", doubleValue = 2)
         public double pow2() {
             return 3;
+        }
+
+    }
+
+    public static class ExpandTarget {
+
+        public static int compare(final int value) {
+            if (value < 0) return -1;
+            if (value > 0) return 1;
+            return 0;
+        }
+
+        public static int zero() {
+            return 0;
+        }
+
+    }
+
+    @CTransformer(ExpandTarget.class)
+    private static class SExpandTestTransformer {
+
+        @CModifyConstant(method = "compare", expandZeroConditions = CModifyConstant.Condition.LESS_THAN_ZERO)
+        public static int modifyCompare(final int original) {
+            return original - 100;
+        }
+
+    }
+
+    @CTransformer(ExpandTarget.class)
+    private static class SExplicitZeroExpandTestTransformer {
+
+        @CModifyConstant(method = "zero", intValue = 0, expandZeroConditions = CModifyConstant.Condition.LESS_THAN_ZERO)
+        public static int modifyZero(final int original) {
+            return original + 100;
         }
 
     }
