@@ -1,6 +1,7 @@
 package net.lenni0451.classtransform.expression;
 
 import net.lenni0451.classtransform.expression.ExpressionAst.*;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 
 import javax.annotation.Nullable;
@@ -24,9 +25,9 @@ import java.util.List;
  * additive    := multiplicative (('+' | '-') multiplicative)*;
  * multiplicative := unary (('*' | '/' | '%') unary)*;
  * unary       := ('-' | '~') unary | postfix;
- * postfix     := primary ('.' name ('(' arguments ')')? | '[' expression ']')*;
+ * postfix     := primary ('.' name ('(' arguments ')')? | '[' expression ']' | '::' name | '::' 'new')*;
  * primary     := literal | 'this' | 'super' '.' name '(' arguments ')' | 'new' type (...)?
- *              | '?' | '@(' expression ')' | type '.class' | name ( '(' arguments ')' )?
+ *              | '?' | '::' name | '@(' expression ')' | type '.class' | name ( '(' arguments ')' )?
  *              | '(' expression ')' | '(' type ')' expression;
  * name        := identifier | '?';
  * type        := name ('[]')*;
@@ -228,7 +229,12 @@ public class ExpressionParser {
                 this.expect(ExpressionToken.ExpressionTokenType.RIGHT_BRACKET);
                 expression = new ArrayAccessExpression(this.source(bracket), expression, index);
             } else if (this.match(ExpressionToken.ExpressionTokenType.METHOD_REF)) {
-                throw this.error("Method references are not supported");
+                ExpressionToken methodReference = this.previous();
+                if (this.match(ExpressionToken.ExpressionTokenType.NEW)) {
+                    return new ConstructorReferenceExpression(this.source(methodReference), this.asType(expression));
+                }
+                Name name = this.parseName();
+                return new BoundMethodReferenceExpression(this.source(methodReference), expression, this.asMember(name));
             } else {
                 return expression;
             }
@@ -267,6 +273,10 @@ public class ExpressionParser {
             this.index = startIndex;
         }
 
+        if (this.match(ExpressionToken.ExpressionTokenType.METHOD_REF)) {
+            ExpressionToken methodReference = this.previous();
+            return new FreeMethodReferenceExpression(this.source(methodReference), this.asMember(this.parseName()));
+        }
         if (this.match(ExpressionToken.ExpressionTokenType.WILDCARD)) {
             return new WildcardExpression(this.source(this.previous()));
         }
@@ -477,11 +487,21 @@ public class ExpressionParser {
         public boolean matches(final ExpressionContext ctx, final ExpressionFlow.FlowValue node) {
             return ctx.getIdentifiers().matchesMember(this.identifier, node);
         }
+
+        @Override
+        public boolean matches(final ExpressionContext ctx, final Handle handle) {
+            return ctx.getIdentifiers().matchesMember(this.identifier, handle);
+        }
     }
 
     private static class WildcardMember implements MemberName {
         @Override
         public boolean matches(final ExpressionContext ctx, final ExpressionFlow.FlowValue node) {
+            return true;
+        }
+
+        @Override
+        public boolean matches(final ExpressionContext ctx, final Handle handle) {
             return true;
         }
     }

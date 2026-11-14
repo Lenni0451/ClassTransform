@@ -1,5 +1,6 @@
 package net.lenni0451.classtransform.expression;
 
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -369,6 +370,57 @@ public abstract class ExpressionAst implements Expression {
             if (node.isComplex()) return;
             MethodInsnNode method = (MethodInsnNode) node.getInsn();
             ctx.capture(node, this, Type.getReturnType(method.desc), Type.getObjectType(method.owner), Type.getArgumentTypes(method.desc), null, null, false);
+        }
+    }
+
+    public static class BoundMethodReferenceExpression extends ExpressionAst {
+        private final Expression receiver;
+        private final MemberName member;
+
+        public BoundMethodReferenceExpression(final ExpressionSource src, final Expression receiver, final MemberName member) {
+            super(src);
+            this.receiver = receiver;
+            this.member = member;
+        }
+
+        @Override
+        public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
+            LMFInfo info = ctx.getIdentifiers().getLMFInfo(node);
+            if (info == null || info.type != LMFInfo.Type.BOUND_METHOD) return false;
+            if (!this.member.matches(ctx, info.impl)) return false;
+            return node.inputCount() >= 1 && this.receiver.matches(node.getInput(0), ctx);
+        }
+    }
+
+    public static class FreeMethodReferenceExpression extends ExpressionAst {
+        private final MemberName member;
+
+        public FreeMethodReferenceExpression(final ExpressionSource src, final MemberName member) {
+            super(src);
+            this.member = member;
+        }
+
+        @Override
+        public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
+            LMFInfo info = ctx.getIdentifiers().getLMFInfo(node);
+            if (info == null || info.type != LMFInfo.Type.FREE_METHOD) return false;
+            return this.member.matches(ctx, info.impl);
+        }
+    }
+
+    public static class ConstructorReferenceExpression extends ExpressionAst {
+        private final TypeIdentifier type;
+
+        public ConstructorReferenceExpression(final ExpressionSource src, final TypeIdentifier type) {
+            super(src);
+            this.type = type;
+        }
+
+        @Override
+        public boolean matches(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
+            LMFInfo info = ctx.getIdentifiers().getLMFInfo(node);
+            if (info == null || info.type != LMFInfo.Type.INSTANTIATION) return false;
+            return this.type.matches(ctx.getIdentifiers(), Type.getObjectType(info.impl.getOwner()));
         }
     }
 
@@ -948,6 +1000,8 @@ public abstract class ExpressionAst implements Expression {
 
     public interface MemberName {
         boolean matches(ExpressionContext ctx, ExpressionFlow.FlowValue node);
+
+        boolean matches(ExpressionContext ctx, Handle handle);
     }
 
     public interface TypeIdentifier {

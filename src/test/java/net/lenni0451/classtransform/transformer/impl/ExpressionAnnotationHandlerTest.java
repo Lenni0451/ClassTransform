@@ -22,6 +22,8 @@ import net.lenni0451.classtransform.utils.FailStrategy;
 import net.lenni0451.classtransform.utils.tree.BasicClassProvider;
 import org.junit.jupiter.api.Test;
 
+import java.util.function.IntFunction;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -124,6 +126,28 @@ class ExpressionAnnotationHandlerTest {
     }
 
     @Test
+    public void freeMethodReference() throws Exception {
+        Class<?> target = this.transform(FreeMethodReference.class);
+        assertEquals(1, target.getMethod("staticReference").invoke(null));
+        assertEquals(1, target.getField("seen").get(null));
+    }
+
+    @Test
+    public void boundMethodReference() throws Exception {
+        Class<?> target = this.transform(BoundMethodReference.class);
+        Object instance = target.getConstructor().newInstance();
+        assertEquals(1, target.getMethod("boundReference").invoke(instance));
+        assertEquals(1, target.getField("seen").get(null));
+    }
+
+    @Test
+    public void constructorReference() throws Exception {
+        Class<?> target = this.transform(ConstructorReference.class);
+        assertEquals(5, ((Holder) target.getMethod("constructorReference", int.class).invoke(null, 5)).value);
+        assertEquals(1, target.getField("seen").get(null));
+    }
+
+    @Test
     public void wrapArrayAccess() throws Exception {
         Class<?> target = this.transform(WrapArray.class);
         assertEquals(5, target.getMethod("array", int[].class).invoke(null, new int[]{5, 1, 7}));
@@ -205,7 +229,33 @@ class ExpressionAnnotationHandlerTest {
         public static int seen;
         public static int conditionValue;
         public static int fieldValue = 5;
+        public static int referenceCount;
         public static Holder holder = new Holder(3);
+
+        public static void tick() {
+            referenceCount++;
+        }
+
+        public void instanceTick() {
+            referenceCount++;
+        }
+
+        public static int staticReference() {
+            Runnable runnable = Target::tick;
+            runnable.run();
+            return referenceCount;
+        }
+
+        public int boundReference() {
+            Runnable runnable = this::instanceTick;
+            runnable.run();
+            return referenceCount;
+        }
+
+        public static Holder constructorReference(final int value) {
+            IntFunction<Holder> function = Holder::new;
+            return function.apply(value);
+        }
 
         public static Holder create(final int value) {
             return new Holder(value);
@@ -351,6 +401,51 @@ class ExpressionAnnotationHandlerTest {
         @CDefinition(id = "compute", method = "compute(I)I")
         @CExpression("compute(?)")
         @CInject(method = "invoke", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private static void inject() {
+            seen = 1;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class FreeMethodReference {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "tick", method = "tick()V")
+        @CExpression("::tick")
+        @CInject(method = "staticReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private static void inject() {
+            seen = 1;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class BoundMethodReference {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "instanceTick", method = "instanceTick()V")
+        @CExpression("this::instanceTick")
+        @CInject(method = "boundReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
+        private void inject() {
+            seen = 1;
+        }
+
+    }
+
+    @CTransformer(Target.class)
+    private static class ConstructorReference {
+
+        @CShadow
+        private static int seen;
+
+        @CDefinition(id = "Holder", type = Holder.class)
+        @CExpression("Holder::new")
+        @CInject(method = "constructorReference", target = @CTarget(value = "EXPRESSION", shift = CTarget.Shift.BEFORE))
         private static void inject() {
             seen = 1;
         }

@@ -3,6 +3,7 @@ package net.lenni0451.classtransform.expression;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import net.lenni0451.classtransform.utils.annotations.AnnotationUtils;
 import net.lenni0451.classtransform.utils.MemberDeclaration;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -70,6 +71,33 @@ public class ExpressionIdentifiers {
         return false;
     }
 
+    /**
+     * Check if a method handle matches a defined member.
+     *
+     * @param id     The identifier of the member
+     * @param handle The method handle to match
+     * @return If the handle matches the member
+     */
+    public boolean matchesMember(final String id, final Handle handle) {
+        List<MemberDefinition> definitions = this.members.get(id);
+        if (definitions == null) throw new IllegalArgumentException("Use of undeclared identifier '" + id + "'");
+        for (MemberDefinition definition : definitions) {
+            if (definition.matches(handle)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get the lambda metafactory information of a flow value.
+     *
+     * @param node The flow value
+     * @return The information or null if the value is not a lambda
+     */
+    @Nullable
+    public LMFInfo getLMFInfo(final ExpressionFlow.FlowValue node) {
+        return LMFInfo.get(node, this.targetClass.name);
+    }
+
     public boolean matchesType(final String id, final Type type) {
         List<TypeDefinition> definitions = this.types.get(id);
         if (definitions == null) throw new IllegalArgumentException("Use of undeclared identifier '" + id + "'");
@@ -103,6 +131,10 @@ public class ExpressionIdentifiers {
 
     public interface MemberDefinition {
         boolean matches(ExpressionFlow.FlowValue node);
+
+        default boolean matches(final Handle handle) {
+            return false;
+        }
     }
 
     public interface TypeDefinition {
@@ -139,7 +171,16 @@ public class ExpressionIdentifiers {
         public boolean matches(final ExpressionFlow.FlowValue node) {
             if (!(node.getInsn() instanceof MethodInsnNode)) return false;
             MethodInsnNode method = (MethodInsnNode) node.getInsn();
-            return matchesWildcard(this.owner, method.owner) && matchesWildcard(this.name, method.name) && matchesWildcard(this.desc, method.desc);
+            return this.matches(method.owner, method.name, method.desc);
+        }
+
+        @Override
+        public boolean matches(final Handle handle) {
+            return this.matches(handle.getOwner(), handle.getName(), handle.getDesc());
+        }
+
+        private boolean matches(final String owner, final String name, final String desc) {
+            return matchesWildcard(this.owner, owner) && matchesWildcard(this.name, name) && matchesWildcard(this.desc, desc);
         }
     }
 
