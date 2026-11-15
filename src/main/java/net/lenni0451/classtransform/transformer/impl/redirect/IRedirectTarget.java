@@ -12,30 +12,36 @@ import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 import static net.lenni0451.classtransform.utils.Types.type;
 
 /**
- * The interface for a redirect target transformer.
+ * The contract for a redirect target transformer.
+ * <p>
+ * Implementations are selected by {@link net.lenni0451.classtransform.transformer.impl.CRedirectAnnotationHandler} for a matched target instruction and replace it with a call to the transformer method, which is copied into the transformed class beforehand. A transformer method whose shape does not fit the target causes a {@link net.lenni0451.classtransform.exceptions.TransformerException}.
  */
 @ParametersAreNonnullByDefault
 public interface IRedirectTarget {
 
     /**
-     * Redirect the given target nodes.
+     * Redirects the given target nodes.
+     * <p>
+     * Implementations replace the target instruction with a call to the transformer method and add that call to the given list, which is used for the coprocessor postprocessing.
      *
      * @param targetClass            The transformed class
      * @param targetMethod           The transformed method
      * @param transformer            The transformer class
      * @param transformerMethod      The transformer method
-     * @param targetNode            The instructions to redirect
+     * @param targetNode             The instruction to redirect
      * @param transformerMethodCalls The list of calls to the transformer method
      */
     void inject(final ClassNode targetClass, final MethodNode targetMethod, final ClassNode transformer, final MethodNode transformerMethod, final AbstractInsnNode targetNode, final List<MethodInsnNode> transformerMethodCalls);
 
     /**
-     * Get the load and store opcodes for the given method invocation.
+     * Gets the load and store opcodes for the given method invocation.
+     * <p>
+     * The store instructions are returned in reverse order, so they can be inserted in front of an invocation which already pushed the receiver and arguments, and the load instructions restore them in the original order. The free variable index is advanced by the size of every stored value.
      *
-     * @param owner        The owner of the method
+     * @param owner        The owner of the method, or {@code null} for a static invocation
      * @param desc         The descriptor of the method
-     * @param freeVarIndex The index of the free variable
-     * @return The load and store opcodes
+     * @param freeVarIndex The local variable index of the first free variable
+     * @return The store instructions in reverse order followed by the load instructions
      */
     default InsnList[] getLoadStoreOpcodes(@Nullable final String owner, final String desc, int freeVarIndex) {
         InsnList storeOpcodes = new InsnList();

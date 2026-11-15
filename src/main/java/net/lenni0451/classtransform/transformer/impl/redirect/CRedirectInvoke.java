@@ -16,7 +16,9 @@ import java.util.List;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The redirect target transformer for method invokes.
+ * The redirect target transformer for method invocations.
+ * <p>
+ * The invocation is replaced by a call to the transformer method which receives the invocation arguments and, for non-static invocations, the invocation owner as first argument. Its return type has to be compatible with the return type of the original invocation, otherwise a {@link TransformerException} is thrown. The inserted call is added to the transformer method call list for the coprocessors.
  */
 @ParametersAreNonnullByDefault
 public class CRedirectInvoke implements IRedirectTarget {

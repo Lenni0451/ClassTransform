@@ -9,6 +9,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates both MixinExtras {@code @WrapWithCondition} variants into {@link CWrapCondition}.
+ * <p>
+ * The legacy {@code com.llamalad7.mixinextras.injector.WrapWithCondition} form is emitted with
+ * {@link InjectionPhase#REGULAR} for compatibility, while the {@code v2} form keeps the
+ * {@link CWrapCondition#phase()} default of {@link InjectionPhase#CONDITION}.
+ * <p>
+ * Source {@code at} entries are translated and moved to {@code target}; remaining members are copied and
+ * slices are normalized by {@link AnnotationTranslator#translateInjection(Map)}.
+ *
+ * @see CWrapCondition
+ * @see InjectionPhase
+ */
 @ParametersAreNonnullByDefault
 public class WrapWithConditionTranslator implements AnnotationTranslator {
 

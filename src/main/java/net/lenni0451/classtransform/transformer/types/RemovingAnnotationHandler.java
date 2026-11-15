@@ -14,6 +14,11 @@ import java.util.Iterator;
 /**
  * An abstract annotation handler which handles all annotations of the given type.<br>
  * The handled transformer methods are removed from the transformer class afterward.
+ * <p>
+ * Transformer methods are iterated in declaration order, removed before their annotation is handled and passed as a
+ * clone to {@link #transform(Annotation, TransformerManager, ClassNode, ClassNode, MethodNode)}, which may modify that
+ * clone freely. Methods skipped by {@link #shouldExecute(Annotation)} stay in the transformer class. Failures are
+ * wrapped in a {@link TransformerException} for the target class.
  *
  * @param <T> The annotation type
  */
@@ -22,11 +27,18 @@ public abstract class RemovingAnnotationHandler<T extends Annotation> extends An
 
     private final Class<? extends Annotation> annotationClass;
 
+    /**
+     * Create a handler for the given annotation type.
+     *
+     * @param annotationClass The annotation type handled by this handler
+     */
     public RemovingAnnotationHandler(final Class<T> annotationClass) {
         this.annotationClass = annotationClass;
     }
 
     /**
+     * Get the annotation type handled by this handler.
+     *
      * @return The annotation handled by this handler
      */
     public Class<? extends Annotation> getAnnotationClass() {

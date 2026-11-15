@@ -16,6 +16,8 @@ import java.lang.annotation.Target;
 public @interface CDescs {
 
     /**
+     * The repeated descriptors in declaration order.
+     *
      * @return The descriptors
      */
     @AnnotationRemap(RemapType.ANNOTATION)

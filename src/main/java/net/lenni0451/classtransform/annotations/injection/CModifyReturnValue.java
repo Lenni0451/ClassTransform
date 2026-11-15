@@ -63,6 +63,9 @@ public @interface CModifyReturnValue {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices for the return value targets, selectable by {@link CTarget#slice()};
+     * ids are unique within the annotation.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -85,8 +88,9 @@ public @interface CModifyReturnValue {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.<br>
-     * The effective maximum is never lower than {@link #require()}.
+     * The maximum number of return instructions that may be modified.
+     * Values below one mean no limit is enforced.
+     * The effective maximum cannot be lower than {@link #require()}.
      *
      * @return The maximum injection count
      */
@@ -101,6 +105,8 @@ public @interface CModifyReturnValue {
     int order() default 1000;
 
     /**
+     * Whether the return value and target selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

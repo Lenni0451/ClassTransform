@@ -24,12 +24,16 @@ public class CDescResolver {
 
     /**
      * Resolve a descriptor reference by id.
+     * <p>
+     * The transformer method annotations are searched before the transformer class annotations. A descriptor with an
+     * inline value or without an id is returned unchanged.
      *
-     * @param desc            The descriptor, either inline or referencing an id
-     * @param manager         The transformer manager
-     * @param transformer     The transformer class
+     * @param desc              The descriptor, either inline or referencing an id
+     * @param manager           The transformer manager
+     * @param transformer       The transformer class
      * @param transformerMethod The transformer method
      * @return The resolved descriptor
+     * @throws IllegalArgumentException If no descriptor with the id exists or the resolved descriptor has no value
      */
     public static CDesc resolve(final CDesc desc, final TransformerManager manager, final ClassNode transformer, final MethodNode transformerMethod) {
         if (!desc.value().isEmpty() || desc.id().isEmpty()) return desc;
@@ -43,11 +47,12 @@ public class CDescResolver {
     /**
      * Resolve all descriptor references by id.
      *
-     * @param descs           The descriptors, either inline or referencing an id
-     * @param manager         The transformer manager
-     * @param transformer     The transformer class
+     * @param descs             The descriptors, either inline or referencing an id
+     * @param manager           The transformer manager
+     * @param transformer       The transformer class
      * @param transformerMethod The transformer method
      * @return The resolved descriptors
+     * @throws IllegalArgumentException If a descriptor id is unknown or has no value
      */
     public static CDesc[] resolve(final CDesc[] descs, final TransformerManager manager, final ClassNode transformer, final MethodNode transformerMethod) {
         CDesc[] resolved = new CDesc[descs.length];
@@ -58,11 +63,12 @@ public class CDescResolver {
     /**
      * Resolve the descriptor reference of a target.
      *
-     * @param target          The target
-     * @param manager         The transformer manager
-     * @param transformer     The transformer class
+     * @param target            The target
+     * @param manager           The transformer manager
+     * @param transformer       The transformer class
      * @param transformerMethod The transformer method
-     * @return The target with the resolved descriptor
+     * @return The target with the resolved descriptor, or the given target if its descriptor does not reference an id
+     * @throws IllegalArgumentException If the descriptor id is unknown or has no value
      */
     public static CTarget resolve(final CTarget target, final TransformerManager manager, final ClassNode transformer, final MethodNode transformerMethod) {
         CDesc desc = target.desc();

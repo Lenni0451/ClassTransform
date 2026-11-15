@@ -12,6 +12,11 @@ import java.lang.reflect.Modifier;
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 import static net.lenni0451.classtransform.utils.Types.type;
 
+/**
+ * Condition wrapper for method invocations.
+ * <p>
+ * The condition is evaluated before the invocation. When it returns {@code false}, the invocation is skipped and, for a non-{@code void} return type, the default value of that type is pushed instead. The transformer method receives the invocation instance for non-static invocations followed by the invocation arguments; captured arguments of the enclosing method are appended after these arguments. Constructors are not supported.
+ */
 public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode> {
 
     @Override
@@ -19,6 +24,18 @@ public class CWrapConditionMethod implements IWrapConditionTarget<MethodInsnNode
         return this.inject(transformedClass, transformer, transformerMethod, target, insnNode, false, Type.VOID_TYPE);
     }
 
+    /**
+     * Wraps an invocation and optionally replaces a skipped non-{@code void} result with a default value.
+     *
+     * @param transformedClass  The transformed class
+     * @param transformer       The transformer class
+     * @param transformerMethod The copied transformer method returning the condition
+     * @param target            The method containing the invocation
+     * @param insnNode          The invocation to wrap
+     * @param pushDummy         Whether to push the default value when the invocation is skipped
+     * @param returnType        The return type of the invocation, used for the default value
+     * @return The inserted call to the transformer method
+     */
     public MethodInsnNode inject(final ClassNode transformedClass, final ClassNode transformer, final MethodNode transformerMethod, final MethodNode target, final MethodInsnNode insnNode, final boolean pushDummy, final Type returnType) {
         boolean hasArgs = argumentTypes(transformerMethod).length > 0;
         Type[] argumentTypes = argumentTypes(insnNode.desc);

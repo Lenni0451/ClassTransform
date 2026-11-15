@@ -8,6 +8,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates Mixin's {@code @ModifyArgs} into ClassTransform's {@link CModifyArgs}.
+ * <p>
+ * Mixin's {@code target} descriptors become {@link CModifyArgs#desc()} and the {@code at} annotation becomes
+ * {@link CModifyArgs#target()}. {@link AnnotationTranslator#translateInjection(Map)} completes the common injector
+ * settings.
+ *
+ * @see CModifyArgs
+ */
 @ParametersAreNonnullByDefault
 class ModifyArgsTranslator implements AnnotationTranslator {
 

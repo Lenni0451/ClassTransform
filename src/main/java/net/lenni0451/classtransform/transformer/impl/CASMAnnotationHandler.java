@@ -25,13 +25,22 @@ import java.util.List;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CASM} annotation.
+ * Applies the {@link CASM} annotation by isolating the annotated method into a generated class and invoking it on the target {@link ClassNode} or on each selected {@link MethodNode}.
+ * <p>
+ * The method must be static and return {@code void}. It takes a single {@link ClassNode} when the annotation has no value, or a single {@link MethodNode} which is called once per matching target method otherwise.
  */
 @ParametersAreNonnullByDefault
 public class CASMAnnotationHandler extends RemovingAnnotationHandler<CASM> {
 
     private final CASM.Shift shift;
 
+    /**
+     * Creates a handler which only processes annotations whose {@link CASM#shift()} equals the
+     * given shift position. A {@link CASM.Shift#TOP} handler runs near the start of the handler
+     * chain and a {@link CASM.Shift#BOTTOM} handler near the end.
+     *
+     * @param shift The shift at which this handler runs
+     */
     public CASMAnnotationHandler(final CASM.Shift shift) {
         super(CASM.class);
         this.shift = shift;

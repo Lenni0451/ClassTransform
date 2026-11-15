@@ -23,6 +23,13 @@ import java.util.Map;
  * A target for field access instructions.<br>
  * e.g. {@code java/lang/System.out:Ljava/io/PrintStream;}<br>
  * Array element accesses can be selected with the {@code array=get|set|length} argument.
+ * <p>
+ * The field can be selected by member declaration in {@link CTarget#target()} or by a
+ * {@link net.lenni0451.classtransform.annotations.CDesc} in {@link CTarget#desc()}. The ordinal is
+ * applied by {@link net.lenni0451.classtransform.targets.InjectionTargets#find} after the field and
+ * array operation filters, so it counts only field accesses with the requested array operation.
+ * Array lookups search at most {@code fuzz=N} instructions (1 to 32, default 8) after the field
+ * access. Returns {@code null} if neither a declaration nor a descriptor can be parsed.
  */
 @ParametersAreNonnullByDefault
 public class FieldTarget implements IInjectionTarget {
@@ -32,10 +39,22 @@ public class FieldTarget implements IInjectionTarget {
     private final int nonStaticAccess;
     private final int staticAccess;
 
+    /**
+     * Create a target that matches both field reads and field writes.
+     */
     public FieldTarget() {
         this(-1, -1);
     }
 
+    /**
+     * Create a target restricted to specific access opcodes.
+     * <p>
+     * A value of {@code -1} disables that access kind. Both values must be {@code -1} to accept
+     * any access.
+     *
+     * @param nonStaticAccess The opcode for instance field access, or {@code -1} to disable it
+     * @param staticAccess    The opcode for static field access, or {@code -1} to disable it
+     */
     public FieldTarget(final int nonStaticAccess, final int staticAccess) {
         this.nonStaticAccess = nonStaticAccess;
         this.staticAccess = staticAccess;

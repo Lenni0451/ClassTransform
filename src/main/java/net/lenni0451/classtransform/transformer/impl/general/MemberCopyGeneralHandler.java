@@ -13,12 +13,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /**
  * Copy members from the transformer class to the transformed class.<br>
  * This also merges initializers.
+ * <p>
+ * The handler is registered twice: before the injection handlers it merges interfaces, fields and initializers, after them it merges the remaining methods.
  */
 @ParametersAreNonnullByDefault
 public class MemberCopyGeneralHandler extends AnnotationHandler {
 
     private final boolean pre;
 
+    /**
+     * Creates a new member copy handler.
+     *
+     * @param pre Whether to merge interfaces, fields and initializers instead of methods
+     */
     public MemberCopyGeneralHandler(final boolean pre) {
         this.pre = pre;
     }

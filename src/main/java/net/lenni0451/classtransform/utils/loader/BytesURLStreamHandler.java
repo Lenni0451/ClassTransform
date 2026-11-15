@@ -6,7 +6,10 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 /**
- * Util class to assist with in memory resources.
+ * Stream handler creating {@code x-buffer} URLs whose content is held in memory.
+ * <p>
+ * The handler is attached to the URL instance only. Such URLs cannot be reconstructed from their string
+ * form because the protocol is not registered with the JVM.
  */
 class BytesURLStreamHandler extends URLStreamHandler {
 

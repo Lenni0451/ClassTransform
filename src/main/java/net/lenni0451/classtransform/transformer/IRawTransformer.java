@@ -14,6 +14,10 @@ public interface IRawTransformer {
 
     /**
      * Transform the target class node.
+     * <p>
+     * Called in registration order for the classes this transformer was registered for, after bytecode transformers
+     * ran and before annotation handlers are applied. The returned node replaces the passed one for all subsequent
+     * transformers and must not be null; returning the passed node indicates no change.
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node

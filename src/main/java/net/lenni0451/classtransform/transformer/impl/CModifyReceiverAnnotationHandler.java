@@ -25,11 +25,16 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CModifyReceiver} annotation.
+ * Applies the {@link CModifyReceiver} annotation by replacing the receiver of selected non-static method calls and field accesses with the value returned by the transformer method.
+ * <p>
+ * Only virtual/interface calls, field accesses and non-constructor special calls on the transformed class or its super types are allowed. The handler receives the receiver followed by the operation arguments and must return the receiver type.
  */
 @ParametersAreNonnullByDefault
 public class CModifyReceiverAnnotationHandler extends InjectionAnnotationHandler<CModifyReceiver> {
 
+    /**
+     * Creates a handler that applies {@link CModifyReceiver} annotations.
+     */
     public CModifyReceiverAnnotationHandler() {
         super(CModifyReceiver.class, CModifyReceiver::method);
     }

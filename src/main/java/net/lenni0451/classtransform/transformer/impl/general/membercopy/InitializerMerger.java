@@ -10,8 +10,22 @@ import java.util.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * Merges the field initializers of a transformer class into the transformed class.
+ * <p>
+ * Initializers are grouped per field while scanning the transformer constructors and static initializer, then copied into the matching methods of the transformed class. Initializers for fields the transformed class already writes are inserted directly after the existing store, all others after the super constructor call of a constructor or at the start of the static initializer.
+ */
 public class InitializerMerger {
 
+    /**
+     * Copies the field initializers of the transformer to the transformed class.
+     * <p>
+     * Every transformer constructor must contain the same field initializers, otherwise the class cannot be transformed. The initializers are added to every constructor and to the static initializer of the transformed class, which is created when it does not exist yet.
+     *
+     * @param transformedClass The class receiving the initializers
+     * @param transformer      The transformer class providing the initializers
+     * @throws IllegalStateException If the transformer constructors have different field initializers or a field initializer writes a field of another class
+     */
     public static void mergeInitializers(ClassNode transformedClass, ClassNode transformer) {
         Map<String, InsnList> fieldInitializers = null;
         for (MethodNode method : transformer.methods) {

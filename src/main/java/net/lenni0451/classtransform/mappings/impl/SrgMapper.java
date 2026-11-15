@@ -13,7 +13,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A remapper that uses srg mappings for remapping.
+ * A remapper that reads an SRG mapping file.
+ * <p>
+ * The file may contain {@code CL:}, {@code FD:} and {@code MD:} lines, where the left side is the
+ * obfuscated name. Blank lines are skipped; any other line causes an {@link IllegalStateException}
+ * while loading.
  */
 @ParametersAreNonnullByDefault
 public class SrgMapper extends AMapper {
@@ -24,11 +28,24 @@ public class SrgMapper extends AMapper {
 
     private final IOSupplier<InputStream> mappingsSupplier;
 
+    /**
+     * Create an SRG mapper that reads {@code CL:}, {@code FD:} and {@code MD:} lines from the given stream.
+     *
+     * @param config         The mapper config
+     * @param mappingsStream The stream to read, closed after loading
+     */
     public SrgMapper(final MapperConfig config, @WillClose final InputStream mappingsStream) {
         super(config);
         this.mappingsSupplier = () -> mappingsStream;
     }
 
+    /**
+     * Create an SRG mapper that opens the {@code CL:}, {@code FD:} and {@code MD:} line file lazily when the
+     * mapper is first used.
+     *
+     * @param config       The mapper config
+     * @param mappingsFile The SRG mapping file to read
+     */
     public SrgMapper(final MapperConfig config, final File mappingsFile) {
         super(config);
         this.mappingsSupplier = () -> new FileInputStream(mappingsFile);

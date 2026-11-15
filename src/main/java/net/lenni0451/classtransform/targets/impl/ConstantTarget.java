@@ -38,6 +38,13 @@ import java.lang.reflect.Method;
  * e.g. {@code "int 1"} or {@code "String Hello World"}<br>
  * The constant type is case-insensitive.<br>
  * {@code "string "} matches the empty string and {@code "null false"} matches no constants.
+ * <p>
+ * The {@code expandZeroConditions=...} argument matches zero-comparison branches instead of constants.
+ * Supported conditions are {@code LESS_THAN_ZERO}, {@code GREATER_THAN_OR_EQUAL_TO_ZERO},
+ * {@code LESS_THAN_OR_EQUAL_TO_ZERO} and {@code GREATER_THAN_ZERO}. For {@code int 0}, explicit
+ * zero constants are matched as well unless {@code implicitZero=true} is given, and {@code log=true}
+ * prints the matches. The ordinal is applied to the matches in bytecode order; an out-of-range
+ * ordinal yields an empty list.
  */
 @ParametersAreNonnullByDefault
 public class ConstantTarget implements IInjectionTarget {

@@ -5,7 +5,10 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
 /**
- * Util class to assist with in memory resources.
+ * Read-only enumeration over a fixed array of URLs.
+ * <p>
+ * The array is not copied. {@link #nextElement()} throws a {@link NoSuchElementException} once all
+ * elements have been returned, and the enumeration is not thread-safe.
  */
 class URLEnumeration implements Enumeration<URL> {
 

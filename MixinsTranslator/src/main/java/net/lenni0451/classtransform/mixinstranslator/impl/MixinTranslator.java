@@ -7,6 +7,13 @@ import org.objectweb.asm.tree.AnnotationNode;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
+/**
+ * Translates Mixin's {@code @Mixin} into ClassTransform's {@link CTransformer}.
+ * <p>
+ * The Mixin {@code targets} become {@link CTransformer#name()}. Other values are left unchanged.
+ *
+ * @see CTransformer
+ */
 @ParametersAreNonnullByDefault
 class MixinTranslator implements AnnotationTranslator {
 

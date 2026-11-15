@@ -17,6 +17,8 @@ import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
  * The redirect target transformer for {@link Opcodes#NEW} instructions.
+ * <p>
+ * The constructor invocation is replaced by a call to the transformer method, which receives the constructor arguments and returns the replacement object. The references to the object created by the original {@code NEW} instruction are discarded, so the transformer method is responsible for creating the object. A return type which is not compatible with the constructed type causes a {@link TransformerException}.
  */
 @ParametersAreNonnullByDefault
 public class CRedirectNew implements IRedirectTarget {

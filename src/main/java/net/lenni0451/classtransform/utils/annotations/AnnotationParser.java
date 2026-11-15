@@ -56,7 +56,13 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     /**
-     * <b>Use {@link AnnotationUtils#listToMap(List)}.</b>
+     * Convert the flat value list of an ASM annotation node to a map.
+     * <p>
+     * The list is expected in the form {@code [name, value, name, value, ...]}.
+     *
+     * @param list The flat value list, may be {@code null}
+     * @return The converted map, empty if the list is {@code null}
+     * @deprecated Use {@link AnnotationUtils#listToMap(List)} instead.
      */
     @Deprecated
     public static Map<String, Object> listToMap(@Nullable final List<Object> list) {
@@ -64,7 +70,11 @@ public class AnnotationParser<T extends Annotation> {
     }
 
     /**
-     * <b>Use {@link AnnotationUtils#mapToList(Map)}.</b>
+     * Convert annotation values from a map to the flat list representation used by ASM.
+     *
+     * @param map The values to convert, may be {@code null}
+     * @return The flat list in the form {@code [name, value, name, value, ...]}, empty if the map is {@code null}
+     * @deprecated Use {@link AnnotationUtils#mapToList(Map)} instead.
      */
     @Deprecated
     public static List<Object> mapToList(@Nullable final Map<String, Object> map) {
@@ -80,6 +90,15 @@ public class AnnotationParser<T extends Annotation> {
     private List<String> initializedDefaultValues;
     private ClassNode node;
 
+    /**
+     * Create a parser for the given annotation type.
+     * <p>
+     * The class tree provides the super classes and the class provider the bytecode needed to write the generated annotation implementation.
+     *
+     * @param type          The annotation class to create instances of
+     * @param classTree     The class tree used to look up super classes
+     * @param classProvider The class provider used to load bytecode for stack frame calculation
+     */
     public AnnotationParser(final Class<T> type, final ClassTree classTree, final IClassProvider classProvider) {
         this.type = type;
         this.classTree = classTree;
@@ -88,9 +107,13 @@ public class AnnotationParser<T extends Annotation> {
 
     /**
      * Parse the given key value pairs to a new instance of the annotation.
+     * <p>
+     * Members missing from the map are filled with their annotation defaults, and the given map is then
+     * used as the live backing map of the returned instance.
      *
      * @param values The key value pairs
      * @return The new instance
+     * @throws IllegalStateException If the annotation instance cannot be created
      */
     public T parse(final Map<String, Object> values) {
         this.initDefaults(values);

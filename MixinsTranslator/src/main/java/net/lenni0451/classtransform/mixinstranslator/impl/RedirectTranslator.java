@@ -8,6 +8,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates Mixin's {@code @Redirect} into {@link CRedirect}.
+ * <p>
+ * The source {@code target} descriptor selectors move to {@code desc}, and the source {@code at}
+ * injection point moves to {@code target}. When the source explicitly sets {@code require} to a value
+ * of zero or less, the generated target is marked {@code optional}; the {@code require} member itself
+ * is also retained. Nested annotations are translated in place, and remaining members are copied.
+ *
+ * @see CRedirect
+ */
 @ParametersAreNonnullByDefault
 class RedirectTranslator implements AnnotationTranslator {
 

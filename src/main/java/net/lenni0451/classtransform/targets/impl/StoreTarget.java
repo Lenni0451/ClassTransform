@@ -17,6 +17,13 @@ import java.util.Map;
 /**
  * The injection target for variable stores used by {@code @CModifyVariable}.<br>
  * Like Mixin, the selected instruction is the instruction after the store.
+ * <p>
+ * Local variable store instructions from {@code ISTORE} to {@code ASTORE} are matched, and the
+ * following instruction is returned. Stores without a following instruction are skipped. The
+ * target value and descriptor are ignored. The target itself ignores the ordinal, but the ordinal
+ * is applied afterwards by the target resolver and selects among the returned instructions. The
+ * {@code @CModifyVariable} handler moves the ordinal into the target arguments instead, so it is
+ * not applied twice.
  */
 @ParametersAreNonnullByDefault
 public class StoreTarget implements IInjectionTarget {

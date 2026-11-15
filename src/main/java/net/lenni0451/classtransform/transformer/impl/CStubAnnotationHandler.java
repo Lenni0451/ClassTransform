@@ -15,9 +15,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Modifier;
 import java.util.function.BiConsumer;
 
+/**
+ * Applies the {@link CStub} annotation by replacing calls to the annotated static transformer method with generated field accesses or forwarding method calls.
+ * <p>
+ * The method signature must match either the field getter/setter or the stubbed method, including the optional owner parameter for non-static members. With member validation enabled, the referenced member must exist and agree with {@link CStub#access()}.
+ */
 @ParametersAreNonnullByDefault
 public class CStubAnnotationHandler extends RemovingAnnotationHandler<CStub> {
 
+    /**
+     * Creates a handler for the {@link CStub} annotation.
+     */
     public CStubAnnotationHandler() {
         super(CStub.class);
     }

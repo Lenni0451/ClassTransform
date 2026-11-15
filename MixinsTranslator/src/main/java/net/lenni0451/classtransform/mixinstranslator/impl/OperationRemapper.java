@@ -9,7 +9,15 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
- * Remap MixinExtras operation interfaces to the native ClassTransform operation interface.
+ * Remaps MixinExtras operation references to the native ClassTransform operation interface.
+ * <p>
+ * The class is scanned for {@code com/llamalad7/mixinextras/injector/wrapoperation/Operation} in
+ * generic signatures, field and method descriptors, and method instruction owners or descriptors. If
+ * none is found, the class is left untouched. Otherwise all references are remapped to
+ * {@code net/lenni0451/classtransform/operation/COperation} and the result is merged back into the
+ * supplied node.
+ * <p>
+ * This runs before annotation translation so translated operation wrappers use the native interface.
  */
 public class OperationRemapper {
 
@@ -18,6 +26,8 @@ public class OperationRemapper {
 
     /**
      * Remap all MixinExtras operation references in the given class.
+     * <p>
+     * If the class does not reference the operation interface, it is left unchanged.
      *
      * @param node The class to remap
      */

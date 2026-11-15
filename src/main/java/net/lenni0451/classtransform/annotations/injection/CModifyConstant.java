@@ -38,6 +38,10 @@ import java.lang.annotation.Target;
  *     return original + "!";
  * }
  * </pre>
+ * When using the flattened members or {@link #constants()}, at most one constant member may be set per selector;
+ * if none is set, zero condition expansion must imply an {@code int 0} selector.
+ * {@link #targets()} is an alternative and cannot be combined with those members.
+ * <p>
  * If your target has to be chosen more precisely you can use a {@link #slice()} to narrow down the search.
  *
  * @see CSlice
@@ -49,9 +53,10 @@ import java.lang.annotation.Target;
 public @interface CModifyConstant {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods whose constant loads are replaced.
+     * <p>
+     * Entries use the combined name and descriptor form and support wildcards, for example
+     * {@code load(I)I} or {@code load*}.
      *
      * @return The method name and descriptor
      */
@@ -60,7 +65,9 @@ public @interface CModifyConstant {
 
     /**
      * Multiple constant selectors for one transformer method.<br>
-     * If this is set, the flattened constant members on this annotation must not be used.
+     * If this is set, the flattened constant members on this annotation must not be used
+     * and each element may set at most one constant value member; if none is set, its
+     * {@link CConstant#expandZeroConditions()} must imply an {@code int 0} selector.
      *
      * @return The constant selectors
      */
@@ -70,6 +77,7 @@ public @interface CModifyConstant {
     /**
      * Explicit injection targets.<br>
      * This can be used to select constants with an {@code EXPRESSION} target.
+     * Explicit targets cannot be combined with flattened constant members or {@link #constants()}.
      *
      * @return The injection targets
      */
@@ -77,7 +85,9 @@ public @interface CModifyConstant {
     CTarget[] targets() default {};
 
     /**
-     * The ordinal of target constant.
+     * The ordinal of the target constant among all matches.
+     * A value of {@code -1} selects all matches.
+     * This is ignored when {@link #constants()} is used.
      *
      * @return The ordinal
      */
@@ -86,6 +96,8 @@ public @interface CModifyConstant {
     /**
      * Expand comparisons with zero to the matching conditional opcodes.<br>
      * The transformer method must return an int and take the original int constant as argument.
+     * If no constant member is set, this implies an {@code int 0} selector.
+     * This is ignored when {@link #constants()} or {@link #targets()} is used.
      *
      * @return The zero conditions to expand
      */
@@ -107,12 +119,19 @@ public @interface CModifyConstant {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices selectable by {@link CTarget#slice()} or {@link #sliceId()}, for example to
+     * restrict the flattened constant selector; every id must be unique within this annotation.
+     *
      * @return Additional named slices
      */
     @AnnotationRemap(RemapType.ANNOTATION)
     CSlice[] slices() default {};
 
     /**
+     * The id of the slice used by the flattened constant selector.
+     * This is only used when neither {@link #constants()} nor {@link #targets()} is set.
+     * An empty id uses the default slice.
+     *
      * @return The id of the slice to select
      */
     String sliceId() default "";
@@ -134,8 +153,9 @@ public @interface CModifyConstant {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.<br>
-     * The effective maximum is never lower than {@link #require()}.
+     * The maximum number of matched constants that may be modified.
+     * Values below one are treated as unlimited.
+     * The cap never drops below {@link #require()}.
      *
      * @return The maximum injection count
      */
@@ -150,6 +170,8 @@ public @interface CModifyConstant {
     int order() default 10000;
 
     /**
+     * Whether the method, constant and nested target selectors of this annotation should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;
@@ -247,63 +269,96 @@ public @interface CModifyConstant {
 
     /**
      * A single constant selector for {@link #constants()}.
+     * At most one constant value member may be set; if none is set,
+     * {@link #expandZeroConditions()} must imply an {@code int 0} selector.
      */
     @Retention(RetentionPolicy.CLASS)
     @Target({})
     @interface CConstant {
 
         /**
+         * Select {@code ACONST_NULL} as the target constant.
+         * The transformer method must return an object type and take no arguments.
+         *
          * @return If {@code ACONST_NULL} should be modified
          */
         boolean nullValue() default false;
 
         /**
+         * Select the given int constant.
+         * The transformer method must return an int and can optionally take an int as the first argument.
+         *
          * @return The int constant to modify
          */
         int intValue() default 0;
 
         /**
+         * Select the given long constant.
+         * The transformer method must return a long and can optionally take a long as the first argument.
+         *
          * @return The long constant to modify
          */
         long longValue() default 0L;
 
         /**
+         * Select the given float constant.
+         * The transformer method must return a float and can optionally take a float as the first argument.
+         *
          * @return The float constant to modify
          */
         float floatValue() default 0F;
 
         /**
+         * Select the given double constant.
+         * The transformer method must return a double and can optionally take a double as the first argument.
+         *
          * @return The double constant to modify
          */
         double doubleValue() default 0D;
 
         /**
+         * Select the given String constant.
+         * The transformer method must return a String and can optionally take a String as the first argument.
+         *
          * @return The String constant to modify
          */
         String stringValue() default "";
 
         /**
+         * Select the given class constant.
+         * The transformer method must return a class and can optionally take a class as the first argument.
+         *
          * @return The class constant to modify
          */
         @AnnotationRemap(RemapType.DESCRIPTOR)
         Class<?> typeValue() default Object.class;
 
         /**
+         * The ordinal of the target constant among all matches.
+         * A value of {@code -1} selects all matches.
+         *
          * @return The ordinal of the target constant
          */
         int ordinal() default -1;
 
         /**
+         * The id of the named slice to use for this selector.
+         * An empty id uses the default slice.
+         *
          * @return The id of the slice to use
          */
         String slice() default "";
 
         /**
+         * The comparisons with zero to expand for this selector.
+         *
          * @return The zero conditions to expand
          */
         Condition[] expandZeroConditions() default {};
 
         /**
+         * Whether verbose debug logging should be enabled while searching for this constant.
+         *
          * @return If debug logging should be enabled
          */
         boolean log() default false;

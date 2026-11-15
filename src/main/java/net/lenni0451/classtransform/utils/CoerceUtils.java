@@ -16,6 +16,8 @@ import java.util.Optional;
 public class CoerceUtils {
 
     /**
+     * Check whether a handler parameter is annotated with {@link CCoerce}.
+     *
      * @param method         The handler method
      * @param parameterIndex The handler parameter index
      * @return If the parameter is marked as coerced
@@ -29,6 +31,8 @@ public class CoerceUtils {
     }
 
     /**
+     * Check whether a handler return type is annotated with {@link CCoerce}.
+     *
      * @param method The handler method
      * @return If the return type is marked as coerced
      */
@@ -64,6 +68,8 @@ public class CoerceUtils {
     }
 
     /**
+     * Check whether a type is one of the int-like JVM types.
+     *
      * @param type The type
      * @return If the type is one of the int-like JVM types
      */

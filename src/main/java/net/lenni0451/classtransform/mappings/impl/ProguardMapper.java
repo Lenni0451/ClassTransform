@@ -15,7 +15,12 @@ import java.util.regex.Pattern;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
 /**
- * A remapper that uses a proguard mapping file for remapping.
+ * A remapper that reads a ProGuard mapping file.
+ * <p>
+ * The file must map original names to obfuscated names using {@code original -> obfuscated:} class
+ * lines and indented member lines. Line number information in method lines is ignored. Blank lines
+ * and lines starting with {@code #} are skipped; any other unrecognized line causes an
+ * {@link IllegalStateException} while loading.
  */
 @ParametersAreNonnullByDefault
 public class ProguardMapper extends AMapper {
@@ -26,11 +31,23 @@ public class ProguardMapper extends AMapper {
 
     private final IOSupplier<InputStream> mappingsSupplier;
 
+    /**
+     * Create a ProGuard mapper that reads {@code original -> obfuscated:} mapping text from the given stream.
+     *
+     * @param config         The mapper config
+     * @param mappingsStream The stream to read, closed after loading
+     */
     public ProguardMapper(final MapperConfig config, @WillClose final InputStream mappingsStream) {
         super(config);
         this.mappingsSupplier = () -> mappingsStream;
     }
 
+    /**
+     * Create a ProGuard mapper that opens the mapping text file lazily when the mapper is first used.
+     *
+     * @param config        The mapper config
+     * @param mappingsFile  The ProGuard mapping file to read
+     */
     public ProguardMapper(final MapperConfig config, final File mappingsFile) {
         super(config);
         this.mappingsSupplier = () -> new FileInputStream(mappingsFile);

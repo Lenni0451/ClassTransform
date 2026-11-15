@@ -7,6 +7,13 @@ import org.objectweb.asm.tree.AnnotationNode;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @Expression} into ClassTransform's {@link CExpression}.
+ * <p>
+ * The expression {@code value} and {@code id} are copied unchanged.
+ *
+ * @see CExpression
+ */
 @ParametersAreNonnullByDefault
 class ExpressionTranslator implements AnnotationTranslator {
 

@@ -11,6 +11,11 @@ import java.lang.reflect.Modifier;
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 import static net.lenni0451.classtransform.utils.Types.type;
 
+/**
+ * Condition wrapper for field reads.
+ * <p>
+ * The condition is evaluated before the field is read. When it returns {@code false}, the read is skipped and the default value of the field type is pushed instead. The transformer method receives the field owner as first argument for instance fields and no operation arguments for static fields; captured arguments of the enclosing method are appended after these arguments.
+ */
 public class CWrapConditionFieldRead implements IWrapConditionTarget<FieldInsnNode> {
 
     @Override

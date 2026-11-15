@@ -8,7 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Utils for the native local variable reference types.
+ * Utility methods for the native local variable reference types.
+ *
+ * <p>The class contains the fixed mapping from the reference classes in this package to the ASM type they represent:
+ * {@link CLocalBooleanRef}, {@link CLocalByteRef}, {@link CLocalCharRef}, {@link CLocalShortRef},
+ * {@link CLocalIntRef}, {@link CLocalLongRef}, {@link CLocalFloatRef} and {@link CLocalDoubleRef} map to their
+ * primitive type, while {@link CLocalRef} takes its type from the generic type argument of the transformer parameter.
+ * The mapping is registered once in a static map and never modified afterwards.
  */
 @ParametersAreNonnullByDefault
 public class LocalRefUtils {
@@ -27,6 +33,10 @@ public class LocalRefUtils {
     }
 
     /**
+     * Checks whether the given type is one of the native local variable reference types.
+     *
+     * <p>Only object types are considered; the check for {@link CLocalRef} does not inspect generic type arguments.
+     *
      * @param type The type to check
      * @return If the type is a native local variable reference type
      */
@@ -35,7 +45,9 @@ public class LocalRefUtils {
     }
 
     /**
-     * Get the type of the local variable a reference type points to.
+     * Gets the type of the local variable a reference type points to.
+     *
+     * <p>The primitive reference types ignore the type argument, so it may be {@code null} for them.
      *
      * @param refType      The reference type
      * @param typeArgument The generic type argument of {@link CLocalRef}

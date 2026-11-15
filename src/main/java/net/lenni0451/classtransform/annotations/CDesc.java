@@ -24,6 +24,8 @@ public @interface CDesc {
 
     /**
      * An identifier for this descriptor.
+     * A {@link CTarget#desc()} or other descriptor selector with an empty value can reference this id
+     * instead of restating the descriptor.
      *
      * @return The identifier
      */
@@ -60,7 +62,8 @@ public @interface CDesc {
     Class<?>[] args() default {};
 
     /**
-     * The next elements of this descriptor path.
+     * Lambda implementation methods reachable from this member.
+     * Each element selects implementations referenced by {@code invokedynamic} instructions in the previous method.
      *
      * @return The next descriptors
      */
@@ -68,6 +71,7 @@ public @interface CDesc {
 
     /**
      * The minimum number of matches required.
+     * A value of zero imposes no minimum.
      *
      * @return The minimum match count
      */
@@ -75,6 +79,7 @@ public @interface CDesc {
 
     /**
      * The maximum number of matches allowed.
+     * A value below one disables the upper bound.
      *
      * @return The maximum match count
      */
@@ -89,27 +94,39 @@ public @interface CDesc {
     @interface Next {
 
         /**
+         * The name of the lambda implementation method.
+         * An empty name accepts any implementation name.
+         *
          * @return The member name
          */
         String name() default "";
 
         /**
-         * @return The return or field type
+         * The return type of the lambda implementation method.
+         *
+         * @return The return type of the implementation method
          */
         @AnnotationRemap(RemapType.DESCRIPTOR)
         Class<?> ret() default void.class;
 
         /**
+         * The argument types of the lambda implementation method.
+         *
          * @return The argument types
          */
         Class<?>[] args() default {};
 
         /**
+         * The minimum number of implementations required.
+         *
          * @return The minimum match count
          */
         int min() default 0;
 
         /**
+         * The maximum number of implementations allowed.
+         * A value below one disables the upper bound.
+         *
          * @return The maximum match count
          */
         int max() default Integer.MAX_VALUE;

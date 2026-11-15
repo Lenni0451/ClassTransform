@@ -9,6 +9,13 @@ import java.util.regex.Pattern;
 
 import static net.lenni0451.classtransform.utils.log.Logger.resolve;
 
+/**
+ * Logger implementation that prints to {@link System#out} and {@link System#err}.
+ *
+ * <p>Informational messages go to the standard output stream, warnings and errors to the standard error stream. Every
+ * line is prefixed with the level in brackets, and a trailing {@link Throwable} is printed as a stack trace to the same
+ * stream. The streams are looked up on each call, so replacing {@code System.out} or {@code System.err} is honored.
+ */
 @ParametersAreNonnullByDefault
 public class SysoutLogger implements ILogger {
 
@@ -35,6 +42,17 @@ public class SysoutLogger implements ILogger {
         if (messageArgs.hasException()) messageArgs.getException().printStackTrace(System.err);
     }
 
+    /**
+     * Formats a message for output, substituting {@code {}} placeholders with the given arguments.
+     *
+     * <p>Only as many placeholders are replaced as there are arguments; a remaining {@code {}} stays in the text.
+     * Arguments must not be {@code null}, as they are converted with {@link Object#toString()}.
+     *
+     * @param level   The level prefix to put in brackets
+     * @param message The message to format
+     * @param args    The arguments for the placeholders
+     * @return The formatted line, without a trailing line separator
+     */
     protected String format(final String level, final String message, final Object[] args) {
         StringBuffer builder = new StringBuffer();
         builder.append("[").append(level).append("] ");

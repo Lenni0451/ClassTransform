@@ -7,6 +7,9 @@ import org.objectweb.asm.tree.*;
 
 import static net.lenni0451.classtransform.utils.Types.*;
 
+/**
+ * Rewrites {@link InjectionCallback} usages to plain object arrays for environments where the callback class is unavailable.
+ */
 public class InjectionCallbackReplacer {
 
     /**

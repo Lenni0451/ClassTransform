@@ -18,6 +18,10 @@ import java.util.*;
 
 /**
  * Resolve local variables for {@link CLocalVariable} parameters at a specific injection point.
+ * <p>
+ * Only variables whose scope contains the instruction index are considered when a local variable table is present.
+ * Without one, the available locals are inferred from the method parameters and preceding store instructions. The
+ * lookup is shared with other handlers that need to capture or modify locals.
  */
 @ParametersAreNonnullByDefault
 public class LocalVariableLookup {
@@ -123,6 +127,18 @@ public class LocalVariableLookup {
         return locals;
     }
 
+    /**
+     * Log all local variables in scope at the given instruction.
+     * <p>
+     * When no local variable table is present, the inferred indices and types are logged instead. Printing does not
+     * modify the method.
+     *
+     * @param transformedClass The transformed class, used for type inference
+     * @param targetMethod     The target method
+     * @param position         The instruction index
+     * @param targetType       The expected type, or null to omit it from the output
+     * @param argsOnly         If only method arguments should be listed
+     */
     public static void print(final ClassNode transformedClass, final MethodNode targetMethod, final int position, final Type targetType, final boolean argsOnly) {
         Logger.info("Local variables at {}.{}{} (instruction {}):", transformedClass.name, targetMethod.name, targetMethod.desc, position);
         List<Candidate> candidates = getInScope(targetMethod, position, argsOnly);
@@ -343,6 +359,12 @@ public class LocalVariableLookup {
     }
 
 
+    /**
+     * A local variable resolved at an injection point.
+     * <p>
+     * Instances are created by the lookup methods and expose the slot index and type needed to load or store the
+     * variable.
+     */
     public static class Local {
 
         private final int index;
@@ -353,10 +375,20 @@ public class LocalVariableLookup {
             this.type = candidate.type;
         }
 
+        /**
+         * Get the local variable slot index.
+         *
+         * @return The slot index
+         */
         public int getIndex() {
             return this.index;
         }
 
+        /**
+         * Get the local variable type.
+         *
+         * @return The ASM type
+         */
         public Type getType() {
             return this.type;
         }

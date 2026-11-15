@@ -8,6 +8,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @Expressions} into ClassTransform's {@link CExpressions}.
+ * <p>
+ * The contained expressions are translated one by one with the translator registered for {@code @Expression}.
+ *
+ * @see CExpressions
+ * @see ExpressionTranslator
+ */
 @ParametersAreNonnullByDefault
 class ExpressionsTranslator implements AnnotationTranslator {
 

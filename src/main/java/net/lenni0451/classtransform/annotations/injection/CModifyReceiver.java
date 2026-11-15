@@ -46,9 +46,10 @@ import java.lang.annotation.Target;
 public @interface CModifyReceiver {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods that contain the receiver operations to change.
+     * <p>
+     * Each selector combines the method name and descriptor and may contain wildcards, for example
+     * {@code call(Ljava/lang/Object;)V} or {@code call*}.
      *
      * @return The method name and descriptor
      */
@@ -73,6 +74,9 @@ public @interface CModifyReceiver {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices for locating the receiver operation, selectable by {@link CTarget#slice()};
+     * each slice id occurs once.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -95,8 +99,9 @@ public @interface CModifyReceiver {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.<br>
-     * The effective maximum is never lower than {@link #require()}.
+     * The maximum number of receiver operations that may be modified.
+     * Values below one disable the upper bound.
+     * It is never set lower than {@link #require()}.
      *
      * @return The maximum injection count
      */
@@ -111,6 +116,8 @@ public @interface CModifyReceiver {
     int order() default 1000;
 
     /**
+     * Whether the receiver and target selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

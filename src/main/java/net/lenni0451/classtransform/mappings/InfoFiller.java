@@ -27,6 +27,25 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 class InfoFiller {
 
+    /**
+     * Resolve the short member selectors of an annotation into concrete names and descriptors.
+     * <p>
+     * A {@code String} value must resolve to exactly one member. An empty {@code String[]} is filled
+     * with all members matching the transformer member name and descriptor, while non-empty arrays are
+     * expanded per selector. Unresolved selectors are kept when the annotation declares aliases; array
+     * selectors are also kept when the annotation is an {@link InjectionType} with a {@code require}
+     * value, so the injection can fail later.
+     *
+     * @param remapper    The remapper used to translate the selectors, may be empty
+     * @param holder      The annotated method or field node
+     * @param remap       The remap configuration of the annotation method
+     * @param method      The annotation method being filled
+     * @param values      The mutable annotation values
+     * @param target      The transformed class
+     * @param transformer The transformer class
+     * @throws MethodNotFoundException If a method selector cannot be resolved
+     * @throws FieldNotFoundException  If a field selector cannot be resolved
+     */
     static void fillInfo(final MapRemapper remapper, final Object holder, final AnnotationRemap remap, final Method method, final Map<String, Object> values, final ClassNode target, final ClassNode transformer) {
         if (remap.fill().equals(FillType.SKIP)) return;
 

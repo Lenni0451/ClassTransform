@@ -12,6 +12,10 @@ import java.util.function.Supplier;
 
 /**
  * A list of {@link IAnnotationCoprocessor} used to track the state of the transformation as every coprocessor can only be used once.
+ * <p>
+ * Coprocessors are registered lazily and instantiated by {@link #build()} in registration order. A built list runs one
+ * preprocessing and one postprocessing cycle and is then closed, so a new list must be built for every handler
+ * invocation.
  */
 public class AnnotationCoprocessorList {
 
@@ -19,6 +23,9 @@ public class AnnotationCoprocessorList {
     private final List<IAnnotationCoprocessor> coprocessors;
     private State state;
 
+    /**
+     * Create an empty, open coprocessor list.
+     */
     public AnnotationCoprocessorList() {
         this(new ArrayList<>(), null, State.OPEN);
     }
@@ -40,6 +47,8 @@ public class AnnotationCoprocessorList {
 
     /**
      * Add a new coprocessor to the list.
+     * <p>
+     * Coprocessors are instantiated only when {@link #build()} is called.
      *
      * @param coprocessorSupplier The supplier of the coprocessor
      */
@@ -49,7 +58,13 @@ public class AnnotationCoprocessorList {
     }
 
     /**
+     * Create a new built list with one instance of every registered coprocessor.
+     * <p>
+     * The new list is used for one preprocessing and postprocessing cycle. This list keeps its registered suppliers and
+     * can build further lists.
+     *
      * @return A built list of coprocessors
+     * @throws IllegalStateException If the list is not open
      */
     public AnnotationCoprocessorList build() {
         this.expect(State.OPEN);
@@ -61,6 +76,10 @@ public class AnnotationCoprocessorList {
     /**
      * Preprocess the transformer method before the annotation handler injects calls to the target method.<br>
      * This happens before the transformer method is verified by the annotation handler.
+     * <p>
+     * {@link IAnnotationCoprocessor#preprocess} is called in registration order, followed by
+     * {@link IAnnotationCoprocessor#transform} in reverse registration order. The returned node replaces the passed
+     * one.
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node
@@ -68,6 +87,7 @@ public class AnnotationCoprocessorList {
      * @param transformer        The transformer class node
      * @param transformerMethod  The transformer method node
      * @return The preprocessed method node
+     * @throws IllegalStateException If the list was not built or was already used
      */
     public MethodNode preprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final ClassNode transformer, MethodNode transformerMethod) {
         this.expect(State.BUILT, State.USED);
@@ -84,6 +104,8 @@ public class AnnotationCoprocessorList {
     /**
      * Postprocess the transformer and target method after the annotation handler injected calls to the target method.<br>
      * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.
+     * <p>
+     * Coprocessors are called in registration order. The list is closed afterward and cannot be reused.
      *
      * @param transformerManager     The transformer manager
      * @param transformedClass       The target class node
@@ -91,6 +113,7 @@ public class AnnotationCoprocessorList {
      * @param transformerMethodCalls The list of calls to the transformer method
      * @param transformer            The transformer class node
      * @param transformerMethod      The transformer method node
+     * @throws IllegalStateException If {@link #preprocess} was not called on this list
      */
     public void postprocess(final TransformerManager transformerManager, final ClassNode transformedClass, final MethodNode transformedMethod, final List<MethodInsnNode> transformerMethodCalls, final ClassNode transformer, final MethodNode transformerMethod) {
         this.expect(State.USED, State.CLOSED);

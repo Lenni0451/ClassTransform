@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 public @interface CDefinitions {
 
     /**
+     * The repeated definitions in declaration order.
+     *
      * @return The repeated definitions
      */
     CDefinition[] value();

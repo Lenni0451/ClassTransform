@@ -10,6 +10,9 @@ import net.lenni0451.classtransform.mappings.MapperConfig;
  */
 public class VoidMapper extends AMapper {
 
+    /**
+     * Create a new void mapper with the default config.
+     */
     public VoidMapper() {
         super(MapperConfig.create());
     }

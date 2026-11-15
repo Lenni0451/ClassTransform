@@ -10,15 +10,19 @@ import java.util.List;
 
 /**
  * Detect array literals by finding the stores which initialize a created array.
+ * A literal is only reported if the array size is a constant and the first {@code size} consumers of the array
+ * are stores covering every index in order, which is how the compiler emits {@code new Type[]{...}}.
  */
 @ParametersAreNonnullByDefault
 public class NewArrayPostProcessor {
 
     /**
-     * Get the creation information of an array.
+     * Returns the creation information of an array initialized by constant-index stores.
      *
      * @param node The array creation value
-     * @return The creation information or null if the array is not initialized with constant indices
+     * @return The creation information, or null if the value is complex or not a {@code NEWARRAY}/{@code ANEWARRAY}
+     *         creation, the size is not an int constant, or the array is not initialized by stores at indices
+     *         {@code 0} to {@code size - 1}
      */
     @Nullable
     public static ArrayCreationInfo getInfo(final ExpressionFlow.FlowValue node) {

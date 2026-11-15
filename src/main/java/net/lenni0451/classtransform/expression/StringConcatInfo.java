@@ -147,6 +147,11 @@ public class StringConcatInfo {
     }
 
     /**
+     * Returns the concatenated parts in evaluation order.
+     * <p>
+     * For invokedynamic concatenations, constant template parts are reported as synthetic {@code LDC} values
+     * which are not present in the method. The returned list is the internal list, not a copy.
+     *
      * @return The parts of the concatenation in order
      */
     public List<ExpressionFlow.FlowValue> getParts() {

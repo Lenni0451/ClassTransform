@@ -11,31 +11,92 @@ import java.util.List;
 
 /**
  * The expression AST used by the expression engine.
+ * Every node is a small matcher for one shape of the value flow graph, from literals and wildcards over member
+ * and array accesses to operators and assignments. Nodes are immutable and keep the {@link ExpressionSource}
+ * range they were parsed from; matching is done by {@link #matches(ExpressionFlow.FlowValue, ExpressionContext)}
+ * and capturing by {@link #capture(ExpressionFlow.FlowValue, ExpressionContext)}.
  */
 @ParametersAreNonnullByDefault
 public abstract class ExpressionAst implements Expression {
 
+    /**
+     * The range of the expression string this node was parsed from.
+     */
     protected final ExpressionSource src;
 
+    /**
+     * Creates a node for the given source range.
+     *
+     * @param src the range in the expression string
+     */
     protected ExpressionAst(final ExpressionSource src) {
         this.src = src;
     }
 
+    /**
+     * Returns the range of the expression string this node was parsed from.
+     *
+     * @return the source range of this node
+     */
     public ExpressionSource getSource() {
         return this.src;
     }
 
+    /**
+     * Tests if the given value satisfies this node.
+     * <p>
+     * Implementations only inspect the value graph and normally record no captures;
+     * {@link #capture(ExpressionFlow.FlowValue, ExpressionContext)} must be called after a successful match.
+     * The exception is {@link CapturingExpression}, which captures its inner expression while matching. Complex
+     * values are rejected unless the node is a wildcard.
+     *
+     * @param node the value to match
+     * @param ctx  the context of the current match
+     * @return whether the value satisfies this node
+     */
     public abstract boolean matches(ExpressionFlow.FlowValue node, ExpressionContext ctx);
 
+    /**
+     * Captures the instruction which produced the given value.
+     * <p>
+     * Records the value type and, for operations with a receiver or arguments, their types. Complex values are
+     * ignored.
+     *
+     * @param node the matched value
+     * @param ctx  the context to add the capture to
+     */
     public void capture(final ExpressionFlow.FlowValue node, final ExpressionContext ctx) {
         if (node.isComplex()) return;
         ctx.capture(node, this, node.getType(), null, new Type[0], null, null, false);
     }
 
+    /**
+     * Matches all inputs of a value against the given expressions.
+     * <p>
+     * The number of expressions has to equal the number of inputs. Complex values never match.
+     *
+     * @param node   the value whose inputs are matched
+     * @param ctx    the context of the current match
+     * @param values the expressions for the inputs, in input order
+     * @return whether every input matches its expression
+     */
     protected boolean inputsMatch(final ExpressionFlow.FlowValue node, final ExpressionContext ctx, final Expression... values) {
         return this.inputsMatch(node, ctx, false, values);
     }
 
+    /**
+     * Matches the inputs of a value against the given expressions.
+     * <p>
+     * By default the number of expressions has to equal the number of inputs; if {@code allowIncomplete} is
+     * set, a shorter expression list matches the first inputs and the remaining ones are ignored. Complex values
+     * never match.
+     *
+     * @param node            the value whose inputs are matched
+     * @param ctx             the context of the current match
+     * @param allowIncomplete whether more inputs than expressions are allowed
+     * @param values          the expressions for the inputs, in input order
+     * @return whether every matched input satisfies its expression
+     */
     protected boolean inputsMatch(final ExpressionFlow.FlowValue node, final ExpressionContext ctx, final boolean allowIncomplete, final Expression... values) {
         if (node.isComplex()) return false;
         int required = node.inputCount();
@@ -46,10 +107,25 @@ public abstract class ExpressionAst implements Expression {
         return true;
     }
 
+    /**
+     * Tests if a value is the {@code null} constant.
+     *
+     * @param node the value to test
+     * @return whether the value was produced by {@code ACONST_NULL}
+     */
     protected static boolean matchesNull(final ExpressionFlow.FlowValue node) {
         return !node.isComplex() && node.getInsn().getOpcode() == Opcodes.ACONST_NULL;
     }
 
+    /**
+     * Returns the compile-time constant pushed by an instruction.
+     * <p>
+     * Supports the primitive constant instructions, {@code BIPUSH}, {@code SIPUSH} and {@code LDC} (including
+     * non-numeric constants such as strings and types).
+     *
+     * @param insn the instruction
+     * @return the pushed constant, or null if the instruction does not push a constant
+     */
     @Nullable
     protected static Object getConstant(final AbstractInsnNode insn) {
         switch (insn.getOpcode()) {
@@ -76,9 +152,20 @@ public abstract class ExpressionAst implements Expression {
     }
 
 
+    /**
+     * A capturing expression such as {@code @(?)}.
+     * Matches its inner expression and records the captures of the inner expression instead of itself, allowing
+     * a sub-operation of a larger expression to be selected as injection target.
+     */
     public static class CapturingExpression extends ExpressionAst {
         private final Expression inner;
 
+        /**
+         * Creates a capturing expression.
+         *
+         * @param src   the range of the {@code @(...)} expression
+         * @param inner the expression whose captures should be recorded
+         */
         public CapturingExpression(final ExpressionSource src, final Expression inner) {
             super(src);
             this.inner = inner;
@@ -91,12 +178,26 @@ public abstract class ExpressionAst implements Expression {
             return true;
         }
 
+        /**
+         * Returns the wrapped expression.
+         *
+         * @return the expression whose captures are recorded
+         */
         public Expression getInner() {
             return this.inner;
         }
     }
 
+    /**
+     * The wildcard expression {@code ?}.
+     * Matches every value, including values merged from multiple branches.
+     */
     public static class WildcardExpression extends ExpressionAst {
+        /**
+         * Creates a wildcard expression.
+         *
+         * @param src the range of the {@code ?} token
+         */
         public WildcardExpression(final ExpressionSource src) {
             super(src);
         }
@@ -107,7 +208,16 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * The {@code this} expression.
+     * Matches a load of local variable 0, i.e. the receiver of an instance method.
+     */
     public static class ThisExpression extends ExpressionAst {
+        /**
+         * Creates a {@code this} expression.
+         *
+         * @param src the range of the {@code this} token
+         */
         public ThisExpression(final ExpressionSource src) {
             super(src);
         }
@@ -120,9 +230,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An integer literal such as {@code 42} or {@code 0x2A}.
+     * Matches numeric constants with an equal value.
+     */
     public static class IntLiteralExpression extends ExpressionAst {
         private final long value;
 
+        /**
+         * Creates an integer literal.
+         *
+         * @param src   the range of the literal
+         * @param value the literal value
+         */
         public IntLiteralExpression(final ExpressionSource src, final long value) {
             super(src);
             this.value = value;
@@ -141,9 +261,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A floating-point literal such as {@code 1.5}.
+     * Matches numeric constants with an equal floating-point value.
+     */
     public static class DecimalLiteralExpression extends ExpressionAst {
         private final double value;
 
+        /**
+         * Creates a decimal literal.
+         *
+         * @param src   the range of the literal
+         * @param value the literal value
+         */
         public DecimalLiteralExpression(final ExpressionSource src, final double value) {
             super(src);
             this.value = value;
@@ -157,9 +287,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A string literal such as {@code 'text'}.
+     * Matches an {@code LDC} instruction pushing an equal string.
+     */
     public static class StringLiteralExpression extends ExpressionAst {
         private final String value;
 
+        /**
+         * Creates a string literal.
+         *
+         * @param src   the range of the literal
+         * @param value the unescaped literal value without quotes
+         */
         public StringLiteralExpression(final ExpressionSource src, final String value) {
             super(src);
             this.value = value;
@@ -172,9 +312,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * The {@code true} or {@code false} literal.
+     * Matches numeric constants which are non-zero for {@code true} and zero for {@code false}.
+     */
     public static class BooleanLiteralExpression extends ExpressionAst {
         private final boolean value;
 
+        /**
+         * Creates a boolean literal.
+         *
+         * @param src   the range of the literal
+         * @param value the literal value
+         */
         public BooleanLiteralExpression(final ExpressionSource src, final boolean value) {
             super(src);
             this.value = value;
@@ -188,7 +338,16 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * The {@code null} literal.
+     * Matches an {@code ACONST_NULL} instruction.
+     */
     public static class NullLiteralExpression extends ExpressionAst {
+        /**
+         * Creates a {@code null} literal.
+         *
+         * @param src the range of the {@code null} token
+         */
         public NullLiteralExpression(final ExpressionSource src) {
             super(src);
         }
@@ -204,9 +363,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A class constant such as {@code String.class}.
+     * Matches an {@code LDC} of a type whose class matches the type identifier.
+     */
     public static class ClassConstantExpression extends ExpressionAst {
         private final TypeIdentifier type;
 
+        /**
+         * Creates a class constant expression.
+         *
+         * @param src  the range of the {@code .class} expression
+         * @param type the expected type
+         */
         public ClassConstantExpression(final ExpressionSource src, final TypeIdentifier type) {
             super(src);
             this.type = type;
@@ -220,9 +389,20 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A reference to a declared member by its identifier.
+     * The identifier is resolved through the {@link ExpressionIdentifiers} of the context, so it can match
+     * methods, fields and local variables depending on the {@code @CDefinition}.
+     */
     public static class IdentifierExpression extends ExpressionAst {
         private final String identifier;
 
+        /**
+         * Creates an identifier reference.
+         *
+         * @param src        the range of the identifier token
+         * @param identifier the declared identifier name
+         */
         public IdentifierExpression(final ExpressionSource src, final String identifier) {
             super(src);
             this.identifier = identifier;
@@ -233,15 +413,31 @@ public abstract class ExpressionAst implements Expression {
             return ctx.getIdentifiers().matchesMember(this.identifier, node);
         }
 
+        /**
+         * Returns the referenced identifier.
+         *
+         * @return the identifier name
+         */
         public String getIdentifier() {
             return this.identifier;
         }
     }
 
+    /**
+     * A field read such as {@code receiver.member}.
+     * Matches {@code GETFIELD} with a matching receiver and {@code GETSTATIC} without inputs.
+     */
     public static class MemberAccessExpression extends ExpressionAst {
         private final Expression receiver;
         private final MemberName member;
 
+        /**
+         * Creates a field read.
+         *
+         * @param src      the range of the member access
+         * @param receiver the expression matching the receiver instance
+         * @param member   the field name matcher
+         */
         public MemberAccessExpression(final ExpressionSource src, final Expression receiver, final MemberName member) {
             super(src);
             this.receiver = receiver;
@@ -267,20 +463,43 @@ public abstract class ExpressionAst implements Expression {
             ctx.capture(node, this, Type.getType(field.desc), field.getOpcode() == Opcodes.GETFIELD ? Type.getObjectType(field.owner) : null, new Type[0], null, null, false);
         }
 
+        /**
+         * Returns the expression matching the receiver instance.
+         *
+         * @return the receiver expression
+         */
         public Expression getReceiver() {
             return this.receiver;
         }
 
+        /**
+         * Returns the field name matcher.
+         *
+         * @return the member matcher
+         */
         public MemberName getMember() {
             return this.member;
         }
     }
 
+    /**
+     * An instance method call such as {@code receiver.member(args)}.
+     * Matches a non-constructor method call with a matching receiver, member name and arguments; static calls
+     * are handled by {@link StaticMethodCallExpression}.
+     */
     public static class MethodCallExpression extends ExpressionAst {
         private final Expression receiver;
         private final MemberName member;
         private final List<Expression> arguments;
 
+        /**
+         * Creates an instance method call.
+         *
+         * @param src       the range of the call
+         * @param receiver  the expression matching the receiver instance
+         * @param member    the method name matcher
+         * @param arguments the expressions matching the arguments, in order
+         */
         public MethodCallExpression(final ExpressionSource src, final Expression receiver, final MemberName member, final List<Expression> arguments) {
             super(src);
             this.receiver = receiver;
@@ -314,10 +533,21 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A static method call such as {@code member(args)}.
+     * Matches an {@code INVOKESTATIC} instruction with a matching member name and arguments.
+     */
     public static class StaticMethodCallExpression extends ExpressionAst {
         private final MemberName member;
         private final List<Expression> arguments;
 
+        /**
+         * Creates a static method call.
+         *
+         * @param src       the range of the call
+         * @param member    the method name matcher
+         * @param arguments the expressions matching the arguments, in order
+         */
         public StaticMethodCallExpression(final ExpressionSource src, final MemberName member, final List<Expression> arguments) {
             super(src);
             this.member = member;
@@ -345,10 +575,22 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A super method call such as {@code super.member(args)}.
+     * Matches an {@code INVOKESPECIAL} non-constructor call; the receiver is the first input and is not matched
+     * against an expression.
+     */
     public static class SuperCallExpression extends ExpressionAst {
         private final MemberName member;
         private final List<Expression> arguments;
 
+        /**
+         * Creates a super method call.
+         *
+         * @param src       the range of the call
+         * @param member    the method name matcher
+         * @param arguments the expressions matching the arguments, in order
+         */
         public SuperCallExpression(final ExpressionSource src, final MemberName member, final List<Expression> arguments) {
             super(src);
             this.member = member;
@@ -377,10 +619,23 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A method reference with an explicit receiver such as {@code receiver::member}.
+     * For bound references the receiver is matched against the first lambda input with synthetic null checks
+     * removed. For free references such as {@code Type::method} the receiver has to be an identifier naming a
+     * type which matches the implementation owner.
+     */
     public static class BoundMethodReferenceExpression extends ExpressionAst {
         private final Expression receiver;
         private final MemberName member;
 
+        /**
+         * Creates a method reference with receiver.
+         *
+         * @param src      the range of the method reference
+         * @param receiver the expression matching the bound receiver or naming the declaring type
+         * @param member   the method name matcher
+         */
         public BoundMethodReferenceExpression(final ExpressionSource src, final Expression receiver, final MemberName member) {
             super(src);
             this.receiver = receiver;
@@ -403,9 +658,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A free method reference such as {@code ::member}.
+     * Matches a lambda whose implementation is an unbound instance or static method.
+     */
     public static class FreeMethodReferenceExpression extends ExpressionAst {
         private final MemberName member;
 
+        /**
+         * Creates a free method reference.
+         *
+         * @param src    the range of the method reference
+         * @param member the method name matcher
+         */
         public FreeMethodReferenceExpression(final ExpressionSource src, final MemberName member) {
             super(src);
             this.member = member;
@@ -419,9 +684,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A constructor reference such as {@code Type::new}.
+     * Matches a lambda which instantiates the given type.
+     */
     public static class ConstructorReferenceExpression extends ExpressionAst {
         private final TypeIdentifier type;
 
+        /**
+         * Creates a constructor reference.
+         *
+         * @param src  the range of the constructor reference
+         * @param type the instantiated type
+         */
         public ConstructorReferenceExpression(final ExpressionSource src, final TypeIdentifier type) {
             super(src);
             this.type = type;
@@ -435,10 +710,22 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An instantiation such as {@code new Type(args)}.
+     * Matches a constructor call whose first input is an uninitialized {@code NEW} value of the expected type;
+     * the remaining inputs are matched against the constructor arguments.
+     */
     public static class InstantiationExpression extends ExpressionAst {
         private final TypeIdentifier type;
         private final List<Expression> arguments;
 
+        /**
+         * Creates an instantiation expression.
+         *
+         * @param src       the range of the {@code new} expression
+         * @param type      the instantiated type
+         * @param arguments the expressions matching the constructor arguments, in order
+         */
         public InstantiationExpression(final ExpressionSource src, final TypeIdentifier type, final List<Expression> arguments) {
             super(src);
             this.type = type;
@@ -468,11 +755,24 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An array creation with explicit dimensions such as {@code new Type[dim][]}.
+     * Matches {@code NEWARRAY}, {@code ANEWARRAY} and {@code MULTIANEWARRAY}; the specified dimensions are
+     * matched against the inputs of the creation instruction.
+     */
     public static class NewArrayExpression extends ExpressionAst {
         private final TypeIdentifier innerType;
         private final List<Expression> dimensions;
         private final int blankDimensions;
 
+        /**
+         * Creates an array creation expression.
+         *
+         * @param src            the range of the {@code new} expression
+         * @param innerType      the type of the innermost element
+         * @param dimensions     the expressions matching the dimensions with a size, in order
+         * @param blankDimensions the number of trailing dimensions without a size
+         */
         public NewArrayExpression(final ExpressionSource src, final TypeIdentifier innerType, final List<Expression> dimensions, final int blankDimensions) {
             super(src);
             this.innerType = innerType;
@@ -558,10 +858,22 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An array literal such as {@code new Type[]{value, ...}}.
+     * Requires the array to be created with a constant size and initialized by constant-index stores, as
+     * detected by {@link NewArrayPostProcessor}; the values are matched against the stored values in index order.
+     */
     public static class ArrayLiteralExpression extends ExpressionAst {
         private final TypeIdentifier elementType;
         private final List<Expression> values;
 
+        /**
+         * Creates an array literal.
+         *
+         * @param src         the range of the {@code new} expression
+         * @param elementType the expected element type
+         * @param values      the expressions matching the elements, in index order
+         */
         public ArrayLiteralExpression(final ExpressionSource src, final TypeIdentifier elementType, final List<Expression> values) {
             super(src);
             this.elementType = elementType;
@@ -600,10 +912,21 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An array element read such as {@code array[index]}.
+     * Matches any of the typed array load instructions.
+     */
     public static class ArrayAccessExpression extends ExpressionAst {
         private final Expression array;
         private final Expression index;
 
+        /**
+         * Creates an array access.
+         *
+         * @param src   the range of the access
+         * @param array the expression matching the array
+         * @param index the expression matching the index
+         */
         public ArrayAccessExpression(final ExpressionSource src, final Expression array, final Expression index) {
             super(src);
             this.array = array;
@@ -625,20 +948,42 @@ public abstract class ExpressionAst implements Expression {
             ctx.capture(node, this, ExpressionTypes.getInnerType(arrayType), null, new Type[]{arrayType, Type.INT_TYPE}, null, null, false);
         }
 
+        /**
+         * Returns the expression matching the array.
+         *
+         * @return the array expression
+         */
         public Expression getArray() {
             return this.array;
         }
 
+        /**
+         * Returns the expression matching the index.
+         *
+         * @return the index expression
+         */
         public Expression getIndex() {
             return this.index;
         }
     }
 
+    /**
+     * An array element write such as {@code array[index] = value}.
+     * Matches any of the typed array store instructions with array, index and value as inputs.
+     */
     public static class ArrayStoreExpression extends ExpressionAst {
         private final Expression array;
         private final Expression index;
         private final Expression value;
 
+        /**
+         * Creates an array store.
+         *
+         * @param src   the range of the assignment
+         * @param array the expression matching the array
+         * @param index the expression matching the index
+         * @param value the expression matching the stored value
+         */
         public ArrayStoreExpression(final ExpressionSource src, final Expression array, final Expression index, final Expression value) {
             super(src);
             this.array = array;
@@ -658,11 +1003,24 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A binary arithmetic or bitwise operation such as {@code left + right}.
+     * Matches instructions with two inputs; a plus expression additionally matches string concatenation chains
+     * and increments ({@code IINC}).
+     */
     public static class BinaryExpression extends ExpressionAst {
         private final Expression left;
         private final Operator operator;
         private final Expression right;
 
+        /**
+         * Creates a binary expression.
+         *
+         * @param src      the range of the operator
+         * @param left     the expression matching the left operand
+         * @param operator the operator
+         * @param right    the expression matching the right operand
+         */
         public BinaryExpression(final ExpressionSource src, final Expression left, final Operator operator, final Expression right) {
             super(src);
             this.left = left;
@@ -721,17 +1079,53 @@ public abstract class ExpressionAst implements Expression {
         }
 
 
+        /**
+         * The binary operators supported by the expression language.
+         */
         public enum Operator {
+            /**
+             * Addition; also used for string concatenation and increment matches.
+             */
             PLUS(Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD),
+            /**
+             * Subtraction.
+             */
             MINUS(Opcodes.ISUB, Opcodes.LSUB, Opcodes.FSUB, Opcodes.DSUB),
+            /**
+             * Multiplication.
+             */
             MULT(Opcodes.IMUL, Opcodes.LMUL, Opcodes.FMUL, Opcodes.DMUL),
+            /**
+             * Division.
+             */
             DIV(Opcodes.IDIV, Opcodes.LDIV, Opcodes.FDIV, Opcodes.DDIV),
+            /**
+             * Remainder.
+             */
             MOD(Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM),
+            /**
+             * Left shift for int and long values.
+             */
             SHL(Opcodes.ISHL, Opcodes.LSHL),
+            /**
+             * Arithmetic right shift for int and long values.
+             */
             SHR(Opcodes.ISHR, Opcodes.LSHR),
+            /**
+             * Unsigned right shift for int and long values.
+             */
             USHR(Opcodes.IUSHR, Opcodes.LUSHR),
+            /**
+             * Bitwise and.
+             */
             BITWISE_AND(Opcodes.IAND, Opcodes.LAND),
+            /**
+             * Bitwise xor.
+             */
             BITWISE_XOR(Opcodes.IXOR, Opcodes.LXOR),
+            /**
+             * Bitwise or.
+             */
             BITWISE_OR(Opcodes.IOR, Opcodes.LOR);
 
             private final int[] opcodes;
@@ -740,6 +1134,12 @@ public abstract class ExpressionAst implements Expression {
                 this.opcodes = opcodes;
             }
 
+            /**
+             * Tests if the given opcode performs this operation.
+             *
+             * @param opcode the JVM opcode
+             * @return whether the opcode belongs to this operator
+             */
             public boolean matches(final int opcode) {
                 for (int candidate : this.opcodes) if (candidate == opcode) return true;
                 return false;
@@ -747,10 +1147,20 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A unary operation such as {@code -value} or {@code ~value}.
+     */
     public static class UnaryExpression extends ExpressionAst {
         private final Operator operator;
         private final Expression expression;
 
+        /**
+         * Creates a unary expression.
+         *
+         * @param src        the range of the operator
+         * @param operator   the operator
+         * @param expression the expression matching the operand
+         */
         public UnaryExpression(final ExpressionSource src, final Operator operator, final Expression expression) {
             super(src);
             this.operator = operator;
@@ -779,16 +1189,40 @@ public abstract class ExpressionAst implements Expression {
             ctx.capture(node, this, node.getType(), null, new Type[]{node.getInput(0).getType()}, null, null, false);
         }
 
+        /**
+         * The unary operators supported by the expression language.
+         */
         public enum Operator {
-            MINUS, BITWISE_NOT
+            /**
+             * Arithmetic negation of int, long, float or double values.
+             */
+            MINUS,
+            /**
+             * Bitwise complement, encoded as xor with {@code -1}.
+             */
+            BITWISE_NOT
         }
     }
 
+    /**
+     * A relational comparison such as {@code left < right}.
+     * Matches conditional jump instructions, including implicit comparisons against zero or null, comparisons
+     * of two values and comparisons whose operands are prepared by a compare instruction like {@code LCMP}.
+     * Captures the jump so the engine can rewrite the condition.
+     */
     public static class ComparisonExpression extends ExpressionAst {
         private final Expression left;
         private final Operator operator;
         private final Expression right;
 
+        /**
+         * Creates a comparison.
+         *
+         * @param src      the range of the comparison operator
+         * @param left     the expression matching the left operand
+         * @param operator the comparison operator
+         * @param right    the expression matching the right operand
+         */
         public ComparisonExpression(final ExpressionSource src, final Expression left, final Operator operator, final Expression right) {
             super(src);
             this.left = left;
@@ -866,9 +1300,43 @@ public abstract class ExpressionAst implements Expression {
         }
 
 
+        /**
+         * The relational operators supported by the expression language.
+         */
         public enum Operator {
-            EQ, NE, LT, LE, GT, GE;
+            /**
+             * Equality ({@code ==}).
+             */
+            EQ,
+            /**
+             * Inequality ({@code !=}).
+             */
+            NE,
+            /**
+             * Less than ({@code <}).
+             */
+            LT,
+            /**
+             * Less than or equal ({@code <=}).
+             */
+            LE,
+            /**
+             * Greater than ({@code >}).
+             */
+            GT,
+            /**
+             * Greater than or equal ({@code >=}).
+             */
+            GE;
 
+            /**
+             * Tests if this operator is encoded directly by a jump opcode.
+             *
+             * @param opcode       the jump opcode
+             * @param implicitNull whether the jump compares against null
+             * @param complex      whether the operands were prepared by a compare instruction
+             * @return whether the opcode expresses this operator without inversion
+             */
             public boolean isDirect(final int opcode, final boolean implicitNull, final boolean complex) {
                 if (implicitNull) return this == EQ && opcode == Opcodes.IFNULL || this == NE && opcode == Opcodes.IFNONNULL;
                 if (complex) {
@@ -902,6 +1370,14 @@ public abstract class ExpressionAst implements Expression {
                 }
             }
 
+            /**
+             * Tests if this operator is encoded by the inverted jump opcode.
+             *
+             * @param opcode       the jump opcode
+             * @param implicitNull whether the jump compares against null
+             * @param complex      whether the operands were prepared by a compare instruction
+             * @return whether the opcode expresses the inverse of this operator
+             */
             public boolean isInverted(final int opcode, final boolean implicitNull, final boolean complex) {
                 if (implicitNull) return false;
                 if (complex) {
@@ -957,10 +1433,21 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A cast such as {@code (Type) expression}.
+     * Matches reference casts ({@code CHECKCAST}) as well as the primitive conversion instructions.
+     */
     public static class CastExpression extends ExpressionAst {
         private final TypeIdentifier type;
         private final Expression expression;
 
+        /**
+         * Creates a cast expression.
+         *
+         * @param src        the range of the cast
+         * @param type       the target type of the cast
+         * @param expression the expression matching the cast value
+         */
         public CastExpression(final ExpressionSource src, final TypeIdentifier type, final Expression expression) {
             super(src);
             this.type = type;
@@ -982,10 +1469,21 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An instanceof check such as {@code expression instanceof Type}.
+     * Matches an {@code INSTANCEOF} instruction with the expected type and value.
+     */
     public static class InstanceofExpression extends ExpressionAst {
         private final Expression expression;
         private final TypeIdentifier type;
 
+        /**
+         * Creates an instanceof expression.
+         *
+         * @param src        the range of the check
+         * @param expression the expression matching the checked value
+         * @param type       the checked type
+         */
         public InstanceofExpression(final ExpressionSource src, final Expression expression, final TypeIdentifier type) {
             super(src);
             this.expression = expression;
@@ -1006,11 +1504,23 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A field write such as {@code receiver.member = value}.
+     * Matches {@code PUTFIELD} with a matching receiver and value and {@code PUTSTATIC} with a matching value.
+     */
     public static class MemberAssignmentExpression extends ExpressionAst {
         private final Expression receiver;
         private final MemberName member;
         private final Expression value;
 
+        /**
+         * Creates a field write.
+         *
+         * @param src      the range of the assignment
+         * @param receiver the expression matching the receiver instance
+         * @param member   the field name matcher
+         * @param value    the expression matching the assigned value
+         */
         public MemberAssignmentExpression(final ExpressionSource src, final Expression receiver, final MemberName member, final Expression value) {
             super(src);
             this.receiver = receiver;
@@ -1031,10 +1541,22 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * An assignment to a local variable or parameter such as {@code identifier = value}.
+     * Matches a store instruction whose variable matches the identifier and whose stored value matches the
+     * value expression.
+     */
     public static class IdentifierAssignmentExpression extends ExpressionAst {
         private final String identifier;
         private final Expression value;
 
+        /**
+         * Creates a local variable assignment.
+         *
+         * @param src        the range of the assignment
+         * @param identifier the declared identifier name of the variable
+         * @param value      the expression matching the assigned value
+         */
         public IdentifierAssignmentExpression(final ExpressionSource src, final String identifier, final Expression value) {
             super(src);
             this.identifier = identifier;
@@ -1050,9 +1572,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A return statement such as {@code return expression}.
+     * Matches any of the typed return instructions.
+     */
     public static class ReturnExpression extends ExpressionAst {
         private final Expression value;
 
+        /**
+         * Creates a return statement.
+         *
+         * @param src   the range of the {@code return} keyword
+         * @param value the expression matching the returned value
+         */
         public ReturnExpression(final ExpressionSource src, final Expression value) {
             super(src);
             this.value = value;
@@ -1073,9 +1605,19 @@ public abstract class ExpressionAst implements Expression {
         }
     }
 
+    /**
+     * A throw statement such as {@code throw expression}.
+     * Matches an {@code ATHROW} instruction.
+     */
     public static class ThrowExpression extends ExpressionAst {
         private final Expression value;
 
+        /**
+         * Creates a throw statement.
+         *
+         * @param src   the range of the {@code throw} keyword
+         * @param value the expression matching the thrown exception
+         */
         public ThrowExpression(final ExpressionSource src, final Expression value) {
             super(src);
             this.value = value;
@@ -1089,13 +1631,43 @@ public abstract class ExpressionAst implements Expression {
     }
 
 
+    /**
+     * Matches the name of a field or method.
+     * Used by member access nodes and method reference nodes; implementations include named and wildcard
+     * matchers created by the parser.
+     */
     public interface MemberName {
+        /**
+         * Tests if a value's field or method name matches.
+         *
+         * @param ctx  the context of the current match
+         * @param node the value to match
+         * @return whether the member name matches
+         */
         boolean matches(ExpressionContext ctx, ExpressionFlow.FlowValue node);
 
+        /**
+         * Tests if a method handle name matches.
+         *
+         * @param ctx    the context of the current match
+         * @param handle the method handle to match
+         * @return whether the member name matches
+         */
         boolean matches(ExpressionContext ctx, Handle handle);
     }
 
+    /**
+     * Matches a type used in the expression.
+     * Implementations include named, wildcard and array type matchers created by the parser.
+     */
     public interface TypeIdentifier {
+        /**
+         * Tests if a type matches.
+         *
+         * @param identifiers the identifiers used to resolve type names
+         * @param type        the type to match
+         * @return whether the type matches
+         */
         boolean matches(ExpressionIdentifiers identifiers, Type type);
     }
 

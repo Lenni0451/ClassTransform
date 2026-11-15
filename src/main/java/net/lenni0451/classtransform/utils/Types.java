@@ -18,23 +18,68 @@ import java.lang.reflect.Method;
 public class Types {
 
     //types
+    /**
+     * The {@link Object} type.
+     */
     public static final Type T_Object = Type.getType(Object.class);
     //internal names
+    /**
+     * The internal name of {@link Object}.
+     */
     public static final String IN_Object = internalName(Object.class);
+    /**
+     * The internal name of {@link String}.
+     */
     public static final String IN_String = internalName(String.class);
+    /**
+     * The internal name of {@link Void}.
+     */
     public static final String IN_Void = internalName(Void.class);
+    /**
+     * The internal name of {@link Boolean}.
+     */
     public static final String IN_Boolean = internalName(Boolean.class);
+    /**
+     * The internal name of {@link Byte}.
+     */
     public static final String IN_Byte = internalName(Byte.class);
+    /**
+     * The internal name of {@link Short}.
+     */
     public static final String IN_Short = internalName(Short.class);
+    /**
+     * The internal name of {@link Character}.
+     */
     public static final String IN_Character = internalName(Character.class);
+    /**
+     * The internal name of {@link Integer}.
+     */
     public static final String IN_Integer = internalName(Integer.class);
+    /**
+     * The internal name of {@link Long}.
+     */
     public static final String IN_Long = internalName(Long.class);
+    /**
+     * The internal name of {@link Float}.
+     */
     public static final String IN_Float = internalName(Float.class);
+    /**
+     * The internal name of {@link Double}.
+     */
     public static final String IN_Double = internalName(Double.class);
     //method descriptor
+    /**
+     * The method descriptor of a method returning {@code void} and taking no arguments.
+     */
     public static final String MD_Void = methodDescriptor(void.class);
     //method name
+    /**
+     * The name of an instance initializer (constructor).
+     */
     public static final String MN_Init = "<init>";
+    /**
+     * The name of the static initializer.
+     */
     public static final String MN_Clinit = "<clinit>";
 
     /**
@@ -68,12 +113,14 @@ public class Types {
 
     /**
      * Get a type from an object.<br>
-     * Supported types:<br>
-     * - {@link String} ({@link Type#getType(String)}/{@link Type#getObjectType(String)})<br>
-     * - {@link Class} ({@link Type#getType(Class)})<br>
-     * - {@link Method} ({@link Type#getType(Method)})<br>
-     * - {@link Constructor} ({@link Type#getType(Constructor)})<br>
-     * - {@link Type} ({@code return type})
+     * Supported types:
+     * <ul>
+     * <li>{@link String} (parsed as a descriptor first, then as an internal name)</li>
+     * <li>{@link Class} ({@link Type#getType(Class)}) or {@link Field} (type of the field)</li>
+     * <li>{@link Method} ({@link Type#getType(Method)})</li>
+     * <li>{@link Constructor} ({@link Type#getType(Constructor)})</li>
+     * <li>{@link Type} (the type itself)</li>
+     * </ul>
      *
      * @param ob The object to get the type from
      * @return The type

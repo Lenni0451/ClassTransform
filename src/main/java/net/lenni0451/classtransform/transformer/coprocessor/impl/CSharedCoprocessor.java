@@ -22,6 +22,11 @@ import java.util.List;
 /**
  * The coprocessor for {@link CShared} parameters.<br>
  * Shared values are stored in a local variable of the target method and are therefore isolated per invocation.
+ * <p>
+ * The values are tracked in a per-method {@link SharedVariableAttribute}: the first use initializes a local holding
+ * the default value of the annotated type (or a new reference instance), later uses must agree on the type and
+ * reference-ness. Non-reference values are written back after every call, while reference parameters share the same
+ * boxed instance.
  */
 public class CSharedCoprocessor implements IAnnotationCoprocessor {
 

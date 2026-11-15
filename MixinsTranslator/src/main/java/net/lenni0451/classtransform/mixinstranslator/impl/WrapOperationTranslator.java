@@ -11,6 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @WrapOperation} into {@link CWrapOperation}.
+ * <p>
+ * Exactly one of the source {@code at} and {@code constant} members must be present. {@code at} entries
+ * are translated to targets. Each {@code constant} becomes a {@link CTarget}: a {@code classValue}
+ * produces an {@code INSTANCEOF} target, while any other discriminator produces a {@code CONSTANT}
+ * target with text such as {@code int 5} or {@code string x}. Ordinals and non-empty slices are copied
+ * for every constant; {@code log} and {@code expandZeroConditions} are carried as target arguments for
+ * non-class constants.
+ * <p>
+ * All generated targets are stored in {@code target}, even a single one. Remaining members are copied
+ * and slices are normalized by {@link AnnotationTranslator#translateInjection(Map)}. Translation fails
+ * with {@link IllegalArgumentException} unless exactly one of {@code at} and {@code constant} is set,
+ * or when a constant has no supported discriminator.
+ *
+ * @see CWrapOperation
+ * @see CTarget
+ */
 @ParametersAreNonnullByDefault
 class WrapOperationTranslator implements AnnotationTranslator {
 

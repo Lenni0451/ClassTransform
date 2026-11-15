@@ -39,8 +39,10 @@ import java.lang.annotation.Target;
 public @interface CWrapOperation {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.
+     * The methods that contain the operation to wrap.
+     * <p>
+     * Name and descriptor are combined per entry, with wildcards available for broader matches, for example
+     * {@code run()V} or {@code run*}.
      *
      * @return The method name and descriptor
      */
@@ -64,6 +66,9 @@ public @interface CWrapOperation {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices for the wrapped operation, selectable by {@link CTarget#slice()};
+     * ids must be unique within this annotation.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -85,7 +90,8 @@ public @interface CWrapOperation {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.
+     * The maximum number of operation sites that may be wrapped.
+     * A value below one means no limit.
      *
      * @return The maximum injection count
      */
@@ -100,6 +106,8 @@ public @interface CWrapOperation {
     int order() default 1000;
 
     /**
+     * Whether the wrapped operation and target selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

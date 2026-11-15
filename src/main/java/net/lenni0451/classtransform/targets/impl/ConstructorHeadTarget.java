@@ -17,6 +17,12 @@ import java.util.Map;
 /**
  * A target for the head of a constructor (after the {@code super()} or {@code this()} call).<br>
  * This target can only be used on constructors.
+ * <p>
+ * Constructor calls of objects allocated inside the prologue are skipped, so the selected
+ * instruction is the one after the delegating call. If the delegating call is the last
+ * instruction or no delegating call is found, the first instruction is returned. The shift is
+ * always {@code BEFORE}. Using this target on a method that is not a constructor throws an
+ * {@link IllegalArgumentException}.
  */
 @ParametersAreNonnullByDefault
 public class ConstructorHeadTarget implements IInjectionTarget {

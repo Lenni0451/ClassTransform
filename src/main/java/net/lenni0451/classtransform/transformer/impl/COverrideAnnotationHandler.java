@@ -16,11 +16,16 @@ import java.util.List;
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 
 /**
- * The annotation handler for the {@link COverride} annotation.
+ * Applies the {@link COverride} annotation by replacing the target method with the transformer method, remapped into the transformed class.
+ * <p>
+ * The transformer method must have matching static access, the same argument types and at least the access level of the target; aliases are tried in order until a target matches.
  */
 @ParametersAreNonnullByDefault
 public class COverrideAnnotationHandler extends RemovingTargetAnnotationHandler<COverride> {
 
+    /**
+     * Creates a handler for the {@link COverride} annotation.
+     */
     public COverrideAnnotationHandler() {
         super(COverride.class, COverride::value);
     }

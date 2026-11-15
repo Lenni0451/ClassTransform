@@ -28,6 +28,7 @@ public class InjectionUtils {
      * @param target            The enclosing method
      * @param requiredArguments The arguments required by the injection
      * @return The number of captured enclosing method arguments
+     * @throws TransformerException If the handler arguments do not match the required arguments followed by a prefix of the target arguments
      */
     public static int getCapturedArgumentCount(final ClassNode transformer, final MethodNode transformerMethod, final MethodNode target, final Type... requiredArguments) {
         Type[] arguments = argumentTypes(transformerMethod);

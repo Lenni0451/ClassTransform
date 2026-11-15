@@ -13,6 +13,14 @@ import java.util.function.Consumer;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
+/**
+ * Helpers for reading, locating and copying annotation values stored in ASM nodes.
+ * <p>
+ * ASM keeps annotation members in a flat list of alternating names and values; this class converts
+ * between that layout and maps and offers lookup methods for visible, invisible and parameter
+ * annotations on classes, fields and methods. Lookups return an empty optional rather than
+ * {@code null} when no matching annotation is present.
+ */
 @ParametersAreNonnullByDefault
 public class AnnotationUtils {
 

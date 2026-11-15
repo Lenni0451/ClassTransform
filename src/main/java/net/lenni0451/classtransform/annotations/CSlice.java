@@ -10,6 +10,8 @@ import java.lang.annotation.Target;
 
 /**
  * Specify a slice of bytecode to make choosing the injection target easier.
+ * <p>
+ * Both boundaries are inclusive; an empty boundary extends to the start or end of the method.
  *
  * @see <a href="https://github.com/Lenni0451/ClassTransform/wiki/CSlice">GitHub Wiki</a>
  */
@@ -18,6 +20,10 @@ import java.lang.annotation.Target;
 public @interface CSlice {
 
     /**
+     * The id used to select this slice from {@link CTarget#slice()} or
+     * {@link net.lenni0451.classtransform.annotations.injection.CModifyConstant#sliceId()}.
+     * An empty id declares the default slice of the injection annotation.
+     *
      * @return The id used to select this slice
      */
     String id() default "";

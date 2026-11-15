@@ -16,8 +16,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A remapper that uses tiny v2 mappings for remapping.<br>
- * The from and to namespaces are also required.
+ * A remapper that reads tiny v2 mappings.
+ * <p>
+ * The file starts with a {@code tiny 2 0} header followed by the namespace names, with the first
+ * namespace being the one used by member descriptors. The {@code from} and {@code to} namespaces
+ * must both appear in the header. Class, field and method mappings are loaded from the {@code from}
+ * namespace to the {@code to} namespace; parameter mappings and comments are passed to the
+ * overridable hooks.
  */
 @ParametersAreNonnullByDefault
 public class TinyV2Mapper extends AMapper {
@@ -26,6 +31,14 @@ public class TinyV2Mapper extends AMapper {
     private final String from;
     private final String to;
 
+    /**
+     * Create a tiny v2 mapper that reads versioned {@code tiny 2 0} mapping data from the given stream.
+     *
+     * @param config         The mapper config
+     * @param mappingsStream The stream to read, closed after loading
+     * @param from           The namespace to map from
+     * @param to             The namespace to map to
+     */
     public TinyV2Mapper(final MapperConfig config, @WillClose final InputStream mappingsStream, final String from, final String to) {
         super(config);
         this.mappingsSupplier = () -> mappingsStream;
@@ -33,6 +46,14 @@ public class TinyV2Mapper extends AMapper {
         this.to = to;
     }
 
+    /**
+     * Create a tiny v2 mapper that opens the versioned mapping file lazily when the mapper is first used.
+     *
+     * @param config       The mapper config
+     * @param mappingsFile The {@code tiny 2 0} mapping file to read
+     * @param from         The namespace to map from
+     * @param to           The namespace to map to
+     */
     public TinyV2Mapper(final MapperConfig config, final File mappingsFile, final String from, final String to) {
         super(config);
         this.mappingsSupplier = () -> new FileInputStream(mappingsFile);
@@ -115,21 +136,62 @@ public class TinyV2Mapper extends AMapper {
         if (parts.length < 5) throw new IllegalStateException("Invalid tiny header (missing columns)");
     }
 
+    /**
+     * Called for every parsed class mapping.
+     *
+     * @param baseName The class name in the first namespace
+     * @param fromName The class name in the from namespace
+     * @param toName   The class name in the to namespace
+     */
     protected void classParsed(final String baseName, final String fromName, final String toName) {
     }
 
+    /**
+     * Called for every parsed field mapping.
+     *
+     * @param currentClass The owner class in the from namespace
+     * @param fromName     The field name in the from namespace
+     * @param toName       The field name in the to namespace
+     * @param descriptor   The field descriptor in the first namespace
+     */
     protected void fieldParsed(@Nullable final String currentClass, final String fromName, final String toName, final String descriptor) {
     }
 
+    /**
+     * Called for every parsed method mapping.
+     *
+     * @param currentClass The owner class in the from namespace
+     * @param fromName     The method name in the from namespace
+     * @param toName       The method name in the to namespace
+     * @param descriptor   The method descriptor in the first namespace
+     */
     protected void methodParsed(@Nullable final String currentClass, final String fromName, final String toName, final String descriptor) {
     }
 
+    /**
+     * Called for every parsed parameter mapping.
+     *
+     * @param currentClass The owner class in the from namespace
+     * @param parts        The tab-separated columns of the trimmed line, starting with the {@code p} marker
+     */
     protected void parseParameter(@Nullable final String currentClass, final String[] parts) {
     }
 
+    /**
+     * Called for every parsed comment line.
+     *
+     * @param currentClass The class the comment belongs to, in the from namespace
+     * @param line         The raw line including indentation
+     * @param parts        The tab-separated columns of the trimmed line, starting with the {@code c} marker
+     */
     protected void parseComment(@Nullable final String currentClass, final String line, final String[] parts) {
     }
 
+    /**
+     * Called after all mappings have been parsed.
+     *
+     * @param descriptorRemapper The remapper translating descriptors from the first namespace to the from namespace
+     */
     protected void postInit(final MapRemapper descriptorRemapper) {
     }
 

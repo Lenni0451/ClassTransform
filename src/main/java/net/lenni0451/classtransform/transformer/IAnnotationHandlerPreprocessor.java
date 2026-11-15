@@ -15,6 +15,8 @@ public interface IAnnotationHandlerPreprocessor {
     /**
      * Process a transformer before it is read.<br>
      * You can modify the class transform annotations before parsing.
+     * <p>
+     * Called before {@link #replace(ClassNode)} for every registered transformer.
      *
      * @param node The class node of the transformer
      */
@@ -23,6 +25,9 @@ public interface IAnnotationHandlerPreprocessor {
     /**
      * Process a transformer before it is read.<br>
      * You can modify the class transform annotations before parsing.
+     * <p>
+     * Called after {@link #process(ClassNode)}; the returned node is used as the transformer class node and must not
+     * be null.
      *
      * @param node The class node of the transformer
      * @return The modified class node

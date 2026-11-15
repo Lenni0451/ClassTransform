@@ -18,7 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The annotation handler for the {@link CShadow} annotation.
+ * Applies the {@link CShadow} annotation by removing the shadow declarations from the transformer and remapping references to them onto the matching members of the transformed class.
+ * <p>
+ * Fields and methods can be made public or non-final, and the selector defaults to the shadow member's own name and descriptor. Missing targets fail with {@link FieldNotFoundException} or {@link MethodNotFoundException}; aliases are tried in order.
  */
 @ParametersAreNonnullByDefault
 public class CShadowAnnotationHandler extends AnnotationHandler {

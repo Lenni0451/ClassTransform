@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 
 /**
  * The identifiers available to expressions.
+ * Maps the names used in expressions and defined by {@code @CDefinition} to member and type matchers. The table
+ * always contains the primitive type names and the special {@code length} member for array length loads.
  */
 @ParametersAreNonnullByDefault
 public class ExpressionIdentifiers {
@@ -28,10 +30,23 @@ public class ExpressionIdentifiers {
     @Nullable
     private final TransformerManager transformerManager;
 
+    /**
+     * Creates an identifier table without class hierarchy lookups.
+     *
+     * @param targetClass  the transformed class
+     * @param targetMethod the target method
+     */
     public ExpressionIdentifiers(final ClassNode targetClass, final MethodNode targetMethod) {
         this(targetClass, targetMethod, null);
     }
 
+    /**
+     * Creates an identifier table.
+     *
+     * @param targetClass        the transformed class
+     * @param targetMethod       the target method
+     * @param transformerManager the manager used to resolve supertypes, or null to match owners literally
+     */
     public ExpressionIdentifiers(final ClassNode targetClass, final MethodNode targetMethod, @Nullable final TransformerManager transformerManager) {
         this.targetClass = targetClass;
         this.targetMethod = targetMethod;
@@ -48,6 +63,17 @@ public class ExpressionIdentifiers {
         this.addMember("length", node -> node.getInsn() != null && node.getInsn().getOpcode() == Opcodes.ARRAYLENGTH);
     }
 
+    /**
+     * Registers the members, types and locals of a {@code @CDefinition}.
+     * <p>
+     * Multiple declarations may share an identifier; a value matches if any of them matches.
+     *
+     * @param id      the identifier to define
+     * @param methods the method declarations to match
+     * @param fields  the field declarations to match
+     * @param types   the types to match
+     * @param locals  the local variable definitions to match
+     */
     public void addDefinition(final String id, final List<String> methods, final List<String> fields, final List<Type> types, final List<AnnotationNode> locals) {
         for (String method : methods) {
             this.addMember(id, new MethodDefinition(method));
@@ -85,14 +111,37 @@ public class ExpressionIdentifiers {
         return index >= first && index < end;
     }
 
+    /**
+     * Tests if an identifier has member definitions.
+     *
+     * @param id the identifier
+     * @return whether the identifier is declared as a member
+     */
     public boolean memberExists(final String id) {
         return this.members.containsKey(id);
     }
 
+    /**
+     * Tests if an identifier has type definitions.
+     *
+     * @param id the identifier
+     * @return whether the identifier is declared as a type
+     */
     public boolean typeExists(final String id) {
         return this.types.containsKey(id);
     }
 
+    /**
+     * Tests if a value matches a declared member.
+     * <p>
+     * Owner patterns are matched as wildcards and, if a transformer manager is available, also against the
+     * supertypes of the value's owner.
+     *
+     * @param id   the identifier of the member
+     * @param node the value to match
+     * @return whether any definition of the identifier matches the value
+     * @throws IllegalArgumentException if the identifier is not declared
+     */
     public boolean matchesMember(final String id, final ExpressionFlow.FlowValue node) {
         List<MemberDefinition> definitions = this.members.get(id);
         if (definitions == null) throw new IllegalArgumentException("Use of undeclared identifier '" + id + "'");
@@ -103,11 +152,12 @@ public class ExpressionIdentifiers {
     }
 
     /**
-     * Check if a method handle matches a defined member.
+     * Tests if a method handle matches a declared member.
      *
      * @param id     The identifier of the member
      * @param handle The method handle to match
      * @return If the handle matches the member
+     * @throws IllegalArgumentException if the identifier is not declared
      */
     public boolean matchesMember(final String id, final Handle handle) {
         List<MemberDefinition> definitions = this.members.get(id);
@@ -119,7 +169,7 @@ public class ExpressionIdentifiers {
     }
 
     /**
-     * Get the lambda metafactory information of a flow value.
+     * Returns the lambda metafactory information of a flow value.
      *
      * @param node The flow value
      * @return The information or null if the value is not a lambda
@@ -129,6 +179,14 @@ public class ExpressionIdentifiers {
         return LMFInfo.get(node, this.targetClass.name);
     }
 
+    /**
+     * Tests if a type matches a declared type identifier.
+     *
+     * @param id   the identifier of the type
+     * @param type the type to match
+     * @return whether any definition of the identifier matches the type
+     * @throws IllegalArgumentException if the identifier is not declared
+     */
     public boolean matchesType(final String id, final Type type) {
         List<TypeDefinition> definitions = this.types.get(id);
         if (definitions == null) throw new IllegalArgumentException("Use of undeclared identifier '" + id + "'");
@@ -184,15 +242,41 @@ public class ExpressionIdentifiers {
     }
 
 
+    /**
+     * A matcher for one declaration of a member identifier.
+     */
     public interface MemberDefinition {
+        /**
+         * Tests if a value matches this declaration.
+         *
+         * @param node the value to match
+         * @return whether the value matches
+         */
         boolean matches(ExpressionFlow.FlowValue node);
 
+        /**
+         * Tests if a method handle matches this declaration.
+         * <p>
+         * Field and local declarations cannot match handles, so the default returns {@code false}.
+         *
+         * @param handle the method handle to match
+         * @return whether the handle matches
+         */
         default boolean matches(final Handle handle) {
             return false;
         }
     }
 
+    /**
+     * A matcher for a type identifier.
+     */
     public interface TypeDefinition {
+        /**
+         * Tests if a type matches this declaration.
+         *
+         * @param type the type to match
+         * @return whether the type matches
+         */
         boolean matches(Type type);
     }
 

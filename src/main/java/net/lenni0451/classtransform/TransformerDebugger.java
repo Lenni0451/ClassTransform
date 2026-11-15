@@ -8,6 +8,11 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Debugging utilities belonging to a {@link TransformerManager}.
+ * <p>
+ * Records transformation timings per class and controls whether transformed or failed classes are dumped to disk.
+ */
 @ParametersAreNonnullByDefault
 public class TransformerDebugger {
 
@@ -45,6 +50,11 @@ public class TransformerDebugger {
     }
 
     /**
+     * Get the collected timings per transformed class.
+     * <p>
+     * The outer map is unmodifiable but reflects later transformations. It only contains classes for
+     * which at least one transformer was timed; the inner values are milliseconds per transformer.
+     *
      * @return The timings for all transformed classes
      */
     public Map<String, Map<TimedTransformer, Integer>> getTimings() {
@@ -62,6 +72,8 @@ public class TransformerDebugger {
     }
 
     /**
+     * Check if transformed classes are dumped after transformation.
+     *
      * @return If classes should be dumped
      */
     public boolean isDumpClasses() {
@@ -79,6 +91,8 @@ public class TransformerDebugger {
     }
 
     /**
+     * Check if the input bytecode is dumped when a transformation fails.
+     *
      * @return If input classes should be dumped on failure
      */
     public boolean isDumpClassOnFailure() {

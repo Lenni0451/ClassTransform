@@ -11,6 +11,10 @@ import java.lang.reflect.Modifier;
 
 /**
  * Util methods to remap classes, methods and fields.
+ *
+ * <p>Most methods copy the given node with one of ASM's remappers and leave the source untouched; the
+ * {@code remapAndAdd} variants additionally append the copy to a target class. {@link #merge(ClassNode, ClassNode)}
+ * exists for callers that have to keep an existing class node instance instead of replacing it.
  */
 @ParametersAreNonnullByDefault
 public class Remapper {

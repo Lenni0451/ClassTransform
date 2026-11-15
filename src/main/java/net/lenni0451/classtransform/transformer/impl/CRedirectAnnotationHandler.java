@@ -22,7 +22,9 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
- * The annotation handler for the {@link CRedirect} annotation.
+ * Applies the {@link CRedirect} annotation by replacing selected method calls, field accesses or object creations with a call to the transformer method.
+ * <p>
+ * The handler must accept the original arguments and return a type compatible with the original result; for constructor invocations it returns the replacement object.
  */
 @ParametersAreNonnullByDefault
 public class CRedirectAnnotationHandler extends InjectionAnnotationHandler<CRedirect> {
@@ -31,6 +33,9 @@ public class CRedirectAnnotationHandler extends InjectionAnnotationHandler<CRedi
     private final CRedirectField redirectField = new CRedirectField();
     private final CRedirectNew redirectNew = new CRedirectNew();
 
+    /**
+     * Creates a handler for the {@link CRedirect} annotation.
+     */
     public CRedirectAnnotationHandler() {
         super(CRedirect.class, CRedirect::method);
     }

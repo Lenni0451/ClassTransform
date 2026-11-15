@@ -7,6 +7,11 @@ import java.util.function.Supplier;
 
 /**
  * A provider for class bytecode.
+ *
+ * <p>Implementations must be able to look up every class ClassTransform needs to inspect, including super classes and
+ * interfaces that live outside the transformed application. Registering transformers by wildcard additionally requires
+ * {@link #getAllClasses()}; if a provider cannot enumerate its classes, it may throw an
+ * {@link UnsupportedOperationException} there, but wildcard transformer registration will then fail.
  */
 @ParametersAreNonnullByDefault
 public interface IClassProvider {

@@ -12,6 +12,8 @@ public interface IPostTransformer {
 
     /**
      * Handle the name and bytecode of all transformed classes.
+     * <p>
+     * Called in registration order after all transformations completed, before the bytecode is returned.
      *
      * @param className The name of the class
      * @param bytecode  The transformed bytecode of the class
@@ -21,6 +23,10 @@ public interface IPostTransformer {
     /**
      * Handle the name and bytecode of all transformed classes.<br>
      * If the class should be replaced return the new bytecode, otherwise return {@code null}.
+     * <p>
+     * This is the method the manager calls; the default implementation delegates to
+     * {@link #transform(String, byte[])} and never replaces the bytecode. Overriding this method without calling
+     * {@code transform} is valid.
      *
      * @param className The name of the class
      * @param bytecode  The transformed bytecode of the class

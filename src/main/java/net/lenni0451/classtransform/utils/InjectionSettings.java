@@ -25,7 +25,10 @@ public class InjectionSettings {
     private final Map<String, CSlice> slices = new LinkedHashMap<>();
 
     /**
+     * Create the settings for a parsed injection annotation.
+     *
      * @param annotation The parsed injection annotation
+     * @throws IllegalArgumentException If a slice id is declared more than once
      */
     public InjectionSettings(final Annotation annotation) {
         this.annotation = annotation;
@@ -41,6 +44,8 @@ public class InjectionSettings {
     }
 
     /**
+     * Get a slice by id.
+     *
      * @param id The slice identifier
      * @return The selected slice, or null for the unrestricted default slice
      * @throws IllegalArgumentException If the identifier is unknown
@@ -52,6 +57,8 @@ public class InjectionSettings {
     }
 
     /**
+     * Get the injection phase.
+     *
      * @return The injection phase
      */
     public InjectionPhase getPhase() {
@@ -59,6 +66,8 @@ public class InjectionSettings {
     }
 
     /**
+     * Get the application order within the injection phase.
+     *
      * @return The application order within the injection phase
      */
     public int getOrder() {
@@ -66,7 +75,9 @@ public class InjectionSettings {
     }
 
     /**
-     * @return The selectors from both the single-target and multiple-target members
+     * Get the selectors from both the single-target and multiple-target members.
+     *
+     * @return The selectors; a new mutable list owned by the caller
      */
     public List<CTarget> getTargets() {
         List<CTarget> targets = new ArrayList<>();
@@ -78,6 +89,8 @@ public class InjectionSettings {
     }
 
     /**
+     * Check whether aggregate count semantics were explicitly requested.
+     *
      * @return If aggregate count semantics were explicitly requested
      */
     public boolean hasExplicitRequire() {

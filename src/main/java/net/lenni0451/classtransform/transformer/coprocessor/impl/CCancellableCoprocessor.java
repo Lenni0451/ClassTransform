@@ -20,6 +20,11 @@ import static net.lenni0451.classtransform.utils.Types.returnType;
 /**
  * The coprocessor for {@link CCancellable} parameters.<br>
  * It creates a callback for every handler call and returns from the target method if the callback was cancelled.
+ * <p>
+ * Each generated call gets an {@link InjectionCallback} local before it and a cancellation check after it. A cancelled
+ * call makes the target method return early, using the callback's return value for non-void methods. The callback is
+ * reused when the call already carries a cancellable context. Cancellation is rejected in constructors and static
+ * initializers.
  */
 public class CCancellableCoprocessor implements IAnnotationCoprocessor {
 

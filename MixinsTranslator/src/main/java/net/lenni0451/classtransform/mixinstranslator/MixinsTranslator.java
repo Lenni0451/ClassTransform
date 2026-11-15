@@ -23,6 +23,20 @@ import java.util.Map;
  * Some features may not be supported.<br>
  * Some fields which are not supported still got copied over to simplify the copy-paste action.<br>
  * You can recognize them by the @Deprecated annotation.
+ * <p>
+ * Register an instance with {@link net.lenni0451.classtransform.TransformerManager#addTransformerPreprocessor} to
+ * translate mixin classes while transformers are added. {@code @Mixin} becomes {@code @CTransformer} and every
+ * supported Mixin or MixinExtras annotation is replaced by its ClassTransform equivalent before ClassTransform parses
+ * the transformer.
+ * <p>
+ * {@link #process(ClassNode)} modifies the supplied class node in place: annotations on the class, its fields, methods
+ * and method parameters are translated, MixinExtras local and operation references are remapped, and callback
+ * signatures are rewritten to ClassTransform's {@link net.lenni0451.classtransform.InjectionCallback} and
+ * {@link net.lenni0451.classtransform.CArgs} types. Annotations without a registered translator are left unchanged,
+ * so unsupported features remain in the class without being applied.
+ *
+ * @see AnnotationTranslatorManager
+ * @see AnnotationTranslator
  */
 @ParametersAreNonnullByDefault
 public class MixinsTranslator implements IAnnotationHandlerPreprocessor {

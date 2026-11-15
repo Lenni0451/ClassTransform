@@ -21,19 +21,26 @@ import java.lang.annotation.Target;
 public @interface CShared {
 
     /**
+     * The name of the shared variable.
+     * Values with the same name, namespace and scope refer to the same variable during one invocation.
+     *
      * @return The name of the shared variable
      */
     String value();
 
     /**
      * The namespace of the shared variable.<br>
-     * If empty, the shared variable is scoped to the transformer class unless {@link #global()} is set.
+     * A non-empty namespace is shared across transformers; if empty, the variable is scoped to the
+     * transformer class unless {@link #global()} is set.
      *
      * @return The namespace
      */
     String namespace() default "";
 
     /**
+     * Whether the shared variable should be shared across transformer classes without a namespace.
+     * This has no effect when {@link #namespace()} is set.
+     *
      * @return If the shared variable should be globally accessible
      */
     boolean global() default false;

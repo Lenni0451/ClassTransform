@@ -10,7 +10,9 @@ import org.objectweb.asm.tree.ClassNode;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * The annotation handler for the {@link CReplaceCallback} annotation.
+ * Applies the {@link CReplaceCallback} annotation by replacing every {@link net.lenni0451.classtransform.InjectionCallback} reference in the transformed class with an {@code Object[]} based callback.
+ * <p>
+ * This allows the transformed class to run without the callback class on its classpath.
  */
 @ParametersAreNonnullByDefault
 public class CReplaceCallbackAnnotationHandler extends AnnotationHandler {

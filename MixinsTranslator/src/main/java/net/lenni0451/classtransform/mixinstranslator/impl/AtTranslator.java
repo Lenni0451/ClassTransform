@@ -11,6 +11,22 @@ import java.util.Map;
 
 import static net.lenni0451.classtransform.utils.Types.typeDescriptor;
 
+/**
+ * Translates Mixin's {@code @At} into ClassTransform's {@link CTarget}.
+ * <p>
+ * The injection point is taken from {@code value} and {@code target}. A {@code MIXINEXTRAS:EXPRESSION} point becomes
+ * {@code EXPRESSION} with the id as target and remapping disabled, and a point with a {@code :selector} suffix is split
+ * into the point type and the {@link CTarget#selector()} value. For {@code CONSTANT} points the discriminator arguments
+ * such as {@code intValue=1} are converted to the ClassTransform target format, while {@code log=} and
+ * {@code expandZeroConditions=} arguments are kept.
+ * <p>
+ * Mixin's shift is mapped to ClassTransform's shift and offset: {@code NONE} becomes {@code BEFORE}, {@code BEFORE} and
+ * {@code AFTER} become {@code BY} with {@code by} set to {@code -1} or {@code 1}, and a missing shift defaults to
+ * {@code BEFORE}. Unsupported constant arguments, multiple constant discriminators and invalid targets are rejected
+ * with an {@link IllegalArgumentException}.
+ *
+ * @see CTarget
+ */
 @ParametersAreNonnullByDefault
 class AtTranslator implements AnnotationTranslator {
 

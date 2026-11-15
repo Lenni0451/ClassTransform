@@ -11,6 +11,11 @@ import java.lang.reflect.Modifier;
 import static net.lenni0451.classtransform.utils.Types.argumentTypes;
 import static net.lenni0451.classtransform.utils.Types.type;
 
+/**
+ * Condition wrapper for field writes.
+ * <p>
+ * The written value and, for instance fields, the field owner are stored in free local variables before the condition is evaluated. The field is only written when the condition returns {@code true}. The transformer method receives the field owner followed by the new value for instance fields, or only the value for static fields; captured arguments of the enclosing method are appended after these arguments.
+ */
 public class CWrapConditionField implements IWrapConditionTarget<FieldInsnNode> {
 
     @Override

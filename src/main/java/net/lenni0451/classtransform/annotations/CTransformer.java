@@ -44,6 +44,8 @@ public @interface CTransformer {
     int priority() default 1000;
 
     /**
+     * Whether the transformer members and its annotation values should be remapped.
+     *
      * @return If the transformer and its annotations should be remapped
      */
     boolean remap() default true;

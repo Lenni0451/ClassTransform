@@ -59,6 +59,9 @@ public class CWrapMethodAnnotationHandler extends RemovingTargetAnnotationHandle
     private final Map<ClassNode, List<WrapRequest>> pending = new IdentityHashMap<>();
     private int bridgeCounter;
 
+    /**
+     * Creates a handler that applies {@link CWrapMethod} annotations.
+     */
     public CWrapMethodAnnotationHandler() {
         super(CWrapMethod.class, CWrapMethod::method);
     }

@@ -6,8 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Allows you to receive a cancellable {@code CallbackInfo} or {@code CallbackInfoReturnable}
- * from any injector and cancel the target method.
+ * A marker for injection handler parameters which receive a cancellable callback for the target
+ * method.
+ * <p>
+ * The parameter type is {@code CallbackInfo} or {@code CallbackInfoReturnable}. Cancelling the callback
+ * from any injector prevents the remaining target logic and supplies the return value. This compile-only
+ * compatibility stub mirrors the MixinExtras annotation so that the MixinsTranslator can recognize and
+ * translate it.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.CLASS)

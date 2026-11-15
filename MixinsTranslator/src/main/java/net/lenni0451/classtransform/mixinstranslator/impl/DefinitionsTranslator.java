@@ -8,6 +8,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @Definitions} into ClassTransform's {@link CDefinitions}.
+ * <p>
+ * The contained definitions are translated one by one with the translator registered for {@code @Definition}.
+ *
+ * @see CDefinitions
+ * @see DefinitionTranslator
+ */
 @ParametersAreNonnullByDefault
 class DefinitionsTranslator implements AnnotationTranslator {
 

@@ -8,6 +8,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates Mixin's {@code @ModifyArg} into {@link CModifyArg}.
+ * <p>
+ * Descriptor selectors in the source {@code target} member are translated and moved to {@code desc};
+ * the source {@code at} injection point becomes {@code target}. Nested annotations are translated in
+ * place, and all remaining members are copied unchanged. Common injector settings and slices are
+ * handled by {@link AnnotationTranslator#translateInjection(Map)}.
+ * <p>
+ * Members that are absent from the source annotation are omitted, leaving the {@link CModifyArg} defaults in
+ * effect.
+ *
+ * @see CModifyArg
+ */
 @ParametersAreNonnullByDefault
 class ModifyArgTranslator implements AnnotationTranslator {
 

@@ -6,7 +6,10 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /**
- * Util class to assist with in memory resources.
+ * URL connection exposing an in-memory byte array through the {@code x-buffer} protocol.
+ * <p>
+ * Connecting is a no-op and each call to {@link #getInputStream()} returns a new stream over the same
+ * array. The array is not copied, so callers must not modify it while the URL is in use.
  */
 class BytesURLConnection extends URLConnection {
 

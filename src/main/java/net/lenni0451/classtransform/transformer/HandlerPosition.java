@@ -14,10 +14,14 @@ public enum HandlerPosition {
 
     /**
      * Add an annotation handler on the top of the handler chain.
+     * <p>
+     * The handler is inserted directly after {@link SyntheticMethodGeneralHandler}, before all injection handlers.
      */
     PRE(SyntheticMethodGeneralHandler.class, InsertPosition.AFTER),
     /**
      * Add an annotation handler in the end of the handler chain.
+     * <p>
+     * The handler is inserted directly before {@link CInlineAnnotationHandler}, after all injection handlers.
      */
     POST(CInlineAnnotationHandler.class, InsertPosition.BEFORE);
 
@@ -30,6 +34,16 @@ public enum HandlerPosition {
         this.insertPosition = insertPosition;
     }
 
+    /**
+     * Insert a handler into the given chain relative to this position's anchor.
+     * <p>
+     * The chain is modified in place. The anchor is matched by exact class, so the chain must contain the anchor
+     * handler before this method is called.
+     *
+     * @param handler    The handler chain to modify
+     * @param newHandler The handler to insert
+     * @throws RuntimeException If the anchor handler is not part of the chain
+     */
     public void add(final List<AnnotationHandler> handler, final AnnotationHandler newHandler) {
         for (int i = 0; i < handler.size(); i++) {
             if (handler.get(i).getClass().equals(this.target)) {

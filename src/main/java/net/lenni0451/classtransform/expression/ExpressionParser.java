@@ -36,6 +36,16 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class ExpressionParser {
 
+    /**
+     * Parses an expression string into an AST.
+     * <p>
+     * Accepts one statement as described by the class grammar, from the first token to the end of the input.
+     * The returned tree is independent of the parser and can be reused for multiple matches.
+     *
+     * @param expression the expression to parse
+     * @return the root node of the expression tree
+     * @throws IllegalArgumentException if the expression is malformed or assigns to an invalid target
+     */
     public static Expression parse(final String expression) {
         ExpressionParser parser = new ExpressionParser(expression);
         Expression result = parser.parseStatement();

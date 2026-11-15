@@ -9,13 +9,27 @@ import javax.annotation.Nonnull;
  */
 public class MapperConfig {
 
+    /**
+     * Create a new config with all options disabled.
+     *
+     * @return The new config
+     */
     public static MapperConfig create() {
         return new MapperConfig();
     }
 
 
+    /**
+     * Whether {@link AMapper} should fill missing mappings for super members. Defaults to false.
+     */
     protected boolean fillSuperMappings = false;
+    /**
+     * The strategy used when filling super mappings fails. May be null while the option is disabled.
+     */
     protected FailStrategy superMappingsFailStrategy;
+    /**
+     * Whether the transformer class itself should be remapped to match the transformed class. Defaults to false.
+     */
     protected boolean remapTransformer = false;
 
     private MapperConfig() {
@@ -35,6 +49,8 @@ public class MapperConfig {
     /**
      * Fill all super mappings of the remapper.<br>
      * This is required if the mappings are missing mappings for super methods.
+     * <p>
+     * The fail strategy is only used while super mappings are enabled.
      *
      * @param fillSuperMappings         If super mappings should be filled (default: false)
      * @param superMappingsFailStrategy The fail strategy to use if super mappings could not be filled (default: {@link FailStrategy#CONTINUE})

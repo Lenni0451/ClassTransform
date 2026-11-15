@@ -17,6 +17,10 @@ import java.util.*;
 
 /**
  * Parse expressions, analyze the target method flow and turn matches into operation instructions.
+ * This is the entry point used by {@code @CTarget(value = "EXPRESSION")}: it loads the {@code @CExpression}
+ * annotations of a transformer method, resolves the {@code @CDefinition}s, matches every expression against the
+ * analyzed target method and reports the captured instructions. Matches are cached per target method for the
+ * duration of one transformation.
  */
 @ParametersAreNonnullByDefault
 public class ExpressionEngine {
@@ -25,14 +29,17 @@ public class ExpressionEngine {
     private static int helperCounter;
 
     /**
-     * Clear all cached matches. Called after each class transformation.
+     * Discards all cached matches of the current thread.
+     * <p>
+     * Must be called after each class transformation; otherwise matches from a previous, possibly modified,
+     * version of a method are reused.
      */
     public static void clear() {
         CACHE.remove();
     }
 
     /**
-     * Match an expression against a method.
+     * Matches an expression against a method without class hierarchy lookups.
      *
      * @param targetClass       The transformed class
      * @param targetMethod      The target method
@@ -46,15 +53,21 @@ public class ExpressionEngine {
     }
 
     /**
-     * Match an expression against a method.
+     * Matches all expressions with the given id against a method.
+     * <p>
+     * The expressions and definitions are read from the annotations of the transformer method; expressions are
+     * matched in their declared order against every value of the analyzed target method. Results are cached per
+     * target method and annotation signature, and this method may rewrite the target method when a matched
+     * comparison needs a helper method or an increment has to be expanded.
      *
-     * @param manager           The transformer manager used for class hierarchy lookups
+     * @param manager           The transformer manager used for class hierarchy lookups, or null to match owners literally
      * @param targetClass       The transformed class
      * @param targetMethod      The target method
      * @param transformerMethod The handler method containing the expressions and definitions
      * @param id                The expression id
-     * @param matches           The map to store match details in
-     * @return The captured instructions
+     * @param matches           The map to store match details in; existing entries are kept
+     * @return The captured instructions as a new mutable list, ordered by their index in the target method
+     * @throws IllegalArgumentException if the transformer method has no expression with the given id
      */
     public static List<AbstractInsnNode> match(@Nullable final TransformerManager manager, final ClassNode targetClass, final MethodNode targetMethod, final MethodNode transformerMethod, final String id, final Map<AbstractInsnNode, ExpressionMatch> matches) {
         String signature = signature(transformerMethod) + "|" + id;

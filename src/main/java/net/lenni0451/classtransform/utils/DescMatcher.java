@@ -27,6 +27,7 @@ public class DescMatcher {
      * @param methods The set to add the matched methods to
      * @param target  The class to search in
      * @param descs   The descriptors to match
+     * @throws IllegalArgumentException If a descriptor matches fewer or more members than its configured minimum or maximum
      */
     public static void addMethods(final Set<MethodNode> methods, final ClassNode target, final CDesc[] descs) {
         for (CDesc desc : descs) {
@@ -77,6 +78,8 @@ public class DescMatcher {
     }
 
     /**
+     * Check whether a method instruction matches a descriptor.
+     *
      * @param desc   The descriptor
      * @param method The method instruction
      * @return If the instruction matches the descriptor
@@ -91,6 +94,8 @@ public class DescMatcher {
     }
 
     /**
+     * Check whether a field instruction matches a descriptor.
+     *
      * @param desc  The descriptor
      * @param field The field instruction
      * @return If the instruction matches the descriptor
@@ -107,6 +112,7 @@ public class DescMatcher {
      *
      * @param desc    The descriptor
      * @param matches The number of matches
+     * @throws IllegalArgumentException If the number of matches is outside the configured minimum or maximum
      */
     public static void checkMatchCount(final CDesc desc, final int matches) {
         checkCount(desc.value(), desc.min(), desc.max(), matches);

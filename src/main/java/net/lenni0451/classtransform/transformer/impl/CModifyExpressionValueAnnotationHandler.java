@@ -26,11 +26,16 @@ import java.util.*;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CModifyExpressionValue} annotation.
+ * Applies the {@link CModifyExpressionValue} annotation by replacing the value produced by each selected method call, field access or constant with the transformer method result.
+ * <p>
+ * The handler must return a type compatible with the wrapped value and may take that value plus additional captured arguments. Constructor invocations wrap the object created by the {@code <init>} call.
  */
 @ParametersAreNonnullByDefault
 public class CModifyExpressionValueAnnotationHandler extends InjectionAnnotationHandler<CModifyExpressionValue> {
 
+    /**
+     * Creates a handler for the {@link CModifyExpressionValue} annotation.
+     */
     public CModifyExpressionValueAnnotationHandler() {
         super(CModifyExpressionValue.class, CModifyExpressionValue::method);
     }

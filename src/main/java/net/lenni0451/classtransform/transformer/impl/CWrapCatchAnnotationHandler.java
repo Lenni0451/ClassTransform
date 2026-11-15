@@ -22,11 +22,16 @@ import java.util.Map;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CWrapCatch} annotation.
+ * Applies the {@link CWrapCatch} annotation by wrapping the entire target method, or each selected invocation, in a try/catch block which calls the transformer method with the caught exception.
+ * <p>
+ * The handler must be static-compatible with the target, take exactly one exception argument and return the target or instruction return type, since its result is returned from the handler block.
  */
 @ParametersAreNonnullByDefault
 public class CWrapCatchAnnotationHandler extends RemovingTargetAnnotationHandler<CWrapCatch> {
 
+    /**
+     * Creates a handler for the {@link CWrapCatch} annotation.
+     */
     public CWrapCatchAnnotationHandler() {
         super(CWrapCatch.class, CWrapCatch::value);
     }

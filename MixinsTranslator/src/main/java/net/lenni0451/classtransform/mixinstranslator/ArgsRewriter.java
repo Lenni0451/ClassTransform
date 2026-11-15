@@ -12,6 +12,14 @@ import org.objectweb.asm.tree.TypeInsnNode;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+/**
+ * Rewrites Mixin's {@code @Args} type references to ClassTransform's {@link CArgs} in transformer methods.
+ * <p>
+ * Replaces the {@code org.spongepowered.asm.mixin.injection.Args} type in descriptors, instructions and local variable
+ * tables with {@link CArgs}, and in the generic signature when the descriptor also contained the type.
+ * {@link MixinsTranslator} calls this for every method after the annotations of the transformer have been
+ * translated.
+ */
 @ParametersAreNonnullByDefault
 final class ArgsRewriter {
 
@@ -19,6 +27,16 @@ final class ArgsRewriter {
     private static final Type CARGS = Type.getType(CArgs.class);
     private static final String CARGS_GET_TYPE_DESCRIPTOR = "(I)Lorg/objectweb/asm/Type;";
 
+    /**
+     * Rewrite all {@code @Args} references of the given method to {@link CArgs}.
+     * <p>
+     * The method descriptor, instruction owners and descriptors, and local variable types are updated. Calls to
+     * {@code Args#getType(int)} are rewritten to the {@link CArgs#getType(int)} descriptor. The generic signature is
+     * only rewritten when the descriptor contained {@code Args}, so a reference that appears only in the signature is
+     * left unchanged. The method node is modified in place and methods without references are left unchanged.
+     *
+     * @param method The transformer method to rewrite
+     */
     static void rewrite(final MethodNode method) {
         Type[] parameterTypes = Type.getArgumentTypes(method.desc);
         Type returnType = Type.getReturnType(method.desc);

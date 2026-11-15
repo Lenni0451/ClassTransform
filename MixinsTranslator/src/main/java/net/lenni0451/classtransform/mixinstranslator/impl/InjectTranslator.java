@@ -9,6 +9,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates Mixin's {@code @Inject} into ClassTransform's {@link CInject}.
+ * <p>
+ * Mixin's {@code target} descriptors become {@link CInject#desc()}, and the {@code at} annotations become
+ * {@link CInject#target()}. If {@code require} explicitly allows zero matches, every translated target is marked
+ * optional. The {@code locals} capture mode is renamed to {@link CLocalCapture}, and
+ * {@link AnnotationTranslator#translateInjection(Map)} completes the common injector settings.
+ *
+ * @see CInject
+ */
 @ParametersAreNonnullByDefault
 class InjectTranslator implements AnnotationTranslator {
 

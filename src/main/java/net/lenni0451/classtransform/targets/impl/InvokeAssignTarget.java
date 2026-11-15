@@ -17,6 +17,11 @@ import java.util.Map;
 
 /**
  * Select the instruction after a value-returning invocation and its immediate local assignment.
+ * <p>
+ * Invocations returning {@code void} are skipped. If the next real instruction is a local store,
+ * the instruction after the store is selected; otherwise the instruction after the invocation
+ * itself is used. Calls without a following real instruction are ignored, and the shift is
+ * always {@code BEFORE}.
  */
 @ParametersAreNonnullByDefault
 public class InvokeAssignTarget extends InvokeTarget {

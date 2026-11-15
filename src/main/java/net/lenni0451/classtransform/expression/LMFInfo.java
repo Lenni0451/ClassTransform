@@ -10,12 +10,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Information about a lambda metafactory invocation.
+ * Describes the implementation method handle and whether the lambda is a free method reference, a bound method
+ * reference or a constructor reference. Produced by {@link #get(ExpressionFlow.FlowValue, String)}.
  */
 @ParametersAreNonnullByDefault
 public class LMFInfo {
 
     /**
-     * Get the lambda metafactory information of a flow value.
+     * Extracts the lambda metafactory information of a flow value.
      *
      * @param node        The flow value
      * @param targetClass The name of the transformed class
@@ -35,7 +37,9 @@ public class LMFInfo {
     }
 
     /**
-     * Remove synthetic null checks from a method reference receiver.
+     * Removes synthetic null checks from a method reference receiver.
+     * Strips {@code Object.getClass()} and {@code Objects.requireNonNull(Object)} wrappers added by the compiler
+     * and returns the underlying value.
      *
      * @param node The receiver value
      * @return The actual receiver value
@@ -80,7 +84,13 @@ public class LMFInfo {
     }
 
 
+    /**
+     * The implementation method handle of the lambda.
+     */
     public final Handle impl;
+    /**
+     * The kind of reference the lambda represents.
+     */
     public final Type type;
 
     private LMFInfo(final Handle impl, final Type type) {
@@ -89,8 +99,23 @@ public class LMFInfo {
     }
 
 
+    /**
+     * The kinds of references a lambda metafactory call site can represent.
+     */
     public enum Type {
-        FREE_METHOD, BOUND_METHOD, INSTANTIATION
+        /**
+         * A free method reference such as {@code Type::method}; the implementation can be an unbound instance
+         * method or a static method ({@code H_INVOKESTATIC}).
+         */
+        FREE_METHOD,
+        /**
+         * A method reference bound to a captured receiver.
+         */
+        BOUND_METHOD,
+        /**
+         * A constructor reference such as {@code Type::new}.
+         */
+        INSTANTIATION
     }
 
 }

@@ -18,11 +18,17 @@ import java.util.*;
 public class ExpressionFlow {
 
     /**
-     * Analyze the value flow of a method.
+     * Analyzes the value flow of a method.
+     * <p>
+     * Runs an ASM analyzer with a custom interpreter and returns every value produced by an instruction.
+     * As a side effect the values are linked through {@link FlowValue#getNext()} and their
+     * {@linkplain FlowValue#getOrder() order} is set. The returned collection is a new mutable list and is not
+     * sorted.
      *
-     * @param classNode The class containing the method
-     * @param method    The method to analyze
-     * @return All value nodes
+     * @param classNode the class containing the method
+     * @param method    the method to analyze
+     * @return all instruction-backed value nodes created during the analysis
+     * @throws IllegalStateException if the method cannot be analyzed
      */
     public static Collection<FlowValue> analyze(final ClassNode classNode, final MethodNode method) {
         FlowInterpreter interpreter = new FlowInterpreter(classNode, method);
@@ -43,6 +49,12 @@ public class ExpressionFlow {
     }
 
 
+    /**
+     * A value produced while analyzing a method.
+     * Each value points to the instruction that produced it and to the values it consumes as inputs, forming a
+     * graph in which operands point towards their consumer. Values merged from multiple control flow branches have
+     * no instruction and are marked {@linkplain #isComplex() complex}.
+     */
     public static class FlowValue implements Value {
         private final Type type;
         private final AbstractInsnNode insn;
@@ -50,6 +62,13 @@ public class ExpressionFlow {
         private final List<FlowValue> next = new ArrayList<>();
         private int order = -1;
 
+        /**
+         * Creates a detached value.
+         *
+         * @param type   the type of the value
+         * @param insn   the producing instruction, or null for a complex value
+         * @param inputs the operand values in evaluation order
+         */
         public FlowValue(final Type type, final AbstractInsnNode insn, final FlowValue... inputs) {
             this.type = type;
             this.insn = insn;
@@ -61,23 +80,54 @@ public class ExpressionFlow {
             return this.type.getSize();
         }
 
+        /**
+         * Returns the type of this value.
+         * <p>
+         * Besides regular ASM types this can be one of the pseudo types {@link ExpressionTypes#NULL_TYPE} and
+         * {@link ExpressionTypes#INT_LIKE_TYPE}.
+         *
+         * @return the type of the value
+         */
         public Type getType() {
             return this.type;
         }
 
+        /**
+         * Returns the instruction that produced this value.
+         *
+         * @return the producing instruction, or null for a complex value
+         */
         public AbstractInsnNode getInsn() {
             return this.insn;
         }
 
+        /**
+         * Returns the input value at the given index.
+         * <p>
+         * Inputs are in evaluation order; for instance calls the receiver is the first input, followed by the
+         * arguments.
+         *
+         * @param index the zero-based index of the input
+         * @return the input value
+         */
         public FlowValue getInput(final int index) {
             return this.inputs[index];
         }
 
+        /**
+         * Returns the number of inputs of this value.
+         *
+         * @return the input count
+         */
         public int inputCount() {
             return this.inputs.length;
         }
 
         /**
+         * Returns the values which use this value as an input.
+         * <p>
+         * The returned list is the live internal list rather than a copy, so it reflects values added later.
+         *
          * @return The values which use this value as an input
          */
         public List<FlowValue> getNext() {
@@ -85,24 +135,53 @@ public class ExpressionFlow {
         }
 
         /**
+         * Returns the index of the producing instruction in the method.
+         *
          * @return The index of the instruction in the method or -1 for complex values
          */
         public int getOrder() {
             return this.order;
         }
 
+        /**
+         * Sets the index of the producing instruction in the method.
+         *
+         * @param order the instruction index, or -1 for complex values
+         */
         public void setOrder(final int order) {
             this.order = order;
         }
 
+        /**
+         * Registers a value which consumes this value as an input.
+         *
+         * @param value the consuming value; duplicates are ignored
+         */
         public void addNext(final FlowValue value) {
             if (!this.next.contains(value)) this.next.add(value);
         }
 
+        /**
+         * Returns whether this value has no producing instruction.
+         * <p>
+         * Complex values result from merging branches or are placeholders for locals; they cannot be matched
+         * against an instruction.
+         *
+         * @return whether this value has no instruction
+         */
         public boolean isComplex() {
             return this.insn == null;
         }
 
+        /**
+         * Tests if a value of this type can be used where the desired type is expected.
+         * <p>
+         * A null desired type accepts everything; the int-like types {@code boolean}, {@code byte},
+         * {@code char}, {@code short} and {@code int} are treated as interchangeable.
+         *
+         * @param desiredType the expected type, or null to accept any type
+         * @return whether this type is compatible with the desired type
+         */
         public boolean typeMatches(final Type desiredType) {
             if (desiredType == null) return true;
             if (ExpressionTypes.isIntLike(desiredType) && ExpressionTypes.isIntLike(this.type)) return true;
@@ -115,7 +194,16 @@ public class ExpressionFlow {
         }
     }
 
+    /**
+     * A placeholder value which has no instruction and no inputs.
+     * Used for values that exist only as analyzer state, such as stored locals or uninitialized values.
+     */
     public static class DummyFlowValue extends FlowValue {
+        /**
+         * Creates a placeholder value of the given type.
+         *
+         * @param type the type of the value
+         */
         public DummyFlowValue(final Type type) {
             super(type, null);
         }
@@ -270,18 +358,41 @@ public class ExpressionFlow {
     }
 
 
+    /**
+     * Resolves the types of local variable load instructions.
+     * The declared type from the local variable table is preferred; without debug information the observed
+     * value types are merged instead.
+     */
     public static class LocalsCalculator {
+        /**
+         * An ASM interpreter which records the types of local variable accesses.
+         */
         public static class Calculator extends Interpreter<BasicValue> {
             private final ClassNode classNode;
             private final MethodNode method;
             private final Map<VarInsnNode, Object> results = new IdentityHashMap<>();
 
+            /**
+             * Creates a calculator for a method.
+             *
+             * @param classNode the class containing the method
+             * @param method    the method whose locals should be resolved
+             */
             public Calculator(final ClassNode classNode, final MethodNode method) {
                 super(Opcodes.ASM9);
                 this.classNode = classNode;
                 this.method = method;
             }
 
+            /**
+             * Analyzes the method and collects the local variable types.
+             * <p>
+             * Only load instructions whose type could be resolved are included. The returned map is a new
+             * identity-based map keyed by the load instruction.
+             *
+             * @return the resolved type per local variable load instruction
+             * @throws IllegalStateException if the method cannot be analyzed
+             */
             public Map<VarInsnNode, Type> calculate() {
                 try {
                     new Analyzer<>(this).analyze(this.classNode.name, this.method);

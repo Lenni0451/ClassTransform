@@ -11,6 +11,12 @@ import static net.lenni0451.classtransform.utils.Types.IN_Object;
 
 /**
  * A class writer implementation using the {@link ClassTree} for stack frame calculation.
+ *
+ * <p>Common super classes are resolved through {@link ClassTree#getTreePart(IClassProvider, String)} instead of a
+ * class loader, so classes that only exist in the class provider can still be written. Unresolvable types and
+ * interfaces without a common super class fall back to {@code java/lang/Object}. A type missing from the provider
+ * makes the calculation fail with a {@link ClassNotFoundException} that propagates as an undeclared checked
+ * exception.
  */
 @ParametersAreNonnullByDefault
 public class TreeClassWriter extends ClassWriter {
@@ -18,10 +24,23 @@ public class TreeClassWriter extends ClassWriter {
     private final ClassTree classTree;
     private final IClassProvider classProvider;
 
+    /**
+     * Creates a writer that computes stack map frames.
+     *
+     * @param classTree     The tree used to resolve common super classes
+     * @param classProvider The provider used to load classes for the tree
+     */
     public TreeClassWriter(final ClassTree classTree, final IClassProvider classProvider) {
         this(ClassWriter.COMPUTE_FRAMES, classTree, classProvider);
     }
 
+    /**
+     * Creates a writer with the given ASM flags.
+     *
+     * @param flags         The flags passed to {@link ClassWriter}
+     * @param classTree     The tree used to resolve common super classes
+     * @param classProvider The provider used to load classes for the tree
+     */
     public TreeClassWriter(final int flags, final ClassTree classTree, final IClassProvider classProvider) {
         super(flags);
 

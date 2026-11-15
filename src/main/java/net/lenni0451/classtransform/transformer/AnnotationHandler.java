@@ -32,6 +32,14 @@ public abstract class AnnotationHandler {
 
     /**
      * Handle all annotations in the transformer class.
+     * <p>
+     * Called once for every transformer class registered for {@code transformedClass}, in descending priority order.
+     * Both nodes may be modified in place, and none of the arguments is null. The transformer node is a clone for the
+     * current target class, so removing methods from it does not affect other target classes. Throwing an exception
+     * aborts the transformation of the target class according to the manager's fail strategy.
+     * <p>
+     * This method is not called for {@link net.lenni0451.classtransform.transformer.types.InjectionAnnotationHandler}
+     * subclasses; those are batched by the manager through {@code handles} and {@code prepare} instead.
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node

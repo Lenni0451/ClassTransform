@@ -8,6 +8,10 @@ import java.lang.annotation.Target;
 /**
  * Aggregate the minimum and maximum injection counts of multiple handler methods.<br>
  * Handlers with the same group name share their successful injection count.
+ * <p>
+ * The group totals aggregate the injection counts across all transformers for the class and are validated
+ * together by {@code InjectionPlan#validateGroups} after the injections of the current handler block have
+ * been applied.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)

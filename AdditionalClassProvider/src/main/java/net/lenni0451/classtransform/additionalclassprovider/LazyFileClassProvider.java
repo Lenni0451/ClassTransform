@@ -16,6 +16,14 @@ import java.util.function.Supplier;
 
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
+/**
+ * A class provider that searches a collection of jar files, opening each of them lazily on first use.
+ * <p>
+ * The jar file systems are opened when a class is first requested from them and stay open until {@link #close()} is
+ * called, so the caller owns this provider and must close it. Classes that are not found in the jar files are delegated
+ * to an optional parent provider. {@link #getAllClasses()} does not scan the jar files and only returns the classes of
+ * the parent provider, or an empty map if there is no parent.
+ */
 @ParametersAreNonnullByDefault
 public class LazyFileClassProvider implements IClassProvider, AutoCloseable {
 
@@ -23,14 +31,31 @@ public class LazyFileClassProvider implements IClassProvider, AutoCloseable {
     private final IClassProvider parent;
     private final LazyLoader[] loaders;
 
+    /**
+     * Creates a provider that searches the given jar files.
+     *
+     * @param files The jar files to search
+     */
     public LazyFileClassProvider(final Collection<File> files) {
         this(null, files);
     }
 
+    /**
+     * Creates a provider that searches the given jar files and falls back to a parent provider.
+     *
+     * @param files  The jar files to search
+     * @param parent The parent provider queried when a class is not found in the jar files
+     */
     public LazyFileClassProvider(final Collection<File> files, @Nullable final IClassProvider parent) {
         this(parent, files);
     }
 
+    /**
+     * Creates a provider that searches the given jar files and falls back to a parent provider.
+     *
+     * @param parent The parent provider queried when a class is not found in the jar files
+     * @param files  The jar files to search
+     */
     public LazyFileClassProvider(@Nullable final IClassProvider parent, final Collection<File> files) {
         this.parent = parent;
         this.loaders = new LazyLoader[files.size()];

@@ -18,6 +18,11 @@ import java.util.Map;
 /**
  * A target for the tail (before last {@link Opcodes#RETURN}) of a method.<br>
  * When using {@link CInject} the original return value is accessible using the {@link InjectionCallback}.
+ * <p>
+ * The last return instruction inside the slice is selected. The target itself ignores the ordinal,
+ * but the ordinal is applied afterwards by the target resolver, so an ordinal other than {@code -1}
+ * or {@code 0} selects no instruction. If the slice contains no return, an empty list is returned.
+ * The shift is always {@code BEFORE}.
  */
 @ParametersAreNonnullByDefault
 public class TailTarget implements IInjectionTarget {

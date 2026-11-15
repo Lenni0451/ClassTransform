@@ -39,13 +39,18 @@ import java.util.Set;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CModifyArgs} annotation.
+ * Applies the {@link CModifyArgs} annotation by passing a mutable {@link net.lenni0451.classtransform.CArgs} view of each selected invocation to the transformer method and reloading the arguments afterwards.
+ * <p>
+ * The handler must be void and may additionally receive captured or coerced arguments. Targeting a constructor before its {@code super()} or {@code this()} call requires a static handler.
  */
 @ParametersAreNonnullByDefault
 public class CModifyArgsAnnotationHandler extends InjectionAnnotationHandler<CModifyArgs> {
 
     private static final String ARGS_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object[].class));
 
+    /**
+     * Creates a handler that processes {@link CModifyArgs} annotations.
+     */
     public CModifyArgsAnnotationHandler() {
         super(CModifyArgs.class, CModifyArgs::method);
     }

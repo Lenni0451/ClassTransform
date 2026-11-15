@@ -41,11 +41,16 @@ import java.util.Set;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CInject} annotation.
+ * Applies the {@link CInject} annotation by invoking the transformer method at every instruction selected by the annotation targets.
+ * <p>
+ * The handler must be void, have the same static modifiers as the target and either take the target arguments (optionally followed by an {@link InjectionCallback}), take no arguments, or take only an {@link InjectionCallback}. Cancellable injections check the callback and may return early.
  */
 @ParametersAreNonnullByDefault
 public class CInjectAnnotationHandler extends InjectionAnnotationHandler<CInject> {
 
+    /**
+     * Creates a handler for the {@link CInject} annotation.
+     */
     public CInjectAnnotationHandler() {
         super(CInject.class, CInject::method);
     }

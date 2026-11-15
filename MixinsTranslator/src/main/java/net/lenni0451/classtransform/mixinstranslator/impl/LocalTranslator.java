@@ -9,6 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @Local} into ClassTransform's {@link CLocalVariable}.
+ * <p>
+ * A single non-empty name is stored as {@code name} and multiple names as {@code names}; empty names, negative
+ * ordinals and negative indices are dropped, and {@code type} is removed because the parameter type selects the local.
+ * {@code strict} is always enabled. If no discriminator remains, {@code implicit} is set so the only local of the
+ * parameter type is selected. An unexpected value type for the name is rejected with an
+ * {@link UnsupportedOperationException}.
+ *
+ * @see CLocalVariable
+ */
 @ParametersAreNonnullByDefault
 public class LocalTranslator implements AnnotationTranslator {
 

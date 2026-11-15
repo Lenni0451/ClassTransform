@@ -30,6 +30,15 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
 /**
  * Inject into classes by using a custom class loader.
+ * <p>
+ * Classes are looked up in the order set by {@link #setPriority(EnumLoaderPriority)}: with
+ * {@link EnumLoaderPriority#CUSTOM_FIRST} (the default) the loader's own URLs and runtime resources win,
+ * with {@link EnumLoaderPriority#PARENT_FIRST} the parent is asked first. Classes matching a protected
+ * package prefix are not defined from the loader's class path; they are resolved by the parent, except for
+ * prefixes with a protection exception such as {@code com.sun.jna.}. Without a parent such classes fail to
+ * load instead of being resolved. Class loading is serialized per class name, but the protected packages
+ * and runtime resources are plain collections without synchronization, so they should be populated before
+ * the loader is used from multiple threads.
  */
 @ParametersAreNonnullByDefault
 public class InjectionClassLoader extends URLClassLoader {
@@ -42,10 +51,27 @@ public class InjectionClassLoader extends URLClassLoader {
 
     private EnumLoaderPriority priority = EnumLoaderPriority.CUSTOM_FIRST;
 
+    /**
+     * Create a class loader using the class loader of this class as parent.
+     *
+     * @param transformerManager The transformer manager used to transform loaded classes
+     * @param urls               The URLs to load classes and resources from
+     */
     public InjectionClassLoader(final TransformerManager transformerManager, final URL... urls) {
         this(transformerManager, InjectionClassLoader.class.getClassLoader(), urls);
     }
 
+    /**
+     * Create a class loader with the given parent.
+     *
+     * <p>A {@code null} parent disables parent delegation for class loading only: the resource lookup methods
+     * still dereference the parent and throw a {@link NullPointerException} when a resource is not found in
+     * this loader or its runtime resources.
+     *
+     * @param transformerManager The transformer manager used to transform loaded classes
+     * @param parent             The parent class loader, may be {@code null} to disable parent delegation
+     * @param urls               The URLs to load classes and resources from
+     */
     public InjectionClassLoader(final TransformerManager transformerManager, final ClassLoader parent, final URL... urls) {
         super(urls, null);
         this.transformerManager = transformerManager;
@@ -295,6 +321,8 @@ public class InjectionClassLoader extends URLClassLoader {
     }
 
     /**
+     * Get the transformer manager used by this class loader.
+     *
      * @return The transformer manager used by this class loader
      */
     public TransformerManager getTransformerManager() {
@@ -312,6 +340,9 @@ public class InjectionClassLoader extends URLClassLoader {
 
     /**
      * Add a new resource to the classpath during runtime.
+     * <p>
+     * The data is stored by reference and used for both resource and class lookups, so the caller must
+     * not modify the array afterwards.
      *
      * @param path The path to the resource
      * @param data The data of the resource
@@ -325,6 +356,7 @@ public class InjectionClassLoader extends URLClassLoader {
      *
      * @param classLoader The class loader to copy the resource from
      * @param path        The path to the resource
+     * @throws IllegalArgumentException If the resource is missing or cannot be read
      */
     public void copyResource(final ClassLoader classLoader, final String path) {
         try (InputStream is = classLoader.getResourceAsStream(path)) {
@@ -369,6 +401,9 @@ public class InjectionClassLoader extends URLClassLoader {
     /**
      * Execute the main method of the given class.<br>
      * The only argument of the main method has to be a {@code String[]}.
+     * <p>
+     * The context class loader of the current thread is replaced with this loader before the class is
+     * loaded and is not restored afterwards.
      *
      * @param className  The name of the class containing the main method
      * @param methodName The name of the main method

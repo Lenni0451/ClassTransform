@@ -28,10 +28,26 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     private MethodMetadata currentMethodMetadata = null;
     private ParameterMetadata currentParameterMetadata = null;
 
+    /**
+     * Create a mapper that reads the mapping from a stream.
+     *
+     * @param config         The mapper config
+     * @param mappingsStream The stream to read, closed after loading
+     * @param from           The namespace to map from
+     * @param to             The namespace to map to
+     */
     public MetaTinyV2Mapper(final MapperConfig config, @WillClose final InputStream mappingsStream, final String from, final String to) {
         super(config, mappingsStream, from, to);
     }
 
+    /**
+     * Create a mapper that reads the mapping from a file.
+     *
+     * @param config       The mapper config
+     * @param mappingsFile The mapping file to read
+     * @param from         The namespace to map from
+     * @param to           The namespace to map to
+     */
     public MetaTinyV2Mapper(final MapperConfig config, final File mappingsFile, final String from, final String to) {
         super(config, mappingsFile, from, to);
     }
@@ -39,6 +55,8 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     /**
      * Get the parsed metadata.<br>
      * All class/field/method names and descriptors are in the 'to' namespace.
+     * <p>
+     * The returned list is the internal mutable list in mapping file order.
      *
      * @return The parsed metadata
      */
@@ -174,52 +192,121 @@ public class MetaTinyV2Mapper extends TinyV2Mapper {
     }
 
 
+    /**
+     * Metadata of a class parsed from the mappings.
+     */
     @Data
     @With
     public static class ClassMetadata {
+        /**
+         * The class name in the to namespace.
+         */
         private final String name;
+        /**
+         * The class comment, or null if the mapping has none.
+         */
         @Nullable
         private final String comment;
+        /**
+         * The metadata of the class fields; mutable and owned by this instance.
+         */
         private final List<FieldMetadata> fields;
+        /**
+         * The metadata of the class methods; mutable and owned by this instance.
+         */
         private final List<MethodMetadata> methods;
 
+        /**
+         * Check if this class has no comment and no non-empty member metadata.
+         *
+         * @return If this metadata contains no information
+         */
         public boolean isEmpty() {
             return this.comment == null && this.fields.stream().allMatch(FieldMetadata::isEmpty) && this.methods.stream().allMatch(MethodMetadata::isEmpty);
         }
     }
 
+    /**
+     * Metadata of a field parsed from the mappings.
+     */
     @Data
     @With
     public static class FieldMetadata {
+        /**
+         * The field name in the to namespace.
+         */
         private final String name;
+        /**
+         * The field descriptor in the to namespace.
+         */
         private final String descriptor;
+        /**
+         * The field comment, or null if the mapping has none.
+         */
         @Nullable
         private final String comment;
 
+        /**
+         * Check if this field has no comment.
+         *
+         * @return If this metadata contains no information
+         */
         public boolean isEmpty() {
             return this.comment == null;
         }
     }
 
+    /**
+     * Metadata of a method parsed from the mappings.
+     */
     @Data
     @With
     public static class MethodMetadata {
+        /**
+         * The method name in the to namespace.
+         */
         private final String name;
+        /**
+         * The method descriptor in the to namespace.
+         */
         private final String descriptor;
+        /**
+         * The method comment, or null if the mapping has none.
+         */
         @Nullable
         private final String comment;
+        /**
+         * The metadata of the method parameters; mutable and owned by this instance.
+         */
         private final List<ParameterMetadata> parameters;
 
+        /**
+         * Check if this method has no comment and no parameters.
+         *
+         * @return If this metadata contains no information
+         */
         public boolean isEmpty() {
             return this.comment == null && this.parameters.isEmpty();
         }
     }
 
+    /**
+     * Metadata of a method parameter parsed from the mappings.
+     */
     @Data
     @With
     public static class ParameterMetadata {
+        /**
+         * The parameter index as written in the mapping file.
+         */
         private final int index;
+        /**
+         * The parameter name.
+         */
         private final String name;
+        /**
+         * The parameter comment, or null if the mapping has none.
+         */
         @Nullable
         private final String comment;
     }

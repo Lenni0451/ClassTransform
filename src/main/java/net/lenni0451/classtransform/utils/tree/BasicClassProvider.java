@@ -13,16 +13,31 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 /**
  * A basic class provider with only the {@link #getClass(String)} implemented.<br>
  * You need to register all transformer classes with direct paths as the {@link #getAllClasses()} method is required for wildcard matching.
+ *
+ * <p>Bytecode is read as a {@code .class} resource from the class loader, and every failure is wrapped in a
+ * {@link ClassNotFoundException}. Class enumeration is not supported, so {@link #getAllClasses()} throws an
+ * {@link UnsupportedOperationException}; subclasses can override it to support wildcard transformers.
  */
 @ParametersAreNonnullByDefault
 public class BasicClassProvider implements IClassProvider {
 
+    /**
+     * The class loader used to read class resources; subclasses may replace it.
+     */
     protected ClassLoader classLoader;
 
+    /**
+     * Creates a provider using the class loader of this class.
+     */
     public BasicClassProvider() {
         this(BasicClassProvider.class.getClassLoader());
     }
 
+    /**
+     * Creates a provider using the given class loader.
+     *
+     * @param classLoader The class loader to read class resources from
+     */
     public BasicClassProvider(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }

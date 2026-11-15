@@ -62,6 +62,9 @@ public @interface CASM {
     Shift shift() default Shift.TOP;
 
 
+    /**
+     * The position in the handler chain at which the CASM transformer is executed.
+     */
     enum Shift {
         /**
          * Execute the transformer at the top of the handler chain.

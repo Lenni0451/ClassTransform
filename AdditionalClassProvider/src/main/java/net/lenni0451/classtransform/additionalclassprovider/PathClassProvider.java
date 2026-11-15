@@ -17,6 +17,13 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 import static net.lenni0451.classtransform.utils.Sneaky.sneakySupply;
 
+/**
+ * A class provider that reads class files from a directory tree.
+ * <p>
+ * Classes are resolved relative to the given path, which usually points to a class output directory. Nothing is
+ * cached: every lookup reads the file from disk, and the suppliers returned by {@link #getAllClasses()} read their
+ * class file again each time they are invoked. Missing classes are delegated to an optional parent provider.
+ */
 @ParametersAreNonnullByDefault
 public class PathClassProvider implements IClassProvider {
 
@@ -24,14 +31,31 @@ public class PathClassProvider implements IClassProvider {
     private final IClassProvider parent;
     private final Path path;
 
+    /**
+     * Creates a provider that reads classes from the given directory.
+     *
+     * @param path The directory containing the class files
+     */
     public PathClassProvider(final Path path) {
         this(null, path);
     }
 
+    /**
+     * Creates a provider that reads classes from the given directory and falls back to a parent provider.
+     *
+     * @param path   The directory containing the class files
+     * @param parent The parent provider queried when a class is not found
+     */
     public PathClassProvider(final Path path, @Nullable final IClassProvider parent) {
         this(parent, path);
     }
 
+    /**
+     * Creates a provider that reads classes from the given directory and falls back to a parent provider.
+     *
+     * @param parent The parent provider queried when a class is not found
+     * @param path   The directory containing the class files
+     */
     public PathClassProvider(@Nullable final IClassProvider parent, final Path path) {
         this.parent = parent;
         this.path = path;

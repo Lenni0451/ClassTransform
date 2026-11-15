@@ -13,6 +13,9 @@ public interface IAnnotationHandlerFinalizer {
 
     /**
      * Apply all pending changes to the transformed class.
+     * <p>
+     * Called once per transformed class after the complete handler chain ran, including handlers inserted before or
+     * after this one, and in chain order. The class node may be modified in place.
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The transformed class node

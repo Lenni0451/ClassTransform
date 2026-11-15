@@ -24,11 +24,16 @@ import java.util.*;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CModifyReturnValue} annotation.
+ * Applies the {@link CModifyReturnValue} annotation by calling the transformer method before each selected return instruction and returning its result instead.
+ * <p>
+ * The handler must accept and return the target method return type, so void targets and non-return instructions are rejected.
  */
 @ParametersAreNonnullByDefault
 public class CModifyReturnValueAnnotationHandler extends InjectionAnnotationHandler<CModifyReturnValue> {
 
+    /**
+     * Creates a handler for the {@link CModifyReturnValue} annotation.
+     */
     public CModifyReturnValueAnnotationHandler() {
         super(CModifyReturnValue.class, CModifyReturnValue::method);
     }

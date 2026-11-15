@@ -13,6 +13,15 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
 /**
  * A class tree which dynamically loads tree parts on demand.
+ *
+ * <p>Parts are cached by dot-separated class name for the lifetime of the tree. When a {@link TransformerManager} is
+ * set, bytecode is transformed before it is parsed, so the tree mirrors the classes after transformation. Super
+ * classes and interfaces are resolved transitively while a part is loaded. The part is cached before its super types
+ * are resolved, so a missing type propagates its {@link ClassNotFoundException} to the caller while the partially
+ * resolved part stays cached and is returned by later calls.
+ *
+ * <p>{@link #getTreePart(IClassProvider, String)} is synchronized, but the cached class nodes are shared mutable
+ * objects and must not be modified by several threads at once.
  */
 @ParametersAreNonnullByDefault
 public class ClassTree {
@@ -20,15 +29,25 @@ public class ClassTree {
     private final Map<String, TreePart> tree = new HashMap<>();
     private final TransformerManager transformerManager;
 
+    /**
+     * Creates a class tree that does not transform classes.
+     */
     public ClassTree() {
         this(null);
     }
 
+    /**
+     * Creates a class tree that optionally transforms classes before parsing them.
+     *
+     * @param transformerManager The manager used to transform class bytecode, or {@code null} to disable transforming
+     */
     public ClassTree(@Nullable final TransformerManager transformerManager) {
         this.transformerManager = transformerManager;
     }
 
     /**
+     * Checks whether this tree was created with a transformer manager.
+     *
      * @return If this class tree can transform classes
      */
     public boolean canTransform() {
@@ -37,6 +56,9 @@ public class ClassTree {
 
     /**
      * Get a tree part from a class by name.
+     *
+     * <p>The part is loaded and cached on first access, so later calls with the same name return the same instance
+     * regardless of the provider passed in.
      *
      * @param classProvider The class provider to get the bytecode from
      * @param className     The name of the class
@@ -70,6 +92,12 @@ public class ClassTree {
     }
 
 
+    /**
+     * A single class in the tree with its resolved super types and access flags.
+     *
+     * <p>Instances are created and cached by {@link ClassTree#getTreePart(IClassProvider, String)}. Equality and hash
+     * code are based on the dot-separated class name only, so parts loaded through different providers compare equal.
+     */
     @ParametersAreNonnullByDefault
     public class TreePart {
 
@@ -101,17 +129,19 @@ public class ClassTree {
         }
 
         /**
-         * @return The name of the class
+         * Gets the name of the class.
+         *
+         * @return The name of the class with dots instead of slashes
          */
         public String getName() {
             return this.name;
         }
 
         /**
-         * Get the class node of the super class of this class.
+         * Gets the super class of this class as a tree part.
          *
          * @param classProvider The class provider to get the bytecode from
-         * @return The class node of the super class
+         * @return The tree part of the super class, or {@code null} if this class has no super class
          * @throws ClassNotFoundException If the class could not be found
          */
         @Nullable
@@ -121,6 +151,10 @@ public class ClassTree {
         }
 
         /**
+         * Gets all super classes and their super classes, including interfaces.
+         *
+         * <p>The returned set is an unmodifiable view of the cached names and does not contain this class itself.
+         *
          * @return A set of all super classes and their super classes including interfaces
          */
         public Set<String> getSuperClasses() {
@@ -130,6 +164,8 @@ public class ClassTree {
         /**
          * Get the class tree parts of all super classes of this class.<br>
          * This includes the super class and all interfaces.
+         *
+         * <p>The returned set is newly created and mutable, so callers may modify it without affecting the tree.
          *
          * @param classProvider The class provider to get the bytecode from
          * @param includeSelf   Add the current class to the set
@@ -144,6 +180,8 @@ public class ClassTree {
         }
 
         /**
+         * Gets the ASM access flags of the class.
+         *
          * @return The modifiers of the class
          */
         public int getModifiers() {

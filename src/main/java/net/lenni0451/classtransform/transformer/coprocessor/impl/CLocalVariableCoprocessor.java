@@ -22,6 +22,13 @@ import java.util.Map;
 /**
  * The coprocessor for {@link CLocalVariable} parameters.<br>
  * Annotated parameters are removed from the transformer method and passed through an object array.
+ * <p>
+ * Annotated parameters are resolved at the injection position of every call by name, ordinal or index, falling back
+ * to type inference when no local variable table is present. Values are read before the call and, unless the parameter
+ * is a reference or not modifiable, written back afterwards. Reference parameters (such as {@code CLocalRef}) share a
+ * boxed slot so changes become visible immediately.
+ * <p>
+ * Setting {@code print = true} logs the available local variables and aborts the transformation.
  */
 public class CLocalVariableCoprocessor implements IAnnotationCoprocessor {
 

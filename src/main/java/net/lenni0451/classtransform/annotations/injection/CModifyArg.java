@@ -36,8 +36,10 @@ import java.lang.annotation.Target;
 public @interface CModifyArg {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.
+     * The methods whose invocation argument is changed.
+     * <p>
+     * Selectors use a name or a name with descriptor and support wildcards across several methods, for
+     * example {@code accept(Ljava/lang/Object;)V} or {@code accept*}.
      *
      * @return The method name and descriptor
      */
@@ -46,6 +48,7 @@ public @interface CModifyArg {
 
     /**
      * The invocation to modify the argument of.
+     * This may be omitted when {@link #targets()} is used.
      *
      * @return The target
      */
@@ -61,7 +64,7 @@ public @interface CModifyArg {
     CTarget[] targets() default {};
 
     /**
-     * Descriptor selectors for the target methods.
+     * Descriptor selectors that narrow the invocations whose argument is changed.
      *
      * @return The descriptor selectors
      */
@@ -69,7 +72,7 @@ public @interface CModifyArg {
     CDesc[] desc() default {};
 
     /**
-     * The argument index to modify.
+     * The zero-based argument index to modify, excluding the invocation receiver.
      *
      * @return The argument index or -1 to infer it from the handler type
      */
@@ -84,6 +87,9 @@ public @interface CModifyArg {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices selectable by {@link CTarget#slice()} when locating the modified
+     * invocation; ids have to be unique within the annotation.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -111,7 +117,8 @@ public @interface CModifyArg {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.
+     * The maximum number of invocations whose argument may be changed.
+     * Values below one disable the limit.
      *
      * @return The maximum injection count
      */
@@ -125,6 +132,8 @@ public @interface CModifyArg {
     int order() default 1000;
 
     /**
+     * Whether the method, invocation and argument index selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

@@ -15,6 +15,9 @@ import java.util.Map;
 
 /**
  * A target for conditional and unconditional jump instructions.
+ * <p>
+ * Every {@link JumpInsnNode} matches; the target value is ignored. The ordinal selects among
+ * the jumps in bytecode order. Returns an empty list when the method contains no jumps.
  */
 @ParametersAreNonnullByDefault
 public class JumpTarget implements IInjectionTarget {

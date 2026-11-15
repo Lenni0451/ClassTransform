@@ -11,6 +11,13 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Delegates dynamic remapping to the {@link IInjectionTarget} selected by
+ * {@link net.lenni0451.classtransform.annotations.CTarget#value()}.
+ * <p>
+ * If no matching injection target is registered, {@link RemapType#MEMBER} is returned so the
+ * default remapper still processes the value.
+ */
 public class TargetRemapper implements IDynamicRemapper {
 
     @Nullable

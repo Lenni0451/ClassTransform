@@ -28,7 +28,9 @@ import java.util.Set;
 import static net.lenni0451.classtransform.utils.Types.returnType;
 
 /**
- * The annotation handler for the {@link CWrapCondition} annotation.
+ * Applies the {@link CWrapCondition} annotation by guarding selected method calls and field accesses with a boolean transformer method.
+ * <p>
+ * The handler must return {@code boolean}. A method target must return {@code void} or have its result immediately popped; a field read must likewise be immediately popped, while a field write is guarded directly.
  */
 @ParametersAreNonnullByDefault
 public class CWrapConditionAnnotationHandler extends InjectionAnnotationHandler<CWrapCondition> {
@@ -37,6 +39,9 @@ public class CWrapConditionAnnotationHandler extends InjectionAnnotationHandler<
     private final CWrapConditionFieldRead wrapConditionFieldRead = new CWrapConditionFieldRead();
     private final CWrapConditionMethod wrapConditionMethod = new CWrapConditionMethod();
 
+    /**
+     * Creates a handler for the {@link CWrapCondition} annotation.
+     */
     public CWrapConditionAnnotationHandler() {
         super(CWrapCondition.class, CWrapCondition::method);
     }

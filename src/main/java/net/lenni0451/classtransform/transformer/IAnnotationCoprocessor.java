@@ -23,6 +23,8 @@ public interface IAnnotationCoprocessor {
      * This happens before the transformer method is verified by the annotation handler.<br>
      * <br>
      * Example usage: {@code Merge all parameters into one array and add it to the end of the method.}
+     * <p>
+     * The returned node replaces the passed node for all subsequent coprocessors and must not be null.
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node
@@ -39,6 +41,8 @@ public interface IAnnotationCoprocessor {
      * The calls to this method are in reverse order of the {@link #preprocess(TransformerManager, ClassNode, MethodNode, ClassNode, MethodNode)} calls.<br>
      * <br>
      * Example usage: {@code Remove the previously added parameter array so the transformer method can be verified by the annotation handler.}
+     * <p>
+     * The returned node replaces the passed node for all subsequent coprocessors and must not be null.
      *
      * @param transformerManager The transformer manager
      * @param transformedClass   The target class node
@@ -54,6 +58,8 @@ public interface IAnnotationCoprocessor {
      * The {@code transformerMethodCalls} list only contains direct calls to the transformer method.<br>
      * <br>
      * Example usage: {@code Add the parameter array back and modify the calls to the transformer method to use the parameter array.}
+     * <p>
+     * Coprocessors run in registration order.
      *
      * @param transformerManager     The transformer manager
      * @param transformedClass       The target class node

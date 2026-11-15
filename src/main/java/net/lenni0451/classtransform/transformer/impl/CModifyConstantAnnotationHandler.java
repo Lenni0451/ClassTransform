@@ -32,7 +32,9 @@ import java.util.Set;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CModifyConstant} annotation.
+ * Applies the {@link CModifyConstant} annotation by replacing selected constants with the value returned by the transformer method, or by expanding zero comparisons into calls to it.
+ * <p>
+ * The constant type is derived from the target or the annotation shorthand, and the handler must return that type. Explicit targets and the shorthand constant members are mutually exclusive.
  */
 @ParametersAreNonnullByDefault
 public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler<CModifyConstant> implements IInjectionTarget {
@@ -40,6 +42,9 @@ public class CModifyConstantAnnotationHandler extends InjectionAnnotationHandler
     private static final String[] CONSTANT_MEMBERS = {"nullValue", "intValue", "longValue", "floatValue", "doubleValue", "stringValue", "typeValue"};
     private static final String[] CONSTANT_TYPES = {"null", "int", "long", "float", "double", "string", "type"};
 
+    /**
+     * Creates a handler for the {@link CModifyConstant} annotation.
+     */
     public CModifyConstantAnnotationHandler() {
         super(CModifyConstant.class, CModifyConstant::method);
     }

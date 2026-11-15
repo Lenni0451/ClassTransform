@@ -11,6 +11,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates Mixin's {@code @ModifyConstant} into {@link CModifyConstant}.
+ * <p>
+ * A single source constant is flattened onto the target annotation. When more than one constant is
+ * given, each is translated to a {@link CModifyConstant.CConstant} entry in {@code constants},
+ * preserving the source order. The constant's {@code classValue} becomes {@code typeValue},
+ * {@code expandZeroConditions} is retargeted to {@link CModifyConstant.Condition}, and a constant-level
+ * {@code slice} becomes {@code sliceId} for a flattened constant or stays as {@code slice} inside a
+ * {@code CConstant}. The source {@code slice} array is normalized to {@code slices} by
+ * {@link AnnotationTranslator#translateInjection(Map)}.
+ *
+ * @see CModifyConstant
+ */
 @ParametersAreNonnullByDefault
 class ModifyConstantTranslator implements AnnotationTranslator {
 

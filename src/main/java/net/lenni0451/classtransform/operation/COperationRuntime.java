@@ -4,6 +4,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Runtime helpers used by generated operation wrappers.
+ * <p>
+ * These methods are called from bytecode inserted by the operation wrapper handlers and are
+ * not intended to be used directly.
  */
 @ParametersAreNonnullByDefault
 public class COperationRuntime {
@@ -13,6 +16,7 @@ public class COperationRuntime {
      *
      * @param args     The passed arguments
      * @param expected The expected argument count
+     * @throws IllegalArgumentException If the argument count differs from the expected count
      */
     public static void checkArgumentCount(final Object[] args, final int expected) {
         if (args.length != expected) {

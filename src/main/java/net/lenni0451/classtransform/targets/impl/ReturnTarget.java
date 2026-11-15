@@ -18,6 +18,9 @@ import java.util.Map;
 /**
  * A target for {@link Opcodes#RETURN} instructions.<br>
  * When using {@link CInject} the original return value is accessible using the {@link InjectionCallback}.
+ * <p>
+ * All return opcodes from {@code IRETURN} to {@code RETURN} are matched. The ordinal selects among
+ * them in bytecode order, and the shift is always {@code BEFORE}.
  */
 @ParametersAreNonnullByDefault
 public class ReturnTarget implements IInjectionTarget {

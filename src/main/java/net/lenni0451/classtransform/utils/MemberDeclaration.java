@@ -16,6 +16,13 @@ public class MemberDeclaration {
     private final String name;
     private final String desc;
 
+    /**
+     * Create a member declaration.
+     *
+     * @param owner The internal name of the declaring class
+     * @param name  The name of the method or field
+     * @param desc  The descriptor of the method or field
+     */
     public MemberDeclaration(final String owner, final String name, final String desc) {
         this.owner = owner;
         this.name = name;
@@ -23,6 +30,8 @@ public class MemberDeclaration {
     }
 
     /**
+     * Get the owner of the method or field.
+     *
      * @return The owner of the method or field
      */
     public String getOwner() {
@@ -30,6 +39,8 @@ public class MemberDeclaration {
     }
 
     /**
+     * Get the name of the method or field.
+     *
      * @return The name of the method or field
      */
     public String getName() {
@@ -37,6 +48,8 @@ public class MemberDeclaration {
     }
 
     /**
+     * Get the descriptor of the method or field.
+     *
      * @return The descriptor of the method or field
      */
     public String getDesc() {
@@ -95,6 +108,8 @@ public class MemberDeclaration {
     }
 
     /**
+     * Check whether this declaration references a field.
+     *
      * @return If this declaration references a field
      */
     public boolean isFieldMapping() {
@@ -102,6 +117,8 @@ public class MemberDeclaration {
     }
 
     /**
+     * Check whether this declaration references a method.
+     *
      * @return If this declaration references a method
      */
     public boolean isMethodMapping() {

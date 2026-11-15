@@ -20,6 +20,11 @@ import java.util.Map;
 /**
  * A target for method invocation instructions.<br>
  * e.g. {@code java/lang/System.currentTimeMillis()J}
+ * <p>
+ * The invocation can be selected by member declaration in {@link CTarget#target()} or by a
+ * {@link net.lenni0451.classtransform.annotations.CDesc} in {@link CTarget#desc()}.
+ * The ordinal counts matching invocations in bytecode order. Returns {@code null} if neither a
+ * declaration nor a descriptor can be parsed, and an empty list when nothing matches.
  */
 @ParametersAreNonnullByDefault
 public class InvokeTarget implements IInjectionTarget {

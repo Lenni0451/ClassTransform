@@ -26,7 +26,9 @@ import java.util.*;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CWrapOperation} annotation.
+ * Applies the {@link CWrapOperation} annotation by replacing each selected operation with a call to the transformer method which receives a {@link COperation} for invoking the original operation.
+ * <p>
+ * Constructor calls must be targeted with {@code NEW}, and every other target must match that operation type. The handler must return the operation result type and may take the operation arguments, captured values and a {@link COperation}.
  */
 @ParametersAreNonnullByDefault
 public class CWrapOperationAnnotationHandler extends InjectionAnnotationHandler<CWrapOperation> {
@@ -43,6 +45,9 @@ public class CWrapOperationAnnotationHandler extends InjectionAnnotationHandler<
     private static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
     private static final Type SAM_TYPE = Type.getMethodType(OBJECT_TYPE, OBJECT_ARRAY_TYPE);
 
+    /**
+     * Creates a handler for the {@link CWrapOperation} annotation.
+     */
     public CWrapOperationAnnotationHandler() {
         super(CWrapOperation.class, CWrapOperation::method);
     }

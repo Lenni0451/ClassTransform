@@ -23,6 +23,10 @@ import java.util.Map;
 /**
  * The target for {@code @CTarget(value = "EXPRESSION")}.<br>
  * The {@link CTarget#target()} is the id of the selected {@code @CExpression}.
+ * <p>
+ * A {@link BuildContext} has to be installed with {@link #setContext} before the target is resolved
+ * and removed with {@link #clearContext()} afterwards. The context is kept per thread. Matches are
+ * returned in target method order and are filtered by the slice when one is given.
  */
 @ParametersAreNonnullByDefault
 public class ExpressionTarget implements IInjectionTarget {
@@ -45,6 +49,11 @@ public class ExpressionTarget implements IInjectionTarget {
         CONTEXT.remove();
     }
 
+    /**
+     * Get the context installed for the current thread.
+     *
+     * @return The context, or {@code null} if none is installed
+     */
     @Nullable
     public static BuildContext getContext() {
         return CONTEXT.get();
@@ -71,26 +80,55 @@ public class ExpressionTarget implements IInjectionTarget {
     }
 
 
+    /**
+     * The per-thread state needed to resolve one expression target.
+     * <p>
+     * The context records the target class and the transformer method and collects the
+     * instructions matched by the expression engine.
+     */
     public static class BuildContext {
         private final TransformerManager transformerManager;
         private final ClassNode targetClass;
         private final MethodNode transformerMethod;
         private final Map<AbstractInsnNode, ExpressionMatch> matches = new IdentityHashMap<>();
 
+        /**
+         * Create a context without a transformer manager.
+         *
+         * @param targetClass       The class that is being transformed
+         * @param transformerMethod The transformer method declaring the expression
+         */
         public BuildContext(final ClassNode targetClass, final MethodNode transformerMethod) {
             this(null, targetClass, transformerMethod);
         }
 
+        /**
+         * Create a context with an optional transformer manager.
+         *
+         * @param transformerManager The transformer manager, or {@code null}
+         * @param targetClass        The class that is being transformed
+         * @param transformerMethod  The transformer method declaring the expression
+         */
         public BuildContext(@Nullable final TransformerManager transformerManager, final ClassNode targetClass, final MethodNode transformerMethod) {
             this.transformerManager = transformerManager;
             this.targetClass = targetClass;
             this.transformerMethod = transformerMethod;
         }
 
+        /**
+         * Get the collected matches keyed by instruction identity.
+         *
+         * @return The mutable match map
+         */
         public Map<AbstractInsnNode, ExpressionMatch> getMatches() {
             return this.matches;
         }
 
+        /**
+         * Get a snapshot of the collected matches.
+         *
+         * @return A new list containing the match values
+         */
         public List<ExpressionMatch> getMatchList() {
             return new ArrayList<>(this.matches.values());
         }

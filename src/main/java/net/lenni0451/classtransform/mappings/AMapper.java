@@ -44,10 +44,18 @@ import static net.lenni0451.classtransform.utils.Types.type;
 public abstract class AMapper {
 
     private final MapperConfig config;
+    /**
+     * The remapper filled by {@link #init()} and used to translate all names.
+     */
     protected final MapRemapper remapper;
     private boolean initialized = false;
     private ClassTree superMappingsTree = null;
 
+    /**
+     * Create a new mapper with the given configuration.
+     *
+     * @param config The config modifying the mapper behavior
+     */
     public AMapper(final MapperConfig config) {
         this.config = config;
         this.remapper = new MapRemapper();
@@ -56,6 +64,8 @@ public abstract class AMapper {
     /**
      * Load all mappings from the overridden {@link #init()} method.<br>
      * Will do nothing if the mappings are already loaded.
+     * <p>
+     * This method is synchronized, so concurrent callers only trigger a single initialization.
      *
      * @throws RuntimeException If the {@link #init()} method throws an exception
      */
@@ -81,7 +91,17 @@ public abstract class AMapper {
     }
 
     /**
-     * <b>Use {@link AMapper#mapClass(TransformerManager, ClassNode, ClassNode)}.</b>
+     * Remap the given transformer for the given target class.
+     * <p>
+     * The transformer manager is derived from the class tree; a new manager is created if the tree
+     * does not belong to one.
+     *
+     * @param classTree     The class tree to obtain the transformer manager from
+     * @param classProvider The class provider used for a newly created transformer manager
+     * @param target        The target class node
+     * @param transformer   The transformer class node
+     * @return The remapped transformer class node
+     * @deprecated Use {@link #mapClass(TransformerManager, ClassNode, ClassNode)} instead.
      */
     @Deprecated
     @SneakyThrows
@@ -162,13 +182,36 @@ public abstract class AMapper {
     }
 
 
+    /**
+     * Load the mappings into {@link #remapper}.
+     * <p>
+     * Called once by {@link #load()}; implementations read their mapping source here.
+     *
+     * @throws Throwable If the mappings cannot be read or parsed
+     */
     protected abstract void init() throws Throwable;
 
 
+    /**
+     * Read all lines of a mapping file using the default charset.
+     *
+     * @param f The file to read
+     * @return The lines of the file
+     * @throws IOException If the file cannot be read
+     */
     protected List<String> readLines(final File f) throws IOException {
         return this.readLines(new FileInputStream(f));
     }
 
+    /**
+     * Read all lines of a mapping stream using the default charset.
+     * <p>
+     * The stream is closed after reading.
+     *
+     * @param is The stream to read
+     * @return The lines of the stream
+     * @throws IOException If the stream cannot be read
+     */
     protected List<String> readLines(final InputStream is) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
             return br.lines().collect(Collectors.toList());

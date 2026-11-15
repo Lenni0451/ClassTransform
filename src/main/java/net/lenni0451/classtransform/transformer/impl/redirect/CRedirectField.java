@@ -16,7 +16,9 @@ import java.util.List;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The redirect target transformer for fields.
+ * The redirect target transformer for field accesses.
+ * <p>
+ * The original field instruction is replaced by a call to the transformer method. A read requires the field type as return type and, for instance fields, the field owner as first argument; a write requires a {@code void} method taking the owner for instance fields followed by the new value. Non-static transformer methods are invoked on the instance of the transformed class, type mismatches cause a {@link TransformerException}.
  */
 @ParametersAreNonnullByDefault
 public class CRedirectField implements IRedirectTarget {

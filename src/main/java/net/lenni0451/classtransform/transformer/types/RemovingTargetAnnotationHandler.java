@@ -18,6 +18,11 @@ import java.util.function.Function;
  * An abstract annotation handler which handles all annotations of the given type.<br>
  * The handled transformer methods are removed from the transformer class afterward.<br>
  * The target methods of the transformer are automatically parsed.
+ * <p>
+ * Every target combination is resolved against the transformed class. A fully qualified declaration is skipped unless
+ * its owner is the transformed class, otherwise the name (optionally with a descriptor or wildcard) is matched against
+ * the class methods. A combination without matches aborts the transformation, and every matched method gets its own
+ * clone of the transformer method.
  *
  * @param <T> The annotation type
  */
@@ -26,6 +31,14 @@ public abstract class RemovingTargetAnnotationHandler<T extends Annotation> exte
 
     private final Function<T, String[]> targetCombis;
 
+    /**
+     * Create a handler for the given annotation type.
+     * <p>
+     * The target combination function supplies the target selectors of each annotation instance and is queried for every handled transformer method.
+     *
+     * @param annotationClass The annotation type handled by this handler
+     * @param targetCombis    The function returning the target combinations of an annotation
+     */
     public RemovingTargetAnnotationHandler(final Class<T> annotationClass, final Function<T, String[]> targetCombis) {
         super(annotationClass);
         this.targetCombis = targetCombis;

@@ -9,6 +9,11 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+/**
+ * The default dynamic remapper which always throws.
+ * <p>
+ * It is used when {@link RemapType#DYNAMIC} is selected without configuring a custom remapper.
+ */
 public class ThrowingRemapper implements IDynamicRemapper {
 
     @Nullable

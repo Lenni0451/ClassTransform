@@ -13,15 +13,35 @@ import static net.lenni0451.classtransform.utils.Types.type;
 
 /**
  * The description of an operation and its current position in the wrapper chain.
+ * <p>
+ * Instances are cached on the injected instruction and shared between wrappers, so the recorded signature always describes the original operation rather than an already wrapped one.
  */
 class OperationSite {
 
+    /**
+     * The instruction which was originally selected as the operation.
+     */
     private final AbstractInsnNode original;
+    /**
+     * The argument types consumed by the original operation, with the receiver first for non-static calls and field accesses.
+     */
     private final Type[] originalArgs;
+    /**
+     * The value type produced by the original operation, or {@link Type#VOID_TYPE} for setters and stores.
+     */
     private final Type returnType;
+    /**
+     * Whether the operation creates an object and was targeted through the {@code NEW} target type.
+     */
     private final boolean newOperation;
+    /**
+     * The internal name of the instantiated class for new operations, or {@code null} otherwise.
+     */
     @Nullable
     private final String newOwner;
+    /**
+     * The number of operation bridges generated for this site so far.
+     */
     private int bridgeCounter;
 
     private OperationSite(final AbstractInsnNode original, final Type[] originalArgs, final Type returnType, final boolean newOperation, @Nullable final String newOwner) {
@@ -53,14 +73,38 @@ class OperationSite {
         return this.newOwner;
     }
 
+    /**
+     * Returns the next operation bridge index and increments the counter.
+     *
+     * @return The zero-based bridge index for this site
+     */
     int nextBridgeIndex() {
         return this.bridgeCounter++;
     }
 
+    /**
+     * Creates the operation site for an instruction using the signature derived from that instruction.
+     *
+     * @param targetClass  The class containing the instruction
+     * @param original     The original operation instruction
+     * @param newOperation Whether the instruction was targeted as a constructor call
+     * @return The operation site
+     * @throws IllegalArgumentException If the instruction is a constructor call but {@code newOperation} is {@code false}
+     */
     static OperationSite of(final ClassNode targetClass, final AbstractInsnNode original, final boolean newOperation) {
         return of(targetClass, original, newOperation, null);
     }
 
+    /**
+     * Creates the operation site for an instruction, preferring the matched expression types for array operations.
+     *
+     * @param targetClass     The class containing the instruction
+     * @param original        The original operation instruction
+     * @param newOperation    Whether the instruction was targeted as a constructor call
+     * @param expressionMatch The expression match supplying the argument and value types, or {@code null} to derive them from the instruction
+     * @return The operation site
+     * @throws IllegalArgumentException If the instruction is a constructor call but {@code newOperation} is {@code false}
+     */
     static OperationSite of(final ClassNode targetClass, final AbstractInsnNode original, final boolean newOperation, @Nullable final ExpressionMatch expressionMatch) {
         OperationInfo info;
         if (expressionMatch != null && isArrayOperation(original.getOpcode())) {
@@ -83,6 +127,14 @@ class OperationSite {
                 || opcode == Opcodes.MULTIANEWARRAY;
     }
 
+    /**
+     * Describes the stack effect of an instruction as an operation.
+     *
+     * @param targetClass The class containing the instruction
+     * @param instruction The instruction to describe
+     * @return The argument and return types of the instruction
+     * @throws IllegalArgumentException If the opcode is not a supported operation
+     */
     static OperationInfo describe(final ClassNode targetClass, final AbstractInsnNode instruction) {
         Type constantType = getConstantType(instruction);
         if (constantType != null) {
@@ -288,10 +340,25 @@ class OperationSite {
     }
 
 
+    /**
+     * The derived signature of an operation.
+     */
     static class OperationInfo {
+        /**
+         * The types consumed by the operation, receiver first for non-static operations.
+         */
         final Type[] arguments;
+        /**
+         * The type produced by the operation, or {@link Type#VOID_TYPE} for setters and stores.
+         */
         final Type returnType;
+        /**
+         * Whether the operation is an object construction.
+         */
         final boolean newOperation;
+        /**
+         * The internal name of the constructed class, or {@code null} if this is not a construction.
+         */
         @Nullable
         final String newOwner;
 

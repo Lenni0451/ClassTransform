@@ -11,14 +11,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class MutableBasicClassProvider extends BasicClassProvider {
 
+    /**
+     * Creates a provider using the class loader of this class.
+     */
     public MutableBasicClassProvider() {
         this(MutableBasicClassProvider.class.getClassLoader());
     }
 
+    /**
+     * Creates a provider using the given class loader.
+     *
+     * @param classLoader The class loader used to load class bytes
+     */
     public MutableBasicClassProvider(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
+    /**
+     * Replaces the class loader used to load class bytes.
+     *
+     * @param classLoader The new class loader
+     */
     public void setClassLoader(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }

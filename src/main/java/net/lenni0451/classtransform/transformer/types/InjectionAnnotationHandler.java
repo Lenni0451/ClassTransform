@@ -18,6 +18,16 @@ import java.util.function.Function;
 
 /**
  * Base for injections which share selection, count validation and ordering.
+ * <p>
+ * The manager batches consecutive injection handlers: it first asks every handler whether it {@link #handles} a
+ * transformer method and collects the prepared plans, then applies them sorted by
+ * {@link net.lenni0451.classtransform.transformer.InjectionPhase} and order.
+ * Consequently {@link #prepare(TransformerManager, ClassNode, ClassNode, MethodNode, Map)} only resolves target methods
+ * and instruction selections, while the inherited immediate transform applies a single plan right away.
+ * <p>
+ * The handler method is removed from the transformer before it is prepared. Every matched target method is processed
+ * with a clone of the handler method, and failures are wrapped in a {@link TransformerException} carrying the target
+ * class and method.
  *
  * @param <T> The injection annotation
  */
@@ -25,6 +35,12 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
 
     private final Function<T, String[]> methodTargets;
 
+    /**
+     * Create a new injection handler.
+     *
+     * @param annotationClass The injection annotation
+     * @param methodTargets   Resolves the target method selector combinations from the annotation
+     */
     public InjectionAnnotationHandler(final Class<T> annotationClass, final Function<T, String[]> methodTargets) {
         super(annotationClass, methodTargets);
         this.methodTargets = methodTargets;
@@ -108,6 +124,8 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
     }
 
     /**
+     * Get the instruction selectors defined by the annotation.
+     *
      * @param annotation The injection annotation
      * @param manager    The transformer manager
      * @return The instruction selectors to prepare
@@ -118,6 +136,9 @@ public abstract class InjectionAnnotationHandler<T extends Annotation> extends R
 
     /**
      * Resolve the instruction selectors to prepare for the given handler method.
+     * <p>
+     * Subclasses may override this to resolve selectors per method; the default delegates to
+     * {@link #getInjectionTargets(Annotation, TransformerManager)}.
      *
      * @param annotation The injection annotation
      * @param manager    The transformer manager

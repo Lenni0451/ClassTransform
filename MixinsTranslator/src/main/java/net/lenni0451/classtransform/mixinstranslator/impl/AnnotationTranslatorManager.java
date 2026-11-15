@@ -13,6 +13,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Registry of {@link AnnotationTranslator} instances keyed by Mixin annotation type.
+ * <p>
+ * Translators are registered once in a static initializer, either as a concrete translator or as a plain rename to
+ * another annotation descriptor. Nested annotations are looked up individually, so translation follows the annotation
+ * nesting rather than the registration order. Translator instances are shared and must not keep state.
+ *
+ * @see AnnotationTranslator
+ * @see net.lenni0451.classtransform.mixinstranslator.MixinsTranslator
+ */
 @ParametersAreNonnullByDefault
 public class AnnotationTranslatorManager {
 
@@ -60,6 +70,12 @@ public class AnnotationTranslatorManager {
         ANNOTATION_TRANSLATOR.put(type, translator);
     }
 
+    /**
+     * Get the translator registered for the given Mixin annotation type.
+     *
+     * @param type The type of the Mixin annotation
+     * @return The translator, or {@code null} if the annotation is not translated
+     */
     public static AnnotationTranslator getTranslator(final Type type) {
         return ANNOTATION_TRANSLATOR.get(type);
     }

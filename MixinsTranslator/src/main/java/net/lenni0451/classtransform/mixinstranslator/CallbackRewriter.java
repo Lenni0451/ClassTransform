@@ -7,6 +7,15 @@ import org.objectweb.asm.tree.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+/**
+ * Rewrites Mixin callback parameters of transformer methods to ClassTransform's {@link InjectionCallback}.
+ * <p>
+ * {@code CallbackInfo} and {@code CallbackInfoReturnable} parameters, return types, local variables and instructions
+ * are replaced with {@link InjectionCallback}. Calls to {@code CallbackInfo#cancel()} become
+ * {@link InjectionCallback#setCancelled(boolean)} calls with {@code true} pushed in front.
+ * {@link MixinsTranslator} invokes this for every method after the annotations of the transformer have been
+ * translated.
+ */
 @ParametersAreNonnullByDefault
 class CallbackRewriter {
 
@@ -14,6 +23,16 @@ class CallbackRewriter {
     private static final Type CALLBACK_INFO_RETURNABLE = Type.getType("Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;");
     private static final Type INJECTION_CALLBACK = Type.getType(InjectionCallback.class);
 
+    /**
+     * Rewrite all Mixin callback references of the given method to {@link InjectionCallback}.
+     * <p>
+     * Rewrites the method descriptor and all instructions and local variables that mention
+     * {@code CallbackInfo} or {@code CallbackInfoReturnable}. A generic signature is only rewritten for
+     * {@code CallbackInfoReturnable}, because the signature rewriter looks for that type; a signature that
+     * mentions plain {@code CallbackInfo} is left unchanged. The method node is modified in place.
+     *
+     * @param methodNode The transformer method to rewrite
+     */
     static void rewrite(final MethodNode methodNode) {
         Type[] parameter = Type.getArgumentTypes(methodNode.desc);
         Type returnType = Type.getReturnType(methodNode.desc);

@@ -17,7 +17,11 @@ import java.util.Map;
 
 /**
  * A target for {@link Opcodes#ATHROW} instructions.<br>
- * When using {@link CInject} the original exception is accessible using the {@link InjectionCallback}.
+ * When using {@link CInject} the {@link InjectionCallback} does not receive the thrown exception; it
+ * receives the method return type default, or no value for a void method.
+ * <p>
+ * The ordinal selects among the {@code ATHROW} instructions in bytecode order. Returns an empty
+ * list when nothing matches, and the shift is always {@code BEFORE}.
  */
 @ParametersAreNonnullByDefault
 public class ThrowTarget implements IInjectionTarget {

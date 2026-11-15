@@ -11,6 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @Definition} into ClassTransform's {@link CDefinition}.
+ * <p>
+ * The id, method, field, type and remap values are copied unchanged. Nested local definitions are converted to
+ * {@link CLocalDefinition}: the type, ordinal, index, {@code argsOnly} and {@code print} values are kept, a single
+ * {@code name} is stored as {@code names}, and multiple locals are preserved as a list.
+ *
+ * @see CDefinition
+ * @see CLocalDefinition
+ */
 @ParametersAreNonnullByDefault
 class DefinitionTranslator implements AnnotationTranslator {
 

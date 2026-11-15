@@ -29,9 +29,10 @@ import java.lang.annotation.Target;
 public @interface COverride {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods that this transformer method replaces.
+     * <p>
+     * An entry consists of the target name and descriptor and may use wildcards, for example
+     * {@code update()V} or {@code update*}.
      *
      * @return The method name and descriptor
      */
@@ -46,6 +47,8 @@ public @interface COverride {
     String[] aliases() default {};
 
     /**
+     * Whether the target method selectors should be remapped.
+     *
      * @return If the target method should be remapped
      */
     boolean remap() default true;

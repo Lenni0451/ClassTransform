@@ -38,7 +38,9 @@ import java.util.Set;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * The annotation handler for the {@link CModifyVariable} annotation.
+ * Applies the {@link CModifyVariable} annotation by overwriting the selected local variable with the value returned by the transformer method.
+ * <p>
+ * The variable is located by name, ordinal, index or type, and {@code LOAD}/{@code STORE} targets additionally filter variable operations by ordinal and opcode. The handler must return the variable type.
  */
 @ParametersAreNonnullByDefault
 public class CModifyVariableAnnotationHandler extends InjectionAnnotationHandler<CModifyVariable> {
@@ -48,6 +50,9 @@ public class CModifyVariableAnnotationHandler extends InjectionAnnotationHandler
     private static final String ARG_ORDINAL = "modifyVariableOrdinal=";
     private static final String ARG_OPCODE = "modifyVariableOpcode=";
 
+    /**
+     * Creates a handler for the {@link CModifyVariable} annotation.
+     */
     public CModifyVariableAnnotationHandler() {
         super(CModifyVariable.class, CModifyVariable::method);
     }

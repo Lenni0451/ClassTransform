@@ -20,6 +20,8 @@ import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 
 /**
  * Remap and make transformer inner classes accessible from the transformed classes.
+ * <p>
+ * If the transformer declares inner classes, its fields and methods are made public, shadow members are flagged with {@code makePublic = true} and every inner class without an outer class gets a raw transformer which remaps it to the transformed class. The handler runs before the synthetic method handler and all injection handlers.
  */
 @ParametersAreNonnullByDefault
 public class InnerClassGeneralHandler extends AnnotationHandler {

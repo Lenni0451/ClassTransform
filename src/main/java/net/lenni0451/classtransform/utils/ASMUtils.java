@@ -25,13 +25,27 @@ import static net.lenni0451.classtransform.utils.Types.*;
 @ParametersAreNonnullByDefault
 public class ASMUtils {
 
+    /**
+     * Regex matching a method declaration such as {@code java/lang/String.length()I} or {@code Ljava/lang/String;length()I}.
+     */
     public static final String METHOD_DECLARATION_REGEX = "^(?>L([^;]+);|([^.]+)\\.)([^(]+)(\\([^)]*\\).+)$";
+    /**
+     * Regex matching a field declaration such as {@code java/lang/System.out:Ljava/io/PrintStream;} or {@code Ljava/lang/System;out:Ljava/io/PrintStream;}.
+     */
     public static final String FIELD_DECLARATION_REGEX = "^(?>L([^;]+);|([^.]+)\\.)([^(]+):(.+)$";
+    /**
+     * Compiled {@link #METHOD_DECLARATION_REGEX}.
+     */
     public static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile(METHOD_DECLARATION_REGEX);
+    /**
+     * Compiled {@link #FIELD_DECLARATION_REGEX}.
+     */
     public static final Pattern FIELD_DECLARATION_PATTERN = Pattern.compile(FIELD_DECLARATION_REGEX);
 
     /**
      * Get a class node from the raw bytecode of a class.
+     * <p>
+     * Frames are expanded using {@link ClassReader#EXPAND_FRAMES}.
      *
      * @param bytecode The bytecode of the class
      * @return The parsed class node
@@ -178,10 +192,12 @@ public class ASMUtils {
      * Get a list of method nodes from a class node using the combined name and descriptor.<br>
      * Use <b>*</b> for a wildcard search.<br>
      * e.g. <b>print(Ljava/lang/String;)V</b>
+     * <p>
+     * If a wildcard search matches multiple methods, synthetic methods are dropped as long as at least one non-synthetic match exists.
      *
      * @param classNode The class node to search in
      * @param combi     The combined name and descriptor
-     * @return The list of method nodes
+     * @return The list of method nodes; a new mutable list owned by the caller
      * @throws IllegalArgumentException If the combined name and descriptor is empty
      */
     public static List<MethodNode> getMethodsFromCombi(final ClassNode classNode, final String combi) {
@@ -206,13 +222,14 @@ public class ASMUtils {
     }
 
     /**
-     * Get a list of method nodes from a class node using the combined name and descriptor.<br>
+     * Get a list of field nodes from a class node using the combined name and descriptor.
      * Use <b>*</b> for a wildcard search.<br>
-     * e.g. <b>print(Ljava/lang/String;)V</b>
+     * e.g. <b>out:Ljava/io/PrintStream;</b>
      *
      * @param classNode The class node to search in
      * @param combi     The combined name and descriptor
-     * @return The list of method nodes
+     * @return The list of field nodes; a new mutable list owned by the caller
+     * @throws IllegalArgumentException If the combined name and descriptor is empty
      */
     public static List<FieldNode> getFieldsFromCombi(final ClassNode classNode, final String combi) {
         if (combi.isEmpty()) throw new IllegalArgumentException("Combi cannot be empty");

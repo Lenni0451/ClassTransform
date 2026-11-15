@@ -39,8 +39,10 @@ import java.lang.annotation.Target;
 public @interface CModifyArgs {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.
+     * The methods that contain the invocation whose arguments are changed.
+     * <p>
+     * Each entry combines name and descriptor and may use wildcards, for example
+     * {@code accept(Ljava/lang/Object;I)V} or {@code accept*}.
      *
      * @return The method name and descriptor
      */
@@ -49,6 +51,7 @@ public @interface CModifyArgs {
 
     /**
      * The invocation to modify the arguments of.
+     * This may be omitted when {@link #targets()} is used.
      *
      * @return The target
      */
@@ -64,7 +67,7 @@ public @interface CModifyArgs {
     CTarget[] targets() default {};
 
     /**
-     * Descriptor selectors for the target methods.
+     * Descriptor selectors for the invocations whose argument list is modified.
      *
      * @return The descriptor selectors
      */
@@ -80,6 +83,9 @@ public @interface CModifyArgs {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices around the modified invocation, selectable by {@link CTarget#slice()};
+     * the ids are unique per annotation.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -107,7 +113,8 @@ public @interface CModifyArgs {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.
+     * The maximum number of invocations whose argument list may be modified.
+     * A value below one means no cap.
      *
      * @return The maximum injection count
      */
@@ -121,6 +128,9 @@ public @interface CModifyArgs {
     int order() default 1000;
 
     /**
+     * Whether the invocation selector and the target selectors of the modified arguments should be
+     * remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

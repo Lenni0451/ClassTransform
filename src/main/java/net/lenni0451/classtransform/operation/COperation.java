@@ -12,6 +12,10 @@ public interface COperation<R> {
 
     /**
      * Call the next level of the operation chain.
+     * <p>
+     * The argument count and order must match the wrapped operation. Generated wrappers validate
+     * the count with {@link COperationRuntime#checkArgumentCount} and throw an
+     * {@link IllegalArgumentException} on a mismatch.
      *
      * @param args The arguments of the operation
      * @return The result of the operation

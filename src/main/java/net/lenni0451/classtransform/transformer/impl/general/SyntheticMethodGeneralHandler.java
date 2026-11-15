@@ -13,10 +13,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Rename synthetic methods in transformers to avoid conflicts with the injected class.
+ * <p>
+ * Synthetic methods get a unique name derived from the transformer's simple name, and the transformer is remapped to use the new names. The handler runs before all injection handlers.
  */
 @ParametersAreNonnullByDefault
 public class SyntheticMethodGeneralHandler extends AnnotationHandler {
 
+    /**
+     * Registers a unique name for every synthetic method of the source class.
+     *
+     * @param source   The class whose synthetic methods are renamed
+     * @param target   The class the names have to be unique in
+     * @param remapper The remapper receiving the method mappings
+     */
     static void fillSyntheticMappings(final ClassNode source, final ClassNode target, final MapRemapper remapper) {
         for (MethodNode method : source.methods) {
             if ((method.access & Opcodes.ACC_SYNTHETIC) == 0) continue;

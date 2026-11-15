@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 public @interface CExpressions {
 
     /**
+     * The repeated expressions in declaration order.
+     *
      * @return The repeated expressions
      */
     CExpression[] value();

@@ -62,6 +62,8 @@ public @interface CDefinition {
     CLocalDefinition[] local() default {};
 
     /**
+     * Whether the method, field, type and local variable type declarations should be remapped.
+     *
      * @return If the declarations should be remapped
      */
     boolean remap() default true;

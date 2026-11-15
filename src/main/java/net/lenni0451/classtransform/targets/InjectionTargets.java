@@ -12,16 +12,27 @@ import java.util.*;
 
 /**
  * Resolve injection points, opcode filters, ordinals and instruction offsets.
+ * <p>
+ * The target name is looked up case-insensitively in the registry and the selected
+ * {@link IInjectionTarget} produces the raw matches. Opcode filtering and the ordinal
+ * are then applied in that order, followed by the {@link CTarget.Shift#BY} offset.
  */
 @ParametersAreNonnullByDefault
 public class InjectionTargets {
 
     /**
+     * Find the instructions selected by a {@link CTarget}.
+     * <p>
+     * The optional flag is not evaluated here; callers decide whether an empty result is an error.
+     * The ordinal counts only matches that passed the opcode filter.
+     *
      * @param injectionTargets The registered injection point implementations
      * @param method           The target method
      * @param target           The selector, filters and offset
-     * @param slice            The selected slice
-     * @return The matching instructions in bytecode order
+     * @param slice            The selected slice, or {@code null} for the whole method
+     * @return A new mutable list of matching instructions in bytecode order, possibly empty
+     * @throws IllegalArgumentException If the target name is unknown, the target rejects its selector,
+     *                                  or a {@link CTarget.Shift#BY} offset leaves the method
      */
     public static List<AbstractInsnNode> find(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CTarget target, @Nullable final CSlice slice) {
         IInjectionTarget injectionTarget = injectionTargets.get(target.value().toUpperCase(Locale.ROOT));
@@ -47,10 +58,16 @@ public class InjectionTargets {
     }
 
     /**
+     * Resolve one instruction selected by a slice boundary target.
+     * <p>
+     * The selector comes from {@link CTarget#selector()} and must be {@code ONE}, {@code FIRST} or {@code LAST}.
+     * {@code ONE} requires exactly one match.
+     *
      * @param injectionTargets The registered injection point implementations
      * @param method           The target method
      * @param target           The slice boundary selector
      * @return The instruction selected by ONE, FIRST or LAST
+     * @throws IllegalArgumentException If the selector is unknown or does not match the required number of instructions
      */
     public static AbstractInsnNode boundary(final Map<String, IInjectionTarget> injectionTargets, final MethodNode method, final CTarget target) {
         List<AbstractInsnNode> found = find(injectionTargets, method, target, null);

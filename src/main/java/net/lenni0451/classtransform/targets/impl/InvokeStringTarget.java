@@ -18,6 +18,11 @@ import java.util.Map;
 /**
  * Select a void method call with one literal string argument.<br>
  * The string is specified with {@code ldc=...} in {@link CTarget#args()}.
+ * <p>
+ * Only invocations with the descriptor {@code (Ljava/lang/String;)V} are considered, and the
+ * string constant must directly precede the call. If several {@code ldc=} arguments are given,
+ * the last one is used. The ordinal is applied to the matching calls, and a missing {@code ldc=}
+ * argument throws an {@link IllegalArgumentException}.
  */
 @ParametersAreNonnullByDefault
 public class InvokeStringTarget extends InvokeTarget {

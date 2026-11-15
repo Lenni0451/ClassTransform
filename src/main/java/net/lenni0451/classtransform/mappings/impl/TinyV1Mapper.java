@@ -15,8 +15,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A remapper that uses tiny v1 mappings for remapping.<br>
- * The from and to namespaces are also required.
+ * A remapper that reads tiny v1 mappings.
+ * <p>
+ * The tab-separated file starts with a {@code v1} header followed by the namespace names, with the
+ * first namespace being the one used by member descriptors. The {@code from} and {@code to}
+ * namespaces must both appear in the header. Class, field and method mappings are loaded from the
+ * {@code from} namespace to the {@code to} namespace.
  */
 @ParametersAreNonnullByDefault
 public class TinyV1Mapper extends AMapper {
@@ -25,6 +29,14 @@ public class TinyV1Mapper extends AMapper {
     private final String from;
     private final String to;
 
+    /**
+     * Create a tiny v1 mapper that reads tab-separated mappings from the given stream.
+     *
+     * @param config         The mapper config
+     * @param mappingsStream The stream to read, closed after loading
+     * @param from           The namespace to map from
+     * @param to             The namespace to map to
+     */
     public TinyV1Mapper(final MapperConfig config, @WillClose final InputStream mappingsStream, final String from, final String to) {
         super(config);
         this.mappingsSupplier = () -> mappingsStream;
@@ -32,6 +44,14 @@ public class TinyV1Mapper extends AMapper {
         this.to = to;
     }
 
+    /**
+     * Create a tiny v1 mapper that opens the mapping file lazily when the mapper is first used.
+     *
+     * @param config       The mapper config
+     * @param mappingsFile The tab-separated mapping file to read
+     * @param from         The namespace to map from
+     * @param to           The namespace to map to
+     */
     public TinyV1Mapper(final MapperConfig config, final File mappingsFile, final String from, final String to) {
         super(config);
         this.mappingsSupplier = () -> new FileInputStream(mappingsFile);

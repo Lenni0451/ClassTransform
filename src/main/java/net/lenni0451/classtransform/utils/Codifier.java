@@ -17,6 +17,8 @@ import java.util.List;
 public class Codifier {
 
     /**
+     * Create an empty codifier.
+     *
      * @return An empty codifier
      */
     public static Codifier get() {
@@ -173,6 +175,8 @@ public class Codifier {
     }
 
     /**
+     * Build the method header from the configured values.
+     *
      * @return The generated method header
      */
     public String build() {

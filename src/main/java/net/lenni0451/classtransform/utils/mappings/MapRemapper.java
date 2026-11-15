@@ -11,7 +11,16 @@ import java.util.*;
 import static net.lenni0451.classtransform.utils.Types.*;
 
 /**
- * An asm remapper implementation using a map to store the mappings.
+ * An ASM remapper implementation using a map to store the mappings.
+ *
+ * <p>Keys are flat strings: a class mapping is the internal name of the class (with {@code /} instead of {@code .}), a
+ * method mapping is {@code owner.name(methodDesc)}, a field mapping is {@code owner.name:fieldDesc} or
+ * {@code owner.name:} for a field without descriptor, and invokedynamic and annotation attribute mappings use
+ * {@code .name(methodDesc)} and {@code annotationDesc.name}. The {@code map*Name} methods return the original name
+ * when no mapping exists.
+ *
+ * <p>The remapper is not thread-safe. Adding a mapping through one of the {@code add*Mapping} methods invalidates the
+ * cached result of {@link #reverse()}; {@link #copy(MapRemapper)} and direct changes to the backing map do not.
  */
 @ParametersAreNonnullByDefault
 public class MapRemapper extends Remapper {
@@ -19,19 +28,42 @@ public class MapRemapper extends Remapper {
     private final Map<String, String> mappings;
     private MapRemapper reverse;
 
+    /**
+     * Creates an empty remapper.
+     */
     public MapRemapper() {
         this(new HashMap<>());
     }
 
+    /**
+     * Creates a remapper with a single class mapping.
+     *
+     * @param oldName The internal name of the original class
+     * @param newName The internal name of the mapped class
+     */
     public MapRemapper(final String oldName, final String newName) {
         this();
         this.mappings.put(oldName, newName);
     }
 
+    /**
+     * Creates a remapper that uses the given map as its backing storage.
+     *
+     * <p>The map is not copied, so later changes to it are visible to the remapper.
+     *
+     * @param mappings The map to use for the mappings
+     */
     public MapRemapper(final Map<String, String> mappings) {
         this.mappings = mappings;
     }
 
+    /**
+     * Gets an unmodifiable view of the backing map.
+     *
+     * <p>The view is live, so mappings added later are visible through it.
+     *
+     * @return An unmodifiable view of all mappings
+     */
     public Map<String, String> getMappings() {
         return Collections.unmodifiableMap(this.mappings);
     }
@@ -155,6 +187,9 @@ public class MapRemapper extends Remapper {
     /**
      * Get a list of all mapping keys starting with one of the given prefixes.
      *
+     * <p>The returned list is newly created and mutable. A key that matches several prefixes is added once per
+     * matching prefix.
+     *
      * @param prefixes The prefixes
      * @return The list of all keys starting with one of the given prefixes
      */
@@ -169,6 +204,8 @@ public class MapRemapper extends Remapper {
     }
 
     /**
+     * Check if this remapper holds no mappings at all.
+     *
      * @return If the remapper has no mappings
      */
     public boolean isEmpty() {
@@ -177,6 +214,8 @@ public class MapRemapper extends Remapper {
 
     /**
      * Copy all mappings from another remapper to this one.
+     *
+     * <p>Existing keys are overwritten.
      *
      * @param remapper The remapper to copy mappings from
      */
@@ -273,6 +312,9 @@ public class MapRemapper extends Remapper {
 
     /**
      * Reverse the mappings of this remapper.
+     *
+     * <p>Class mappings are swapped, while method and field mappings are rebuilt with the mapped owner and descriptor.
+     * The result is cached and reused until another mapping is added; reversing it again returns this remapper.
      *
      * @return The reversed remapper
      */

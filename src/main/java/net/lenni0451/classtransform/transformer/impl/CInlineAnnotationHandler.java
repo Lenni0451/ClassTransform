@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The annotation handler for the {@link CInline} annotation.
+ * Applies the {@link CInline} annotation by inlining every annotated method of the transformed class at its call sites.
  */
 @ParametersAreNonnullByDefault
 public class CInlineAnnotationHandler extends AnnotationHandler {

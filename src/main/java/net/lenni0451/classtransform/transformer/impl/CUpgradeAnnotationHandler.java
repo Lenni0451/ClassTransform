@@ -9,7 +9,9 @@ import org.objectweb.asm.tree.ClassNode;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * The annotation handler for the {@link CUpgrade} annotation.
+ * Applies the {@link CUpgrade} annotation by raising the transformed class file version to the
+ * annotation value when it was explicitly set, or to the transformer class version otherwise. The
+ * current version is never lowered.
  */
 @ParametersAreNonnullByDefault
 public class CUpgradeAnnotationHandler extends AnnotationHandler {

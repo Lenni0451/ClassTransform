@@ -32,11 +32,18 @@ public class InjectionPlan {
     private static final ThreadLocal<InjectionPlan> ACTIVE = new ThreadLocal<>();
 
     /**
+     * Resolve the current instructions for a prepared target selector.
+     * <p>
+     * Outside an active plan the selector is evaluated directly against the method. Inside a plan the prepared
+     * selection is used so that later injectors see the instructions left by earlier ones.
+     *
      * @param manager  The transformer manager
      * @param method   The target method
      * @param target   The prepared selector
      * @param fallback The slice to use outside an active plan
      * @return The current instructions corresponding to the prepared selection
+     * @throws IllegalStateException If no selection was prepared for the method and selector, or a selected
+     *                               instruction was removed by another injector
      */
     public static List<AbstractInsnNode> select(final TransformerManager manager, final MethodNode method, final CTarget target, @Nullable final CSlice fallback) {
         InjectionPlan plan = ACTIVE.get();
@@ -52,6 +59,10 @@ public class InjectionPlan {
     }
 
     /**
+     * Record successful injections of the active plan.
+     * <p>
+     * Has no effect when no plan is active.
+     *
      * @param count The number of successful calls to add to the active plan
      */
     public static void record(final int count) {
@@ -140,6 +151,10 @@ public class InjectionPlan {
     }
 
     /**
+     * Get the insertion anchor for the given operation.
+     * <p>
+     * The anchor is the instruction after all modifiers and required casts that were inserted for the operation.
+     *
      * @param instruction The current operation
      * @return The insertion anchor after existing modifiers and required casts
      */
@@ -150,6 +165,8 @@ public class InjectionPlan {
     }
 
     /**
+     * Get the operation selected before any replacements.
+     *
      * @param instruction The current operation
      * @return The operation selected before any replacements
      */
@@ -160,6 +177,8 @@ public class InjectionPlan {
     }
 
     /**
+     * Set the insertion anchor used by subsequent modifiers.
+     *
      * @param instruction The current operation
      * @param after       The new insertion anchor for subsequent modifiers
      */
@@ -188,6 +207,12 @@ public class InjectionPlan {
     private int count;
 
     /**
+     * Prepare the injection selections for one handler method.
+     * <p>
+     * All target methods and instruction selectors are resolved immediately, so missing targets fail before any
+     * instructions are changed. Selected instructions are shared through the class-wide registry so later plans can
+     * follow replacements.
+     *
      * @param manager          The transformer manager
      * @param targetClass      The transformed class
      * @param settings         The shared injection settings
@@ -197,6 +222,8 @@ public class InjectionPlan {
      * @param injectionTargets The instruction selectors
      * @param registry         The class-wide instruction registry
      * @param injection        The action to apply to each matched method
+     * @throws IllegalArgumentException If a group bound is invalid
+     * @throws TransformerException     If no injection target is defined or a mandatory target cannot be found
      */
     public InjectionPlan(final TransformerManager manager, final ClassNode targetClass, final InjectionSettings settings, final ClassNode transformer, final MethodNode method, final Collection<MethodNode> targets, final List<CTarget> injectionTargets, final Map<AbstractInsnNode, Target> registry, final Consumer<MethodNode> injection) {
         this.manager = manager;
@@ -279,6 +306,8 @@ public class InjectionPlan {
     }
 
     /**
+     * Get the phase this plan is applied in.
+     *
      * @return The injection phase
      */
     public InjectionPhase getPhase() {
@@ -286,6 +315,8 @@ public class InjectionPlan {
     }
 
     /**
+     * Get the application order within the phase.
+     *
      * @return The injection order within the phase
      */
     public int getOrder() {

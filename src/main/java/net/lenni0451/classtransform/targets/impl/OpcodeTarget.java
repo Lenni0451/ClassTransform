@@ -15,10 +15,13 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * A target for the given opcode.<br>
- * The opcode can be specified as a number or as its name.<br>
- * Invalid opcodes will be ignored.<br>
- * e.g. {@code INVOKESTATIC} or {@code 184}
+ * A target for the given opcode.
+ * <p>
+ * The opcode can be specified as a number or as its name, e.g. {@code INVOKESTATIC} or {@code 184}.
+ * The name is resolved against the {@link Opcodes} fields and is case-insensitive. An unknown
+ * opcode makes the target return {@code null}, which is reported as an invalid target by
+ * {@link net.lenni0451.classtransform.targets.InjectionTargets#find}. The ordinal selects among
+ * the instructions with that opcode in bytecode order.
  */
 @ParametersAreNonnullByDefault
 public class OpcodeTarget implements IInjectionTarget {

@@ -63,9 +63,10 @@ import java.lang.annotation.Target;
 public @interface CRedirect {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods that contain the calls or field accesses to redirect.
+     * <p>
+     * Each entry combines a method name and descriptor, and wildcards allow matching multiple methods, for
+     * example {@code run()V} or {@code run*}.
      *
      * @return The method name and descriptor
      */
@@ -105,6 +106,9 @@ public @interface CRedirect {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices for the redirected invocation, selectable by {@link CTarget#slice()};
+     * ids must be unique among the declared slices.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -127,8 +131,9 @@ public @interface CRedirect {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.<br>
-     * The effective maximum is never lower than {@link #require()}.
+     * The maximum number of redirect targets that may be applied.
+     * Values below one remove the cap.
+     * The applied maximum is at least {@link #require()}.
      *
      * @return The maximum injection count
      */
@@ -143,6 +148,8 @@ public @interface CRedirect {
     int order() default 10000;
 
     /**
+     * Whether the redirect and target selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

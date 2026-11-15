@@ -45,6 +45,8 @@ public @interface CShadow {
     String[] aliases() default {};
 
     /**
+     * Whether the shadowed member name and descriptor should be remapped.
+     *
      * @return If the target member should be remapped
      */
     boolean remap() default true;

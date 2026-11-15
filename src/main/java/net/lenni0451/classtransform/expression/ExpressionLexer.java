@@ -5,7 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tokenize expression strings.
+ * Splits an expression string into {@link ExpressionToken}s.
+ * The lexer understands the literals, keywords, operators and punctuation of the expression language and
+ * rejects everything else. {@link #tokenize()} reads the whole input eagerly, while the internal {@code next()}
+ * method advances one token at a time; a single instance is intended for one tokenization pass.
  */
 @ParametersAreNonnullByDefault
 public class ExpressionLexer {
@@ -13,10 +16,25 @@ public class ExpressionLexer {
     private final String expression;
     private int index;
 
+    /**
+     * Creates a lexer for the given expression.
+     *
+     * @param expression the expression string to tokenize
+     */
     public ExpressionLexer(final String expression) {
         this.expression = expression;
     }
 
+    /**
+     * Tokenizes the whole input.
+     * <p>
+     * Reads from the current position to the end of the input; the returned list always ends with an
+     * {@link ExpressionToken.ExpressionTokenType#EOF} token.
+     *
+     * @return the tokens of the expression, including the trailing end-of-input token
+     * @throws IllegalArgumentException if the input contains an unknown character, an unterminated string or a
+     *                                  logical operator
+     */
     public List<ExpressionToken> tokenize() {
         List<ExpressionToken> tokens = new ArrayList<>();
         while (true) {

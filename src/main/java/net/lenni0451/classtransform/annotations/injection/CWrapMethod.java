@@ -39,8 +39,10 @@ import java.lang.annotation.Target;
 public @interface CWrapMethod {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.
+     * The methods whose body is wrapped by this transformer method.
+     * <p>
+     * Entries may name a single method with its descriptor or use wildcards for several methods, for example
+     * {@code tick()V} or {@code tick*}.
      *
      * @return The method name and descriptor
      */
@@ -63,7 +65,8 @@ public @interface CWrapMethod {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.
+     * The maximum number of methods that may be wrapped.
+     * Values below one disable the cap.
      *
      * @return The maximum injection count
      */
@@ -78,6 +81,8 @@ public @interface CWrapMethod {
     int order() default 1000;
 
     /**
+     * Whether the target method selectors should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

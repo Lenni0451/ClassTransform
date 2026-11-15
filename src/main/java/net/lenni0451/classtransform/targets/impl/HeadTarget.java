@@ -14,6 +14,11 @@ import java.util.Map;
 
 /**
  * A target for the head (before first instruction) of a method.
+ * <p>
+ * The target value, descriptor and slice are ignored. The target itself ignores the ordinal, but
+ * the ordinal is applied afterwards by the target resolver, so an ordinal other than {@code -1}
+ * or {@code 0} selects no instruction. The shift is always {@code BEFORE}; exactly one instruction
+ * is returned.
  */
 @ParametersAreNonnullByDefault
 public class HeadTarget implements IInjectionTarget {

@@ -11,6 +11,10 @@ import java.util.Map;
 
 /**
  * Remap MixinExtras local variable references to the native ClassTransform reference types.
+ * <p>
+ * Only classes that actually reference one of the MixinExtras reference interfaces are remapped.
+ *
+ * @see Remapper
  */
 public class LocalRefRemapper {
 
@@ -33,6 +37,8 @@ public class LocalRefRemapper {
     /**
      * Remap all MixinExtras local variable references in the given class.<br>
      * Calls to the reference interfaces are changed to calls to the native reference classes.
+     * <p>
+     * The supplied class node is updated in place; classes without references are left untouched.
      *
      * @param node The class to remap
      */

@@ -23,6 +23,11 @@ import java.util.Map;
 /**
  * A target for {@code instanceof} instructions.<br>
  * e.g. {@code java/lang/String}
+ * <p>
+ * The target is compared against the internal name of the tested type; slashes are normalized.
+ * The ordinal is not applied here and is handled by
+ * {@link net.lenni0451.classtransform.targets.InjectionTargets#find} instead.
+ * Returns an empty list when no instruction matches.
  */
 @ParametersAreNonnullByDefault
 public class InstanceofTarget implements IInjectionTarget {

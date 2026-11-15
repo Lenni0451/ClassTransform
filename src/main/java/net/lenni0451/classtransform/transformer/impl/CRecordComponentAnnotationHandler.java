@@ -18,6 +18,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Applies the {@link CRecordComponent} annotation by copying annotated fields into the transformed record and optionally adding record components, a constructor, getters and updated {@code toString}/{@code equals}/{@code hashCode} bootstraps.
+ * <p>
+ * Existing members with the same name and descriptor are rejected. The default object methods are only extended when they already use the {@code ObjectMethods} bootstrap.
+ */
 @ParametersAreNonnullByDefault
 public class CRecordComponentAnnotationHandler extends AnnotationHandler {
 

@@ -21,11 +21,24 @@ import java.util.function.Supplier;
 import static net.lenni0451.classtransform.utils.ASMUtils.dot;
 import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
+/**
+ * A class provider that reads class bytes from the class loaders it has seen as a {@link ClassFileTransformer}.
+ * <p>
+ * The constructor registers this instance as a transformer with the given {@link Instrumentation} and starts with the
+ * system class loader; every class loader passed to the transformer is remembered through a weak reference so that
+ * class loaders can still be garbage collected. Class names may be given with dots or slashes. Because class loaders
+ * cannot enumerate their classes, {@link #getAllClasses()} throws an {@link UnsupportedOperationException}.
+ */
 @ParametersAreNonnullByDefault
 public class InstrumentationClassProvider implements IClassProvider, ClassFileTransformer {
 
     private final Set<ClassLoader> classLoaders = Collections.newSetFromMap(new WeakHashMap<>());
 
+    /**
+     * Creates a provider and registers it as a class file transformer.
+     *
+     * @param instrumentation The instrumentation instance to register the transformer with
+     */
     public InstrumentationClassProvider(final Instrumentation instrumentation) {
         this.classLoaders.add(ClassLoader.getSystemClassLoader());
         instrumentation.addTransformer(this);

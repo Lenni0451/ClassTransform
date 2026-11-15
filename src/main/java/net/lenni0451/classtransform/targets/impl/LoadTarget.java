@@ -16,6 +16,12 @@ import java.util.Map;
 
 /**
  * The injection target for variable loads used by {@code @CModifyVariable}.
+ * <p>
+ * All local variable load instructions from {@code ILOAD} to {@code ALOAD} are returned in
+ * bytecode order. The target value and descriptor are ignored. The target itself ignores the
+ * ordinal, but the ordinal is applied afterwards by the target resolver and selects among the
+ * returned load instructions. The {@code @CModifyVariable} handler moves the ordinal into the
+ * target arguments instead, so it is not applied twice.
  */
 @ParametersAreNonnullByDefault
 public class LoadTarget implements IInjectionTarget {

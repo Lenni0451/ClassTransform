@@ -32,6 +32,12 @@ import static net.lenni0451.classtransform.utils.Types.returnType;
 /**
  * A target for {@link Opcodes#NEW} instructions.<br>
  * e.g. {@code java/lang/String}
+ * <p>
+ * The target matches the constructor invocation of an allocated object, not the {@code NEW}
+ * opcode itself. It accepts an internal name, a class descriptor, a full member declaration or
+ * a method descriptor whose return type is the created class. When a descriptor selector is
+ * present in {@link CTarget#desc()}, it is used instead of the target value. The ordinal counts
+ * matching constructor calls in bytecode order, and an empty list is returned when nothing matches.
  */
 @ParametersAreNonnullByDefault
 public class NewTarget implements IInjectionTarget {

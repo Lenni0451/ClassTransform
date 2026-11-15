@@ -19,6 +19,11 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 
 /**
  * Util to complete mappings which are missing some information about overridden methods.
+ *
+ * <p>The filler compares the non-private members of a class with those of its super classes. Because mappings usually
+ * go from named to obfuscated, inherited members are looked up through the reversed remapper and added to the original
+ * remapper with {@code skipIfExists} set, so existing mappings are never replaced. Classes that cannot be loaded are
+ * skipped by {@link #fillAllSuperMembers(MapRemapper, ClassTree, IClassProvider)}.
  */
 @ParametersAreNonnullByDefault
 public class SuperMappingFiller {

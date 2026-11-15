@@ -91,6 +91,8 @@ public class TransformerManager implements ClassFileTransformer {
     final Set<String> transformedClasses = new HashSet<>();
 
     /**
+     * Create a transformer manager that does not remap any names.
+     *
      * @param classProvider The class provider used to get the class bytecode
      */
     public TransformerManager(final IClassProvider classProvider) {
@@ -98,6 +100,11 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Create a transformer manager and load the given mapper.
+     * <p>
+     * The mapper is initialized eagerly with {@link AMapper#load()}. Properties starting with
+     * {@code classtransform.constraint.} are registered as constraint tokens.
+     *
      * @param classProvider The class provider used to get the class bytecode
      * @param mapper        The mapper used to remap ClassTransform annotation targets and transformers if enabled
      */
@@ -169,6 +176,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the class tree used for hierarchy lookups while transforming.
+     *
      * @return The class tree
      */
     public ClassTree getClassTree() {
@@ -176,6 +185,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the class provider used to load class bytecode.
+     *
      * @return The class provider
      */
     public IClassProvider getClassProvider() {
@@ -183,6 +194,9 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the minimum injection count applied when an injection annotation uses a negative
+     * {@code require} value.
+     *
      * @return The minimum injection count used when require is negative
      */
     public int getDefaultRequiredInjections() {
@@ -190,7 +204,11 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Set the minimum injection count applied when an injection annotation uses a negative
+     * {@code require} value. Defaults to 0.
+     *
      * @param count The minimum injection count used when require is negative
+     * @throws IllegalArgumentException If the count is negative
      */
     public void setDefaultRequiredInjections(final int count) {
         if (count < 0) throw new IllegalArgumentException("Default injection count must not be negative");
@@ -198,6 +216,10 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Check if expected injection counts are validated.
+     * <p>
+     * This is initialized from the {@code mixin.debug.countInjections} system property.
+     *
      * @return If expected injection counts should be checked
      */
     public boolean isCheckInjectionCounts() {
@@ -225,8 +247,11 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the value of a constraint token registered with
+     * {@link #registerConstraintToken(String, int)} or the {@code classtransform.constraint.} system property.
+     *
      * @param token The token name
-     * @return The registered token value or null
+     * @return The registered token value or null if the token is unknown
      */
     @Nullable
     public Integer getConstraintToken(final String token) {
@@ -234,6 +259,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the mapper used to remap annotation values and transformers.
+     *
      * @return The mapper
      */
     public AMapper getMapper() {
@@ -241,6 +268,10 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the names of all registered transformers.
+     * <p>
+     * The returned set is an unmodifiable live view; names use dots as separators.
+     *
      * @return The names of all registered transformers
      */
     public Set<String> getRegisteredTransformer() {
@@ -248,6 +279,12 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the names of all classes which have at least one transformer registered.
+     * <p>
+     * The returned set is an unmodifiable live view. Names use dots as separators, except names
+     * added through {@link #addRawTransformer(String, IRawTransformer)}, which are stored verbatim
+     * and may use slashes.
+     *
      * @return The names of all transformed classes
      */
     public Set<String> getTransformedClasses() {
@@ -274,6 +311,10 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get all registered injection targets.
+     * <p>
+     * The map is unmodifiable and keyed by the uppercase target name.
+     *
      * @return The injection targets
      */
     public Map<String, IInjectionTarget> getInjectionTargets() {
@@ -292,6 +333,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the debugger attached to this manager.
+     *
      * @return The debugger instance
      */
     public TransformerDebugger getDebugger() {
@@ -308,6 +351,8 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
+     * Get the fail strategy used when a transformer fails. Defaults to {@link FailStrategy#EXIT}.
+     *
      * @return The current fail strategy
      */
     public FailStrategy getFailStrategy() {
@@ -315,7 +360,9 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * @return The instrumentation instance if hooked
+     * Get the hooked instrumentation instance.
+     *
+     * @return The instrumentation instance, or null if {@link #hookInstrumentation(Instrumentation)} was not called
      */
     @Nullable
     public Instrumentation getInstrumentation() {
@@ -375,10 +422,14 @@ public class TransformerManager implements ClassFileTransformer {
     }
 
     /**
-     * Add a transformer class to the transformer list.<br>
-     * Use the direct class name for a single transformer <i>(e.g. <b>package.Transformer</b>)</i><br>
-     * Use the package ending with '*' for all transformer in the packet (not sub packages) <i>(e.g. <b>package.*</b>)</i><br>
-     * Use the package ending with '**' for all transformer in the package and sub packages <i>(e.g. <b>package.**</b>)</i><br>
+     * Add a transformer class to the transformer list.
+     * <p>
+     * Use the direct class name for a single transformer <i>(e.g. <b>package.Transformer</b>)</i>.
+     * <p>
+     * Use the package ending with '*' for all transformers in the package (not sub packages) <i>(e.g. <b>package.*</b>)</i>.
+     * <p>
+     * Use the package ending with '**' for all transformers in the package and sub packages <i>(e.g. <b>package.**</b>)</i>.
+     * <p>
      * If the class is specified directly an exception will be thrown if the class is missing the {@link CTransformer} annotation.
      *
      * @param transformer The name of transformer class to add

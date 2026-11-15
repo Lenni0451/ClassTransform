@@ -5,6 +5,9 @@ import net.lenni0451.classtransform.annotations.CTarget;
 
 import java.lang.annotation.Annotation;
 
+/**
+ * Factory methods for creating {@link CTarget} annotation instances programmatically.
+ */
 public class CTargetImpl {
 
     private static final CDesc EMPTY_DESC = new CDesc() {
@@ -54,26 +57,82 @@ public class CTargetImpl {
         }
     };
 
+    /**
+     * Create a target selecting a method invocation.
+     *
+     * @param methodDeclaration The declaration of the invoked method
+     * @param ordinal           The zero-based index of the matching invocation, or a negative value for any
+     * @return The target
+     */
     public static CTarget invoke(final String methodDeclaration, final int ordinal) {
         return of("INVOKE", methodDeclaration, CTarget.Shift.AFTER, ordinal, false);
     }
 
+    /**
+     * Create a target selecting a field read.
+     *
+     * @param fieldDeclaration The declaration of the read field
+     * @param ordinal          The zero-based index of the matching read, or a negative value for any
+     * @return The target
+     */
     public static CTarget getfield(final String fieldDeclaration, final int ordinal) {
         return of("GETFIELD", fieldDeclaration, CTarget.Shift.AFTER, ordinal, false);
     }
 
+    /**
+     * Create a target selecting a field write.
+     *
+     * @param fieldDeclaration The declaration of the written field
+     * @param ordinal          The zero-based index of the matching write, or a negative value for any
+     * @return The target
+     */
     public static CTarget putfield(final String fieldDeclaration, final int ordinal) {
         return of("PUTFIELD", fieldDeclaration, CTarget.Shift.AFTER, ordinal, false);
     }
 
+    /**
+     * Create a target with no descriptor selector or explicit arguments.
+     *
+     * @param value    The target type, for example {@code INVOKE} or {@code HEAD}
+     * @param target   The member declaration to select
+     * @param shift    The instruction shift
+     * @param ordinal  The zero-based index of the matching instruction, or a negative value for any
+     * @param optional If a missing match is allowed
+     * @return The target
+     */
     public static CTarget of(final String value, final String target, final CTarget.Shift shift, final int ordinal, final boolean optional) {
         return of(value, target, shift, ordinal, optional, new String[0]);
     }
 
+    /**
+     * Create a target with explicit arguments and no descriptor selector.
+     *
+     * @param value    The target type, for example {@code INVOKE} or {@code HEAD}
+     * @param target   The member declaration to select
+     * @param shift    The instruction shift
+     * @param ordinal  The zero-based index of the matching instruction, or a negative value for any
+     * @param optional If a missing match is allowed
+     * @param args     The expected invocation arguments
+     * @return The target
+     */
     public static CTarget of(final String value, final String target, final CTarget.Shift shift, final int ordinal, final boolean optional, final String[] args) {
         return of(value, target, shift, ordinal, optional, args, EMPTY_DESC);
     }
 
+    /**
+     * Create a target with all selector values.
+     * <p>
+     * The returned target has an empty slice and id, opcode {@code -1}, offset {@code 0}, remapping enabled and the {@code ONE} selector.
+     *
+     * @param value    The target type, for example {@code INVOKE} or {@code HEAD}
+     * @param target   The member declaration to select
+     * @param shift    The instruction shift
+     * @param ordinal  The zero-based index of the matching instruction, or a negative value for any
+     * @param optional If a missing match is allowed
+     * @param args     The expected invocation arguments
+     * @param desc     The descriptor selector
+     * @return The target
+     */
     public static CTarget of(final String value, final String target, final CTarget.Shift shift, final int ordinal, final boolean optional, final String[] args, final CDesc desc) {
         return new CTarget() {
             @Override

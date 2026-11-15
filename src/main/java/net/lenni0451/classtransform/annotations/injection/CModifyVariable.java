@@ -41,9 +41,10 @@ import java.lang.annotation.Target;
 public @interface CModifyVariable {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods that declare the local variable to modify.
+     * <p>
+     * Selectors name a method and its descriptor, optionally with wildcards to cover several methods, for
+     * example {@code run()V} or {@code run*}.
      *
      * @return The method name and descriptor
      */
@@ -68,7 +69,7 @@ public @interface CModifyVariable {
     CTarget[] targets() default {};
 
     /**
-     * Descriptor selectors for the target methods.
+     * Descriptor selectors that restrict the methods declaring the modified variable.
      *
      * @return The descriptor selectors
      */
@@ -84,6 +85,9 @@ public @interface CModifyVariable {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices for locating the modified variable, selectable by {@link CTarget#slice()};
+     * duplicate ids are not allowed.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -98,6 +102,7 @@ public @interface CModifyVariable {
 
     /**
      * The ordinal of the variable type to modify.
+     * A value of {@code -1} disables ordinal matching.
      *
      * @return The variable ordinal or -1
      */
@@ -147,7 +152,8 @@ public @interface CModifyVariable {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.
+     * The maximum number of local variable modifications to apply.
+     * Values below one remove the limit.
      *
      * @return The maximum injection count
      */
@@ -161,6 +167,8 @@ public @interface CModifyVariable {
     int order() default 1000;
 
     /**
+     * Whether the variable and target selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

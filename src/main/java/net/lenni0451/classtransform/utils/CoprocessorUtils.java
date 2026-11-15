@@ -20,10 +20,13 @@ public class CoprocessorUtils {
 
     /**
      * Get all annotated parameters of a method.
+     * <p>
+     * The returned array has one entry per method parameter; entries for parameters without the annotation are {@code null}.
      *
      * @param methodNode      The method to get the parameters from
      * @param annotationClass The annotation class to search for
      * @return An array of annotated parameters or null if none were found
+     * @throws RuntimeException If the parameter and annotation counts differ
      */
     @Nullable
     public static AnnotatedParameter[] getAnnotatedParameters(final MethodNode methodNode, final Class<?> annotationClass) {
@@ -283,23 +286,48 @@ public class CoprocessorUtils {
             this.annotation = annotation;
         }
 
+        /**
+         * Get the position of this parameter among all annotated parameters.
+         *
+         * @return The annotation index
+         */
         public int getAnnotationIndex() {
             return this.annotationIndex;
         }
 
+        /**
+         * Get the local variable index of this parameter.
+         *
+         * @return The variable index
+         */
         public int getIndex() {
             return this.index;
         }
 
+        /**
+         * Get the name of this parameter from the local variable table.
+         *
+         * @return The name, or null if the local variable table is missing or has no entry for this parameter index
+         */
         @Nullable
         public String getName() {
             return this.name;
         }
 
+        /**
+         * Get the type of this parameter.
+         *
+         * @return The type
+         */
         public Type getType() {
             return this.type;
         }
 
+        /**
+         * Get the annotation of this parameter.
+         *
+         * @return The annotation
+         */
         public AnnotationNode getAnnotation() {
             return this.annotation;
         }

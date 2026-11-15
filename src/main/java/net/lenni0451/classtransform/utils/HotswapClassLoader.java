@@ -17,6 +17,9 @@ public class HotswapClassLoader extends ClassLoader {
 
     private final Map<String, byte[]> hotswapClasses;
 
+    /**
+     * Create a hotswap class loader and register it as parallel capable.
+     */
     public HotswapClassLoader() {
         ClassLoader.registerAsParallelCapable();
 
@@ -26,6 +29,8 @@ public class HotswapClassLoader extends ClassLoader {
     /**
      * Get the bytecode of a fake class.<br>
      * This fake class only contains a constructor.
+     * <p>
+     * The bytecode is generated on first use and cached.
      *
      * @param name The name of the class
      * @return The bytecode of the class
@@ -36,6 +41,8 @@ public class HotswapClassLoader extends ClassLoader {
 
     /**
      * Define a fake class in this class loader.
+     * <p>
+     * Failures are logged and swallowed.
      *
      * @param name The name of the class
      */

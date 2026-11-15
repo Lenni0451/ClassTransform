@@ -11,6 +11,10 @@ import static net.lenni0451.classtransform.utils.ASMUtils.slash;
 /**
  * Define anonymous classes at runtime.<br>
  * This class uses Unsafe for older java versions and method handles for newer versions.
+ * <p>
+ * The defined class is hidden and only reachable through the returned instance; it is not registered
+ * in a class loader under its name. Instances are immutable and the static Unsafe instance is resolved
+ * lazily, so concurrent first use may initialize it more than once.
  *
  * @param <T> The type of the class
  */
@@ -85,6 +89,8 @@ public class ClassDefiner<T> {
     }
 
     /**
+     * Get the class created by the definition call.
+     *
      * @return The defined class
      */
     public Class<?> getClazz() {
@@ -106,6 +112,10 @@ public class ClassDefiner<T> {
 
     /**
      * Create a new instance of the defined class using the given arguments.
+     * <p>
+     * The constructor is selected from the runtime classes of the arguments, so primitives have to be
+     * passed boxed and {@code null} arguments are not supported; use the overload taking explicit types
+     * in those cases.
      *
      * @param args The arguments for the constructor
      * @return The new instance
@@ -127,6 +137,7 @@ public class ClassDefiner<T> {
      * @param types  The types of the arguments
      * @param values The arguments for the constructor
      * @return The new instance
+     * @throws IllegalArgumentException  If the number of types and values differs
      * @throws NoSuchMethodException     When the class does not have a constructor with the given arguments
      * @throws InvocationTargetException When the constructor throws an exception
      * @throws InstantiationException    When the class is abstract

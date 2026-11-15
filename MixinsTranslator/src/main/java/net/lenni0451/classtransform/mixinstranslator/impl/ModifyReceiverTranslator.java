@@ -8,6 +8,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates MixinExtras' {@code @ModifyReceiver} into {@link CModifyReceiver}.
+ * <p>
+ * The source {@code at} injection points are translated in place and moved to {@code target}; all
+ * remaining members are copied. Common injector settings and slices are handled by
+ * {@link AnnotationTranslator#translateInjection(Map)}.
+ * <p>
+ * The targets are not validated during translation; the generated {@link CModifyReceiver} still
+ * requires each target to be a non-static method call or field access.
+ *
+ * @see CModifyReceiver
+ */
 @ParametersAreNonnullByDefault
 class ModifyReceiverTranslator implements AnnotationTranslator {
 

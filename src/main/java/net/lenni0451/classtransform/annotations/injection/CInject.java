@@ -69,9 +69,10 @@ import java.lang.annotation.Target;
 public @interface CInject {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods that receive the injected calls.
+     * <p>
+     * Each entry combines a method name with its descriptor and may use wildcards to match several methods,
+     * for example {@code print(Ljava/lang/String;)V} or {@code print*}.
      *
      * @return The method name and descriptor
      */
@@ -112,6 +113,9 @@ public @interface CInject {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices selectable by {@link CTarget#slice()} to narrow the injection range;
+     * their ids must be unique.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -134,8 +138,9 @@ public @interface CInject {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.<br>
-     * The effective maximum is never lower than {@link #require()}.
+     * The upper bound on applied injection points.
+     * A value below one removes the limit.
+     * The effective cap is raised to {@link #require()} when necessary.
      *
      * @return The maximum injection count
      */
@@ -150,6 +155,9 @@ public @interface CInject {
     int order() default 1000;
 
     /**
+     * Whether the method and target selectors of this injection, including nested targets, should be
+     * remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

@@ -48,9 +48,10 @@ import java.lang.annotation.Target;
 public @interface CWrapCondition {
 
     /**
-     * The method name and descriptor to inject into.<br>
-     * This supports multiple targets and wildcards.<br>
-     * e.g. {@code print(Ljava/lang/String;)V} or {@code print*}
+     * The methods containing the operation wrapped by the condition.
+     * <p>
+     * Selectors use the combined name and descriptor form and can contain wildcards, for example
+     * {@code test()Z} or {@code test*}.
      *
      * @return The method name and descriptor
      */
@@ -75,6 +76,9 @@ public @interface CWrapCondition {
     CSlice slice() default @CSlice;
 
     /**
+     * Additional named slices for the wrapped condition, selectable by {@link CTarget#slice()};
+     * each id may only be declared once.
+     *
      * @return Additional named slices selected by {@link CTarget#slice()}
      */
     @AnnotationRemap(RemapType.ANNOTATION)
@@ -97,8 +101,9 @@ public @interface CWrapCondition {
     int expect() default 1;
 
     /**
-     * The maximum count. Values below one are ignored.<br>
-     * The effective maximum is never lower than {@link #require()}.
+     * The maximum number of wrapped operations that may receive the condition.
+     * A value below one leaves the count unrestricted.
+     * The bound is never below {@link #require()}.
      *
      * @return The maximum injection count
      */
@@ -113,6 +118,8 @@ public @interface CWrapCondition {
     int order() default 1000;
 
     /**
+     * Whether the condition and target selectors of this injection should be remapped.
+     *
      * @return If the selectors in this annotation should be remapped
      */
     boolean remap() default true;

@@ -13,14 +13,39 @@ import java.lang.invoke.MethodType;
 
 /**
  * Type helpers for the expression engine.
+ * Computes the type produced by an instruction and defines the pseudo types used by the value flow analysis.
  */
 @ParametersAreNonnullByDefault
 public class ExpressionTypes {
 
+    /**
+     * The type of {@code java.lang.Object}, used whenever no more precise type is known.
+     */
     public static final Type OBJECT_TYPE = Type.getType(Object.class);
+    /**
+     * A pseudo type standing for the {@code null} constant and for values whose type could not be resolved.
+     * It is deliberately distinct from {@link #OBJECT_TYPE}; merging with a concrete type usually yields the
+     * concrete type.
+     */
     public static final Type NULL_TYPE = Type.getObjectType("null");
+    /**
+     * A pseudo type shared by {@code boolean}, {@code byte}, {@code char}, {@code short} and {@code int}.
+     * Constant instructions report this type because the JVM does not distinguish the int-like types on the
+     * operand stack; merging two int-like types keeps it.
+     */
     public static final Type INT_LIKE_TYPE = Type.getObjectType("int-like");
 
+    /**
+     * Computes the type produced by an instruction without operands.
+     * <p>
+     * Handles constant pushes, {@code LDC} constants, {@code GETSTATIC} and {@code NEW}. For {@code LDC} of a
+     * class constant the result is {@code Class}, for a method type {@code MethodType} and for a method handle
+     * {@code MethodHandle}.
+     *
+     * @param insn the instruction
+     * @return the type produced by the instruction
+     * @throws IllegalArgumentException if the opcode is unsupported or the {@code LDC} constant is unknown
+     */
     public static Type getNewType(final AbstractInsnNode insn) {
         switch (insn.getOpcode()) {
             case Opcodes.ACONST_NULL:
@@ -69,6 +94,17 @@ public class ExpressionTypes {
         }
     }
 
+    /**
+     * Computes the type produced by an instruction with one operand.
+     * <p>
+     * Covers negations, primitive conversions, {@code ARRAYLENGTH}, {@code IINC}, conditional jumps and
+     * returns (which produce {@code void}), {@code GETFIELD}, array creation, {@code CHECKCAST} and
+     * {@code INSTANCEOF}.
+     *
+     * @param insn the instruction
+     * @return the type produced by the instruction
+     * @throws IllegalArgumentException if the opcode is unsupported
+     */
     public static Type getUnaryType(final AbstractInsnNode insn) {
         switch (insn.getOpcode()) {
             case Opcodes.INEG:
@@ -144,6 +180,21 @@ public class ExpressionTypes {
         }
     }
 
+    /**
+     * Computes the type produced by an instruction with two operands.
+     * <p>
+     * Arithmetic instructions produce their natural result type and array loads the type of the loaded element;
+     * for {@code AALOAD} (reference arrays) and {@code BALOAD} (boolean and byte arrays) that element type is
+     * derived from the array type passed as {@code left}. The compare instructions {@code LCMP}, {@code FCMPL},
+     * {@code FCMPG}, {@code DCMPL} and {@code DCMPG} produce an {@code int}, while the {@code IF_ICMP*} and
+     * {@code IF_ACMP*} comparisons and {@code PUTFIELD} produce {@code void}.
+     *
+     * @param insn the instruction
+     * @param left the type of the left operand, used to resolve the element type of {@code AALOAD} and
+     *             {@code BALOAD}
+     * @return the type produced by the instruction
+     * @throws IllegalArgumentException if the opcode is unsupported
+     */
     public static Type getBinaryType(final AbstractInsnNode insn, @Nullable final Type left) {
         switch (insn.getOpcode()) {
             case Opcodes.LALOAD:
@@ -213,12 +264,27 @@ public class ExpressionTypes {
         }
     }
 
+    /**
+     * Computes the type produced by an instruction with a variable number of operands.
+     * <p>
+     * For method and invokedynamic calls this is the return type; for {@code MULTIANEWARRAY} it is the created
+     * array type.
+     *
+     * @param insn the instruction
+     * @return the type produced by the instruction
+     */
     public static Type getNaryType(final AbstractInsnNode insn) {
         if (insn.getOpcode() == Opcodes.MULTIANEWARRAY) return Type.getType(((MultiANewArrayInsnNode) insn).desc);
         if (insn.getOpcode() == Opcodes.INVOKEDYNAMIC) return Type.getReturnType(((InvokeDynamicInsnNode) insn).desc);
         return Type.getReturnType(((MethodInsnNode) insn).desc);
     }
 
+    /**
+     * Returns the type a cast instruction converts to.
+     *
+     * @param insn the instruction
+     * @return the cast target type, or null if the instruction is not a cast
+     */
     public static Type getCastType(final AbstractInsnNode insn) {
         switch (insn.getOpcode()) {
             case Opcodes.CHECKCAST:
@@ -250,12 +316,29 @@ public class ExpressionTypes {
         }
     }
 
+    /**
+     * Returns the element type of an array type.
+     * <p>
+     * {@link #NULL_TYPE} is preserved and non-array types yield {@link #OBJECT_TYPE}.
+     *
+     * @param arrayType the array type
+     * @return the element type
+     */
     public static Type getInnerType(final Type arrayType) {
         if (arrayType.equals(NULL_TYPE)) return NULL_TYPE;
         if (arrayType.getSort() != Type.ARRAY) return OBJECT_TYPE;
         return Type.getType(arrayType.getDescriptor().substring(1));
     }
 
+    /**
+     * Tests if a type is one of the int-like types.
+     * <p>
+     * These are {@code boolean}, {@code byte}, {@code char}, {@code short}, {@code int} and the
+     * {@link #INT_LIKE_TYPE} pseudo type.
+     *
+     * @param type the type to test, may be null
+     * @return whether the type is int-like
+     */
     public static boolean isIntLike(@Nullable final Type type) {
         if (type == null) return false;
         switch (type.getSort()) {
@@ -272,10 +355,28 @@ public class ExpressionTypes {
         }
     }
 
+    /**
+     * Tests if a type is a primitive or an int-like pseudo type.
+     *
+     * @param type the type to test, may be null
+     * @return whether the type is primitive-like
+     */
     public static boolean isPrimitiveLike(@Nullable final Type type) {
         return type != null && (type.getSort() >= Type.BOOLEAN && type.getSort() <= Type.DOUBLE || isIntLike(type));
     }
 
+    /**
+     * Merges two types into the type both values can be represented as.
+     * <p>
+     * Used for control flow merges in {@link ExpressionFlow}. {@link #NULL_TYPE} acts as the neutral element.
+     * Two int-like types merge to {@link #INT_LIKE_TYPE}; two distinct reference types, and arrays with any
+     * non-int-like type, merge to {@link #OBJECT_TYPE}; combining an int-like type with any other type yields
+     * {@link #NULL_TYPE}, as does combining two primitive sorts unless both are int-like.
+     *
+     * @param first  the first type
+     * @param second the second type
+     * @return the merged type, never null
+     */
     public static Type getCommonSupertype(final Type first, final Type second) {
         if (first.equals(second) || second.equals(NULL_TYPE)) return first;
         if (first.equals(NULL_TYPE)) return second;
@@ -287,6 +388,14 @@ public class ExpressionTypes {
         return OBJECT_TYPE;
     }
 
+    /**
+     * Returns the boxed wrapper type of a primitive type.
+     * <p>
+     * Non-primitive types are returned unchanged.
+     *
+     * @param type the type to box
+     * @return the boxed type or the input type if it is not primitive
+     */
     public static Type primitiveToBoxed(final Type type) {
         switch (type.getSort()) {
             case Type.BOOLEAN: return Type.getType(Boolean.class);
@@ -301,6 +410,14 @@ public class ExpressionTypes {
         }
     }
 
+    /**
+     * Returns the name of the method which unboxes a primitive type.
+     * <p>
+     * For example {@code int} yields {@code intValue}.
+     *
+     * @param type the primitive type
+     * @return the unboxing method name, or null if the type is not a supported primitive
+     */
     public static String getUnboxingMethod(final Type type) {
         switch (type.getSort()) {
             case Type.BOOLEAN: return "booleanValue";
